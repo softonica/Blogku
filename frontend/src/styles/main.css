@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --c-primary-50: 238, 242, 255;
+    --c-primary-100: 224, 231, 255;
+    --c-primary-200: 199, 210, 254;
+    --c-primary-300: 165, 180, 252;
+    --c-primary-400: 129, 140, 248;
+    --c-primary-500: 99, 102, 241;
+    --c-primary-600: 79, 70, 229;
+    --c-primary-700: 67, 56, 202;
+    --c-primary-800: 55, 48, 163;
+    --c-primary-900: 49, 46, 129;
+    --c-primary-950: 30, 27, 75;
+
+    --c-secondary-50: 240, 253, 250;
+    --c-secondary-100: 204, 251, 241;
+    --c-secondary-200: 153, 246, 228;
+    --c-secondary-300: 94, 234, 212;
+    --c-secondary-400: 45, 212, 191;
+    --c-secondary-500: 20, 184, 166;
+    --c-secondary-600: 13, 148, 136;
+    --c-secondary-700: 15, 118, 110;
+    --c-secondary-800: 17, 94, 89;
+    --c-secondary-900: 19, 78, 74;
+    --c-secondary-950: 4, 47, 46;
+
+    --c-neutral-50: 249, 250, 251;
+    --c-neutral-100: 243, 244, 246;
+    --c-neutral-200: 229, 231, 235;
+    --c-neutral-300: 209, 213, 219;
+    --c-neutral-400: 156, 163, 175;
+    --c-neutral-500: 107, 114, 128;
+    --c-neutral-600: 75, 85, 99;
+    --c-neutral-700: 55, 65, 81;
+    --c-neutral-800: 31, 41, 55;
+    --c-neutral-900: 17, 24, 39;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply font-sans antialiased;
+  }
+
+  ::selection {
+    @apply bg-primary-200 text-primary-900;
+  }
+
+  :focus-visible {
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply container py-10 sm:py-14;
+  }
+
+  .prose-ncmaz {
+    @apply prose prose-neutral max-w-none dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-a:text-primary-600 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-primary-300;
+  }
+
+  .prose-ncmaz :where(img):not(:where([class~='not-prose'] *)) {
+    @apply rounded-3xl;
+  }
+
+  .prose-ncmaz :where(blockquote):not(:where([class~='not-prose'] *)) {
+    @apply border-s-4 border-primary-300 bg-neutral-50 py-1 not-italic dark:border-primary-700 dark:bg-neutral-900;
+  }
+
+  .prose-ncmaz :where(blockquote p:first-of-type)::before,
+  .prose-ncmaz :where(blockquote p:last-of-type)::after {
+    content: none;
+  }
+
+  .prose-ncmaz :where(pre):not(:where([class~='not-prose'] *)) {
+    @apply rounded-2xl bg-neutral-900 text-neutral-100 dark:bg-black;
+  }
+
+  .prose-ncmaz :where(code):not(:where([class~='not-prose'] *)) {
+    @apply rounded bg-neutral-100 px-1.5 py-0.5 font-medium text-neutral-800 before:content-none after:content-none dark:bg-neutral-800 dark:text-neutral-200;
+  }
+
+  .prose-ncmaz :where(pre code):not(:where([class~='not-prose'] *)) {
+    @apply bg-transparent p-0 text-inherit;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
