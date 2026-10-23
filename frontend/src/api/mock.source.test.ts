@@ -135,8 +135,8 @@ describe('MockSource', () => {
     // Guest cannot create post
     await expect(
       source.createPost({
-        title: 'New Story',
-        excerpt: 'Story excerpt',
+        title: 'New Post',
+        excerpt: 'Post excerpt',
         content: '<p>Content</p>',
       }),
     ).rejects.toThrow('LOGIN_REQUIRED')
@@ -145,8 +145,8 @@ describe('MockSource', () => {
     await source.login('subscriber', 'password')
     await expect(
       source.createPost({
-        title: 'New Story',
-        excerpt: 'Story excerpt',
+        title: 'New Post',
+        excerpt: 'Post excerpt',
         content: '<p>Content</p>',
       }),
     ).rejects.toThrow('FORBIDDEN')
@@ -197,9 +197,9 @@ describe('MockSource', () => {
     const tags = await source.listTags()
 
     const created = await source.createPost({
-      title: 'Exciting Video Story',
+      title: 'Exciting Video Post',
       excerpt: 'Watch this amazing journey.',
-      content: '<p>A video story about technology.</p>',
+      content: '<p>A video post about technology.</p>',
       postType: 'video',
       videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
       categoryIds: [cats[0]!.id, cats[1]!.id],
@@ -286,7 +286,7 @@ describe('MockSource', () => {
     const newCat = await source.createCategory({
       name: 'Artificial Intelligence',
       slug: 'ai',
-      description: 'AI and ML editorial stories',
+      description: 'AI and ML editorial posts',
       image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995',
     })
     expect(newCat.id).toBeDefined()

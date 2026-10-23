@@ -37,7 +37,7 @@ const variantClass = computed(() =>
 async function toggle(): Promise<void> {
   if (busy.value) return
   if (!auth.isAuthenticated) {
-    ui.notify('Sign in to like this story.', 'info')
+    ui.notify('Sign in to like this post.', 'info')
     await router.push({ name: 'login', query: { redirect: route.fullPath } })
     return
   }
@@ -68,8 +68,8 @@ async function toggle(): Promise<void> {
       showCount
         ? `${formatNumber(count)} ${liked ? 'likes, click to unlike' : 'likes, click to like'}`
         : liked
-          ? 'Unlike this story'
-          : 'Like this story'
+          ? 'Unlike this post'
+          : 'Like this post'
     "
     :disabled="busy"
     @click.stop.prevent="toggle"

@@ -19,7 +19,7 @@ defineProps<{ posts: Post[] }>()
           <span>Listen to the podcast live 🎶</span>
         </h2>
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          Audio stories, conversations, and deep dives from our editors
+          Audio posts, conversations, and deep dives from our editors
         </p>
       </div>
     </div>

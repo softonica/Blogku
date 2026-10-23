@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { FolderTree, MessageSquareOff, Settings, Users } from 'lucide-vue-next'
+import { FileText, FolderTree, MessageSquareOff, Settings, Type, Users } from 'lucide-vue-next'
 
 const route = useRoute()
 
@@ -28,6 +28,18 @@ const tabs = [
     to: '/admin/moderation',
     icon: MessageSquareOff,
     current: route.path === '/admin/moderation',
+  },
+  {
+    name: 'Manage Pages',
+    to: '/admin/pages',
+    icon: FileText,
+    current: route.path === '/admin/pages',
+  },
+  {
+    name: 'Editor Settings',
+    to: '/admin/editor-settings',
+    icon: Type,
+    current: route.path === '/admin/editor-settings',
   },
 ]
 </script>

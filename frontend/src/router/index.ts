@@ -21,7 +21,7 @@ const router = createRouter({
       path: '/post/:slug',
       name: 'post',
       component: () => import('@/pages/PostPage.vue'),
-      meta: { title: 'Story' },
+      meta: { title: 'Post' },
     },
     {
       path: '/category/:slug',
@@ -48,6 +48,27 @@ const router = createRouter({
       meta: { title: 'Search' },
     },
     {
+      path: '/about',
+      name: 'about',
+      component: () => import('@/components/pages/StaticPage.vue'),
+      props: { slug: 'about' },
+      meta: { title: 'About' },
+    },
+    {
+      path: '/contact',
+      name: 'contact',
+      component: () => import('@/components/pages/StaticPage.vue'),
+      props: { slug: 'contact' },
+      meta: { title: 'Contact' },
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: () => import('@/components/pages/StaticPage.vue'),
+      props: { slug: 'privacy' },
+      meta: { title: 'Privacy Policy' },
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('@/pages/LoginPage.vue'),
@@ -56,8 +77,7 @@ const router = createRouter({
     {
       path: '/sign-up',
       name: 'sign-up',
-      component: () => import('@/pages/SignUpPage.vue'),
-      meta: { title: 'Create account' },
+      redirect: { name: 'login', query: { mode: 'register' } },
     },
     {
       path: '/reset-password',
@@ -80,7 +100,7 @@ const router = createRouter({
       name: 'editor',
       component: () => import('@/pages/EditorPage.vue'),
       meta: {
-        title: 'New story',
+        title: 'New post',
         requiresAuth: true,
         permission: 'write_post',
       },
@@ -110,7 +130,7 @@ const router = createRouter({
       name: 'editor-edit',
       component: () => import('@/pages/EditorPage.vue'),
       meta: {
-        title: 'Edit story',
+        title: 'Edit post',
         requiresAuth: true,
         permission: 'write_post',
       },
@@ -170,6 +190,26 @@ const router = createRouter({
         title: 'Comment Moderation',
         requiresAuth: true,
         permission: 'moderate_comment',
+      },
+    },
+    {
+      path: '/admin/pages',
+      name: 'admin-pages',
+      component: () => import('@/pages/admin/AdminPagesPage.vue'),
+      meta: {
+        title: 'Manage Pages',
+        requiresAuth: true,
+        permission: 'manage_settings',
+      },
+    },
+    {
+      path: '/admin/editor-settings',
+      name: 'admin-editor-settings',
+      component: () => import('@/pages/admin/AdminEditorSettingsPage.vue'),
+      meta: {
+        title: 'Text Editor Settings',
+        requiresAuth: true,
+        permission: 'manage_settings',
       },
     },
     {

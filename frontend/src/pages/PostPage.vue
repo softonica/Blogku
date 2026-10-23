@@ -35,7 +35,7 @@ const categories = ref<Category[]>([])
 const tags = ref<Tag[]>([])
 const loading = ref(true)
 const error = ref('')
-const title = ref('Story')
+const title = ref('Post')
 const shareOpen = ref(false)
 useDocumentTitle(title)
 
@@ -73,7 +73,7 @@ async function load(): Promise<void> {
   try {
     const found = await source.getPostBySlug(slug.value)
     if (!found) {
-      title.value = 'Story not found'
+      title.value = 'Post not found'
       loading.value = false
       return
     }
@@ -159,8 +159,8 @@ async function copyLink(): Promise<void> {
 
     <EmptyState
       v-else-if="!post"
-      title="Story not found"
-      description="This story may have been moved, unpublished, or never existed."
+      title="Post not found"
+      description="This post may have been moved, unpublished, or never existed."
     >
       <RouterLink
         to="/"
@@ -233,14 +233,14 @@ async function copyLink(): Promise<void> {
             class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
           >
             <PenLine class="h-4 w-4" aria-hidden="true" />
-            Edit story
+            Edit post
           </RouterLink>
           <LikeButton :post="post" />
           <SaveButton :post-id="post.id" :post-title="post.title" show-label />
           <button
             type="button"
             class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 px-4 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
-            aria-label="Share story"
+            aria-label="Share post"
             @click="openShare"
           >
             <Share2 class="h-4 w-4" aria-hidden="true" />
@@ -327,13 +327,13 @@ async function copyLink(): Promise<void> {
       class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/60 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label="Share story"
+      aria-label="Share post"
       @click.self="closeShare"
       @keydown.esc="closeShare"
     >
       <div class="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-float dark:border-neutral-800 dark:bg-neutral-950">
         <div class="flex items-center justify-between gap-3">
-          <h2 class="text-lg font-bold text-neutral-900 dark:text-white">Share this story</h2>
+          <h2 class="text-lg font-bold text-neutral-900 dark:text-white">Share this post</h2>
           <button
             type="button"
             class="inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 dark:hover:bg-neutral-800"

@@ -15,12 +15,12 @@ import BaseButton from '@/components/ui/BaseButton.vue'
       This page took a wrong turn
     </h1>
     <p class="mt-3 max-w-md text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
-      The link may be broken, or the story may have moved. Try the home page or
+      The link may be broken, or the post may have moved. Try the home page or
       search the archive.
     </p>
     <div class="mt-8 flex flex-wrap justify-center gap-3">
       <BaseButton to="/">Back home</BaseButton>
-      <BaseButton to="/search" variant="outline">Search stories</BaseButton>
+      <BaseButton to="/search" variant="outline">Search posts</BaseButton>
     </div>
   </div>
 </template>

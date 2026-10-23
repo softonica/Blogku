@@ -2,7 +2,6 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  ArrowLeft,
   Check,
   FileText,
   Globe,
@@ -28,6 +27,7 @@ import {
 } from '@/lib/image-domains'
 import { canManagePost } from '@/lib/permissions'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
+import { useEditorSettingsStore } from '@/stores/editor-settings'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import RichTextEditor from '@/components/editor/RichTextEditor.vue'
 import PostImage from '@/components/ui/PostImage.vue'
@@ -37,6 +37,11 @@ const router = useRouter()
 const drafts = useDraftStore()
 const auth = useAuthStore()
 const ui = useUiStore()
+const editorSettings = useEditorSettingsStore()
+
+onMounted(() => {
+  editorSettings.load()
+})
 
 const postId = computed(() =>
   typeof route.params.id === 'string' && route.params.id ? route.params.id : '',
@@ -307,6 +312,14 @@ async function publishStory(): Promise<void> {
     error.value = `Domain gambar cover "${domain}" tidak diizinkan. Gunakan upload gambar atau domain yang diizinkan.`
     return
   }
+  const maxLen = editorSettings.settings.maxContentLength
+  if (maxLen > 0) {
+    const plain = content.value.replace(/<[^>]*>/g, '').trim()
+    if (plain.length > maxLen) {
+      error.value = `Konten melebihi batas ${maxLen} karakter.`
+      return
+    }
+  }
   const parsed = draftSchema.safeParse({
     title: title.value,
     excerpt: excerpt.value,
@@ -338,7 +351,7 @@ async function publishStory(): Promise<void> {
         tagIds: selectedTagIds.value,
         status: 'published',
       })
-      ui.notify('Story updated successfully!')
+      ui.notify('Post updated successfully!')
       void router.push({ name: 'post', params: { slug: updated.slug } })
     } else {
       const created = await getDataSource().createPost({
@@ -357,11 +370,11 @@ async function publishStory(): Promise<void> {
       if (existingDraft.value) {
         drafts.remove(existingDraft.value.id)
       }
-      ui.notify('Story published!')
+      ui.notify('Post published!')
       void router.push({ name: 'post', params: { slug: created.slug } })
     }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to publish story.'
+    error.value = err instanceof Error ? err.message : 'Failed to publish post.'
   } finally {
     publishing.value = false
   }
@@ -380,19 +393,12 @@ async function publishStory(): Promise<void> {
         class="sticky top-0 z-30 border-b border-neutral-200/80 bg-white/90 backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/90"
       >
         <div class="mx-auto flex h-16 sm:h-20 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <!-- Left: Back to Home & Brand -->
+          <!-- Left: Status badge -->
           <div class="flex items-center gap-3">
-            <RouterLink
-              to="/"
-              class="flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 transition"
-              title="Back to home"
-            >
-              <ArrowLeft class="h-5 w-5" />
-            </RouterLink>
             <div class="hidden sm:block">
               <span class="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
                 <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                {{ postId ? 'Editing Story' : 'Draft Autosaved' }}
+                {{ postId ? 'Editing Post' : 'Draft Autosaved' }}
               </span>
             </div>
           </div>
@@ -593,7 +599,7 @@ async function publishStory(): Promise<void> {
               </span>
             </div>
             <h1 class="text-3xl font-bold text-neutral-900 sm:text-5xl dark:text-white leading-tight">
-              {{ title || 'Untitled Story' }}
+              {{ title || 'Untitled Post' }}
             </h1>
             <p v-if="excerpt" class="mt-4 text-base text-neutral-500 dark:text-neutral-300 leading-relaxed">
               {{ excerpt }}

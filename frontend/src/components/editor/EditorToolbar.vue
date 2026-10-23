@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
+import { useEditorSettingsStore } from '@/stores/editor-settings'
 import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   Bold,
   Code,
   Heading2,
@@ -14,7 +18,10 @@ import {
   Minus,
   Quote,
   Redo2,
+  Smile,
   Strikethrough,
+  Table,
+  Trash2,
   Undo2,
   Unlink,
   Upload,
@@ -30,8 +37,20 @@ const props = defineProps<{
   editor: Editor | undefined
 }>()
 
+const editorSettings = useEditorSettingsStore()
+
+onMounted(() => {
+  editorSettings.load()
+})
+
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
+const emojiOpen = ref(false)
+
+const emojis = [
+  '😀', '😂', '😍', '👍', '🎉', '🔥', '❤️', '✨',
+  '🚀', '👏', '🤔', '😅', '🙏', '💡', '🌟', '🥳',
+]
 
 function toggleLink(): void {
   if (!props.editor) return
@@ -49,12 +68,36 @@ function toggleLink(): void {
   props.editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run()
 }
 
+function insertEmoji(emoji: string): void {
+  if (!props.editor) return
+  props.editor.chain().focus().insertContent(emoji).run()
+  emojiOpen.value = false
+}
+
+function setAlign(align: 'left' | 'center' | 'right'): void {
+  if (!props.editor) return
+  props.editor.chain().focus().setTextAlign(align).run()
+}
+
+function insertTable(): void {
+  if (!props.editor) return
+  props.editor
+    .chain()
+    .focus()
+    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+    .run()
+}
+
+function deleteTable(): void {
+  if (!props.editor) return
+  props.editor.chain().focus().deleteTable().run()
+}
+
 async function insertImageUrl(): Promise<void> {
   if (!props.editor) return
   const url = window.prompt('Enter image URL (e.g. https://images.unsplash.com/...):')
   if (!url || !url.trim()) return
 
-  // Check allowed image domain
   let allowed = DEFAULT_ALLOWED_IMAGE_DOMAINS
   try {
     const s = await getDataSource().getSiteSettings()
@@ -83,6 +126,15 @@ async function onFileSelected(event: Event): Promise<void> {
   const file = input.files?.[0]
   if (!file || !props.editor) return
 
+  const maxSize = editorSettings.settings.maxImageUploadSize
+  if (maxSize > 0 && file.size > maxSize) {
+    window.alert(
+      `Ukuran file melebihi batas ${Math.round(maxSize / 1024 / 1024)}MB. Silakan pilih gambar yang lebih kecil.`,
+    )
+    input.value = ''
+    return
+  }
+
   uploading.value = true
   try {
     const result = await getDataSource().uploadFile(file)
@@ -101,7 +153,6 @@ async function onFileSelected(event: Event): Promise<void> {
     v-if="editor"
     class="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-t-2xl border-b border-neutral-200 bg-neutral-50/95 p-2 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/95"
   >
-    <!-- Hidden file input for direct editor image uploads -->
     <input
       ref="fileInput"
       type="file"
@@ -111,7 +162,6 @@ async function onFileSelected(event: Event): Promise<void> {
       @change="onFileSelected"
     />
 
-    <!-- History Group -->
     <button
       type="button"
       title="Undo"
@@ -133,154 +183,245 @@ async function onFileSelected(event: Event): Promise<void> {
       <Redo2 class="h-4 w-4" aria-hidden="true" />
     </button>
 
-    <span class="toolbar-divider" />
+    <template v-if="editorSettings.settings.showHeadings">
+      <span class="toolbar-divider" />
+      <button
+        type="button"
+        title="Heading 2"
+        aria-label="Heading 2"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
+        @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
+      >
+        <Heading2 class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        title="Heading 3"
+        aria-label="Heading 3"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
+        @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
+      >
+        <Heading3 class="h-4 w-4" aria-hidden="true" />
+      </button>
+    </template>
 
-    <!-- Headings -->
-    <button
-      type="button"
-      title="Heading 2"
-      aria-label="Heading 2"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
-      @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
-    >
-      <Heading2 class="h-4 w-4" aria-hidden="true" />
-    </button>
-    <button
-      type="button"
-      title="Heading 3"
-      aria-label="Heading 3"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
-      @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
-    >
-      <Heading3 class="h-4 w-4" aria-hidden="true" />
-    </button>
+    <template v-if="editorSettings.settings.showFormatting">
+      <span class="toolbar-divider" />
+      <button
+        type="button"
+        title="Bold"
+        aria-label="Bold"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('bold') }"
+        @click="editor.chain().focus().toggleBold().run()"
+      >
+        <Bold class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        title="Italic"
+        aria-label="Italic"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('italic') }"
+        @click="editor.chain().focus().toggleItalic().run()"
+      >
+        <Italic class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        title="Strikethrough"
+        aria-label="Strikethrough"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('strike') }"
+        @click="editor.chain().focus().toggleStrike().run()"
+      >
+        <Strikethrough class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        title="Inline Code"
+        aria-label="Inline Code"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('code') }"
+        @click="editor.chain().focus().toggleCode().run()"
+      >
+        <Code class="h-4 w-4" aria-hidden="true" />
+      </button>
+    </template>
 
-    <span class="toolbar-divider" />
+    <template v-if="editorSettings.settings.showLists">
+      <span class="toolbar-divider" />
+      <button
+        type="button"
+        title="Bullet List"
+        aria-label="Bullet List"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('bulletList') }"
+        @click="editor.chain().focus().toggleBulletList().run()"
+      >
+        <List class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        title="Numbered List"
+        aria-label="Numbered List"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('orderedList') }"
+        @click="editor.chain().focus().toggleOrderedList().run()"
+      >
+        <ListOrdered class="h-4 w-4" aria-hidden="true" />
+      </button>
+    </template>
 
-    <!-- Text Formatting -->
-    <button
-      type="button"
-      title="Bold"
-      aria-label="Bold"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('bold') }"
-      @click="editor.chain().focus().toggleBold().run()"
-    >
-      <Bold class="h-4 w-4" aria-hidden="true" />
-    </button>
-    <button
-      type="button"
-      title="Italic"
-      aria-label="Italic"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('italic') }"
-      @click="editor.chain().focus().toggleItalic().run()"
-    >
-      <Italic class="h-4 w-4" aria-hidden="true" />
-    </button>
-    <button
-      type="button"
-      title="Strikethrough"
-      aria-label="Strikethrough"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('strike') }"
-      @click="editor.chain().focus().toggleStrike().run()"
-    >
-      <Strikethrough class="h-4 w-4" aria-hidden="true" />
-    </button>
-    <button
-      type="button"
-      title="Inline Code"
-      aria-label="Inline Code"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('code') }"
-      @click="editor.chain().focus().toggleCode().run()"
-    >
-      <Code class="h-4 w-4" aria-hidden="true" />
-    </button>
+    <template v-if="editorSettings.settings.showBlockquote">
+      <span class="toolbar-divider" />
+      <button
+        type="button"
+        title="Blockquote"
+        aria-label="Blockquote"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('blockquote') }"
+        @click="editor.chain().focus().toggleBlockquote().run()"
+      >
+        <Quote class="h-4 w-4" aria-hidden="true" />
+      </button>
+    </template>
 
-    <span class="toolbar-divider" />
+    <template v-if="editorSettings.settings.showRule">
+      <span class="toolbar-divider" />
+      <button
+        type="button"
+        title="Horizontal Divider"
+        aria-label="Horizontal Divider"
+        class="toolbar-btn"
+        @click="editor.chain().focus().setHorizontalRule().run()"
+      >
+        <Minus class="h-4 w-4" aria-hidden="true" />
+      </button>
+    </template>
 
-    <!-- Lists & Blocks -->
-    <button
-      type="button"
-      title="Bullet List"
-      aria-label="Bullet List"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('bulletList') }"
-      @click="editor.chain().focus().toggleBulletList().run()"
-    >
-      <List class="h-4 w-4" aria-hidden="true" />
-    </button>
-    <button
-      type="button"
-      title="Numbered List"
-      aria-label="Numbered List"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('orderedList') }"
-      @click="editor.chain().focus().toggleOrderedList().run()"
-    >
-      <ListOrdered class="h-4 w-4" aria-hidden="true" />
-    </button>
-    <button
-      type="button"
-      title="Blockquote"
-      aria-label="Blockquote"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('blockquote') }"
-      @click="editor.chain().focus().toggleBlockquote().run()"
-    >
-      <Quote class="h-4 w-4" aria-hidden="true" />
-    </button>
-    <button
-      type="button"
-      title="Horizontal Divider"
-      aria-label="Horizontal Divider"
-      class="toolbar-btn"
-      @click="editor.chain().focus().setHorizontalRule().run()"
-    >
-      <Minus class="h-4 w-4" aria-hidden="true" />
-    </button>
+    <template v-if="editorSettings.settings.showLink || editorSettings.settings.showImageUpload || editorSettings.settings.showImageUrl || editorSettings.settings.showEmoji">
+      <span class="toolbar-divider" />
+      <button
+        v-if="editorSettings.settings.showLink"
+        type="button"
+        :title="editor.isActive('link') ? 'Remove Link' : 'Add Link'"
+        :aria-label="editor.isActive('link') ? 'Remove Link' : 'Add Link'"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('link') }"
+        @click="toggleLink"
+      >
+        <Unlink v-if="editor.isActive('link')" class="h-4 w-4 text-rose-500" aria-hidden="true" />
+        <Link2 v-else class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        v-if="editorSettings.settings.showImageUpload"
+        type="button"
+        title="Upload Image File"
+        aria-label="Upload Image File"
+        class="toolbar-btn"
+        :disabled="uploading"
+        @click="triggerFileUpload"
+      >
+        <Upload class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        v-if="editorSettings.settings.showImageUrl"
+        type="button"
+        title="Insert Image from URL"
+        aria-label="Insert Image from URL"
+        class="toolbar-btn"
+        @click="insertImageUrl"
+      >
+        <Image class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <div v-if="editorSettings.settings.showEmoji" class="relative">
+        <button
+          type="button"
+          title="Insert Emoji"
+          aria-label="Insert Emoji"
+          class="toolbar-btn"
+          :class="{ 'is-active': emojiOpen }"
+          @click="emojiOpen = !emojiOpen"
+        >
+          <Smile class="h-4 w-4" aria-hidden="true" />
+        </button>
+        <div
+          v-if="emojiOpen"
+          class="absolute end-0 top-full z-20 mt-2 grid w-44 grid-cols-4 gap-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
+        >
+          <button
+            v-for="emoji in emojis"
+            :key="emoji"
+            type="button"
+            class="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            @click="insertEmoji(emoji)"
+          >
+            {{ emoji }}
+          </button>
+        </div>
+      </div>
+    </template>
 
-    <span class="toolbar-divider" />
+    <template v-if="editorSettings.settings.showAlign">
+      <span class="toolbar-divider" />
+      <button
+        type="button"
+        title="Align Left"
+        aria-label="Align Left"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }"
+        @click="setAlign('left')"
+      >
+        <AlignLeft class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        title="Align Center"
+        aria-label="Align Center"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }"
+        @click="setAlign('center')"
+      >
+        <AlignCenter class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        title="Align Right"
+        aria-label="Align Right"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }"
+        @click="setAlign('right')"
+      >
+        <AlignRight class="h-4 w-4" aria-hidden="true" />
+      </button>
+    </template>
 
-    <!-- Links & Media -->
-    <button
-      type="button"
-      :title="editor.isActive('link') ? 'Remove Link' : 'Add Link'"
-      :aria-label="editor.isActive('link') ? 'Remove Link' : 'Add Link'"
-      class="toolbar-btn"
-      :class="{ 'is-active': editor.isActive('link') }"
-      @click="toggleLink"
-    >
-      <Unlink v-if="editor.isActive('link')" class="h-4 w-4 text-rose-500" aria-hidden="true" />
-      <Link2 v-else class="h-4 w-4" aria-hidden="true" />
-    </button>
-
-    <!-- Upload Image File -->
-    <button
-      type="button"
-      title="Upload Image File"
-      aria-label="Upload Image File"
-      class="toolbar-btn"
-      :disabled="uploading"
-      @click="triggerFileUpload"
-    >
-      <Upload class="h-4 w-4" aria-hidden="true" />
-    </button>
-
-    <!-- Insert Image via URL -->
-    <button
-      type="button"
-      title="Insert Image from URL"
-      aria-label="Insert Image from URL"
-      class="toolbar-btn"
-      @click="insertImageUrl"
-    >
-      <Image class="h-4 w-4" aria-hidden="true" />
-    </button>
+    <template v-if="editorSettings.settings.showTable">
+      <span class="toolbar-divider" />
+      <button
+        v-if="!editor.isActive('table')"
+        type="button"
+        title="Insert Table"
+        aria-label="Insert Table"
+        class="toolbar-btn"
+        @click="insertTable"
+      >
+        <Table class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        v-else
+        type="button"
+        title="Delete Table"
+        aria-label="Delete Table"
+        class="toolbar-btn"
+        @click="deleteTable"
+      >
+        <Trash2 class="h-4 w-4 text-rose-500" aria-hidden="true" />
+      </button>
+    </template>
   </div>
 </template>
 

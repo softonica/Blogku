@@ -2,8 +2,10 @@ import type {
   Category,
   CategoryInput,
   Comment,
+  EditorSettings,
   ListPostsParams,
   Page,
+  PageContent,
   Post,
   PostInput,
   ReactionType,
@@ -50,6 +52,13 @@ export interface DataSource {
   updateUserRole(userId: string, role: Role): Promise<User>
   getSiteSettings(): Promise<SiteSettings>
   updateSiteSettings(input: Partial<SiteSettings>): Promise<SiteSettings>
+  getPage(slug: string): Promise<PageContent | null>
+  updatePage(
+    slug: string,
+    input: { title?: string; body?: string },
+  ): Promise<PageContent>
+  getEditorSettings(): Promise<EditorSettings>
+  updateEditorSettings(input: Partial<EditorSettings>): Promise<EditorSettings>
   updateUserProfile(input: {
     name?: string
     bio?: string

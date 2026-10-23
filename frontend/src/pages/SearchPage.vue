@@ -87,7 +87,7 @@ async function submit(): Promise<void> {
           class="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 shadow-sm focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 dark:border-neutral-800 dark:bg-neutral-900 dark:focus-within:border-primary-500 dark:focus-within:ring-primary-950"
         >
           <Search class="h-5 w-5 shrink-0 text-neutral-400" aria-hidden="true" />
-          <label for="search-input" class="sr-only">Search stories</label>
+          <label for="search-input" class="sr-only">Search posts</label>
           <input
             id="search-input"
             v-model="input"

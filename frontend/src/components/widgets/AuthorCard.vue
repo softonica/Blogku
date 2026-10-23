@@ -26,7 +26,7 @@ withDefaults(
         <ArrowUpRight class="h-4 w-4" aria-hidden="true" />
       </RouterLink>
       <p class="mt-1 text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-        {{ author.postCount ?? 0 }} stories
+        {{ author.postCount ?? 0 }} posts
       </p>
       <p
         v-if="!compact"

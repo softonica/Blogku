@@ -5,7 +5,6 @@ import { Home, Search, X } from 'lucide-vue-next'
 import type { Category } from '@/api/types'
 import { useUiStore } from '@/stores/ui'
 import Brand from './Brand.vue'
-import ThemeToggle from './ThemeToggle.vue'
 
 defineProps<{ categories: Category[] }>()
 
@@ -40,9 +39,7 @@ function goSearch(): void {
       >
         <div class="flex items-center justify-between">
           <Brand />
-          <div class="flex items-center gap-1">
-            <ThemeToggle />
-            <button
+          <button
               type="button"
               class="inline-flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
               aria-label="Close menu"
@@ -50,7 +47,6 @@ function goSearch(): void {
             >
               <X class="h-5 w-5" aria-hidden="true" />
             </button>
-          </div>
         </div>
 
         <nav class="mt-5 space-y-1">

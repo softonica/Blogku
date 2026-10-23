@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Hash } from 'lucide-vue-next'
 import type { Tag } from '@/api/types'
 import { getDataSource } from '@/api'
 import { usePagedPosts } from '@/composables/usePagedPosts'
@@ -55,17 +54,20 @@ watch(slug, init, { immediate: true })
 
 <template>
   <div>
-    <div class="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900">
-      <div class="container py-12 sm:py-16">
-        <p class="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.2em] text-primary-600 dark:text-primary-300">
-          <Hash class="h-3.5 w-3.5" aria-hidden="true" />
+    <div v-if="ready && tag" class="relative overflow-hidden bg-neutral-950">
+      <div class="absolute inset-0 bg-gradient-to-br from-primary-900/50 via-neutral-950 to-secondary-900/40"></div>
+      <div class="container relative py-14 sm:py-20">
+        <p class="text-center text-xs font-bold uppercase tracking-[0.2em] text-primary-300">
           Tag
         </p>
-        <h1 class="mt-3 text-3xl font-bold tracking-tight text-neutral-900 sm:text-5xl dark:text-white">
-          {{ tag ? tag.name : 'Tag' }}
+        <h1 class="mt-3 text-center text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          {{ tag.name }}
         </h1>
-        <p class="mt-3 text-sm font-medium text-neutral-500 dark:text-neutral-400">
-          {{ totalItems }} stories tagged “{{ tag?.name ?? slug }}”
+        <p class="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-neutral-300 sm:text-base">
+          Posts tagged “{{ tag.name }}”
+        </p>
+        <p class="mt-5 text-center text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
+          {{ totalItems }} posts
         </p>
       </div>
     </div>
@@ -81,7 +83,7 @@ watch(slug, init, { immediate: true })
         description="That tag does not exist. Try another topic."
       >
         <RouterLink
-          v-for="item in tags.slice(0, 4)"
+          v-for="item in tags.slice(0, 3)"
           :key="item.id"
           :to="`/tag/${item.slug}`"
           class="inline-flex h-10 items-center rounded-full border border-neutral-200 px-4 text-sm font-semibold text-neutral-700 dark:border-neutral-800 dark:text-neutral-200"
@@ -97,14 +99,17 @@ watch(slug, init, { immediate: true })
         >
           {{ error }}
         </div>
+
         <div v-else-if="loading" class="flex justify-center py-16">
           <LoadingSpinner />
         </div>
+
         <EmptyState
           v-else-if="!items.length"
-          title="No stories with this tag"
-          description="It is quiet here for now. Explore another topic instead."
+          title="No posts yet"
+          description="This tag is quiet for now. Check back soon or explore another tag."
         />
+
         <template v-else>
           <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <PostCard v-for="post in items" :key="post.id" :post="post" show-excerpt />

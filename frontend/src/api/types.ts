@@ -120,6 +120,30 @@ export interface TagInput {
   slug?: string
 }
 
+export interface PageContent {
+  slug: string
+  title: string
+  body: string
+}
+
+export interface EditorSettings {
+  placeholder: string
+  showHeadings: boolean
+  showFormatting: boolean
+  showLists: boolean
+  showBlockquote: boolean
+  showRule: boolean
+  showLink: boolean
+  showImageUpload: boolean
+  showImageUrl: boolean
+  showEmoji: boolean
+  showAlign: boolean
+  showTable: boolean
+  autolink: boolean
+  maxContentLength: number
+  maxImageUploadSize: number
+}
+
 export interface SiteSettings {
   siteName: string
   siteDescription: string

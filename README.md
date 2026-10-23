@@ -28,8 +28,8 @@ Built with **Vue 3.5 (Composition API)**, **Vite 8**, **Tailwind CSS v4**, and d
 
 ## 🚀 Live Demo
 
-- **Production App**: [https://md5u8xz.app.neoapp.id](https://md5u8xz.app.neoapp.id)
-- **Submission Portal**: [https://md5u8xz.app.neoapp.id/submission](https://md5u8xz.app.neoapp.id/submission)
+- **Production App**: [https://blogku-7rq.pages.dev](https://blogku-7rq.pages.dev)
+- **Submission Portal**: [https://blogku-7rq.pages.dev/submission](https://blogku-7rq.pages.dev/submission)
   - *Demo credentials: Username `demo` / Password `password`*
 
 ---

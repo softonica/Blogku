@@ -18,7 +18,6 @@ import { useUiStore } from '@/stores/ui'
 import { can } from '@/lib/permissions'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -39,12 +38,14 @@ async function logout(): Promise<void> {
 </script>
 
 <template>
-  <div v-if="!auth.isAuthenticated" class="flex items-center gap-2">
-    <BaseButton to="/login" variant="ghost" size="sm" class="hidden sm:inline-flex">
-      Sign in
-    </BaseButton>
-    <BaseButton to="/sign-up" size="sm">Join</BaseButton>
-  </div>
+  <RouterLink
+    v-if="!auth.isAuthenticated"
+    to="/login"
+    class="inline-flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+    aria-label="Sign in"
+  >
+    <User class="h-6 w-6" aria-hidden="true" />
+  </RouterLink>
   <div v-else ref="root" class="relative">
     <button
       type="button"
@@ -105,7 +106,7 @@ async function logout(): Promise<void> {
           @click="open = false"
         >
           <PenLine class="h-4 w-4" aria-hidden="true" />
-          Write Story
+          Write Post
         </RouterLink>
       </template>
 

@@ -35,7 +35,7 @@ const totalLikes = computed(() =>
 
 const stats = computed(() => [
   {
-    label: 'Published stories',
+    label: 'Published posts',
     value: formatNumber(posts.value.length),
     icon: FileText,
   },
@@ -78,13 +78,13 @@ function removeDraft(id: string): void {
 }
 
 async function deletePost(id: string): Promise<void> {
-  if (!confirm('Are you sure you want to delete this story?')) return
+  if (!confirm('Are you sure you want to delete this post?')) return
   try {
     await getDataSource().deletePost(id)
     posts.value = posts.value.filter((p) => p.id !== id)
-    ui.notify('Story deleted.')
+    ui.notify('Post deleted.')
   } catch (err) {
-    ui.notify(err instanceof Error ? err.message : 'Failed to delete story.', 'error')
+    ui.notify(err instanceof Error ? err.message : 'Failed to delete post.', 'error')
   }
 }
 </script>
@@ -144,7 +144,7 @@ async function deletePost(id: string): Promise<void> {
       <section>
         <div class="flex items-end justify-between">
           <h2 class="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
-            Your stories
+            Your posts
           </h2>
           <RouterLink
             to="/search"
@@ -160,7 +160,7 @@ async function deletePost(id: string): Promise<void> {
         <EmptyState
           v-else-if="!posts.length"
           class="mt-5"
-          title="No published stories"
+          title="No published posts"
           description="This account has no posts in the mock data. Try the demo account or save a local draft."
         >
           <BaseButton to="/editor" size="sm">Write a draft</BaseButton>

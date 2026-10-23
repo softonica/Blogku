@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { onBeforeUnmount, watch } from 'vue'
+import { onBeforeUnmount, onMounted, watch } from 'vue'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
+import TextAlign from '@tiptap/extension-text-align'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableHeader } from '@tiptap/extension-table-header'
+import { TableCell } from '@tiptap/extension-table-cell'
+import { useEditorSettingsStore } from '@/stores/editor-settings'
 import EditorToolbar from './EditorToolbar.vue'
 
 const props = withDefaults(
@@ -15,7 +21,7 @@ const props = withDefaults(
   }>(),
   {
     modelValue: '',
-    placeholder: 'Write your story here…',
+    placeholder: 'Write your post here…',
     disabled: false,
   },
 )
@@ -23,6 +29,12 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
+
+const editorSettings = useEditorSettingsStore()
+
+onMounted(() => {
+  editorSettings.load()
+})
 
 const editor = useEditor({
   content: props.modelValue,
@@ -35,11 +47,12 @@ const editor = useEditor({
       link: false,
     }),
     Placeholder.configure({
-      placeholder: props.placeholder,
+      placeholder: () =>
+        editorSettings.loaded ? editorSettings.settings.placeholder : props.placeholder,
     }),
     Link.configure({
       openOnClick: false,
-      autolink: true,
+      autolink: editorSettings.settings.autolink,
       HTMLAttributes: {
         rel: 'noopener noreferrer',
         class: 'text-primary-600 underline hover:text-primary-700 dark:text-primary-400',
@@ -51,6 +64,18 @@ const editor = useEditor({
         class: 'rounded-2xl max-h-[500px] object-cover mx-auto my-4 shadow-sm',
       },
     }),
+    TextAlign.configure({
+      types: ['heading', 'paragraph'],
+    }),
+    Table.configure({
+      resizable: true,
+      HTMLAttributes: {
+        class: 'border-collapse table-auto w-full my-4',
+      },
+    }),
+    TableRow,
+    TableHeader,
+    TableCell,
   ],
   editorProps: {
     attributes: {

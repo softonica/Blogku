@@ -23,7 +23,7 @@ Fitur ini mengubah tema bawaan sistem aplikasi Ncmaz menjadi **Dark Theme** seca
 
 ## 2. Alur Pengguna (User Flow)
 1. **Pengunjung Baru**:
-   - Membuka URL aplikasi `https://md5u8xz.app.neoapp.id/`.
+   - Membuka URL aplikasi `https://blogku-7rq.pages.dev/`.
    - Dokumen HTML langsung memiliki class `dark` pada root element `<html>` dan background `#0a0c12`. Tidak ada kedipan warna putih sama sekali.
    - Tema tersimpan di `uiStore` dengan default `'dark'`.
 2. **Pengunjung yang Mengubah Tema**:
@@ -73,7 +73,7 @@ flowchart TD
 
 ## 4. Hasil Audit Google PageSpeed / Lighthouse
 
-Audit diuji langsung pada live production URL: **`https://md5u8xz.app.neoapp.id/`** menggunakan Lighthouse Engine v12.
+Audit diuji langsung pada live production URL: **`https://blogku-7rq.pages.dev/`** menggunakan Lighthouse Engine v12.
 
 | Kategori Metrik | Skor Sebelum Optimasi | Skor Sesudah Optimasi | Status |
 | :--- | :---: | :---: | :---: |
@@ -116,6 +116,6 @@ Audit diuji langsung pada live production URL: **`https://md5u8xz.app.neoapp.id/
 
 3. **Verifikasi Lighthouse**:
    ```bash
-   npx lighthouse https://md5u8xz.app.neoapp.id --preset=desktop --only-categories=accessibility,seo,best-practices
+   npx lighthouse https://blogku-7rq.pages.dev --preset=desktop --only-categories=accessibility,seo,best-practices
    ```
    *Hasil*: Accessibility 100, SEO 100, Best Practices 96.

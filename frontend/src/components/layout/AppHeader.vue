@@ -35,7 +35,7 @@ const linkClass =
       <div class="px-4 xl:container">
         <div class="flex h-16 justify-between sm:h-20">
           <!-- Left (mobile): menu toggle -->
-          <div class="flex flex-1 items-center lg:hidden">
+          <div class="flex flex-1 items-center gap-2 lg:hidden">
             <button
               type="button"
               class="inline-flex h-10 w-10 -ms-2 items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
@@ -44,6 +44,7 @@ const linkClass =
             >
               <Menu class="h-5 w-5" aria-hidden="true" />
             </button>
+            <Brand />
           </div>
 
           <!-- Desktop left group: logo + divider + search -->
@@ -66,10 +67,7 @@ const linkClass =
             </div>
           </div>
 
-          <!-- Mobile center logo -->
-          <div class="flex flex-1 items-center justify-center lg:hidden">
-            <Brand />
-          </div>
+
 
           <!-- Right group -->
           <div class="flex flex-1 items-center justify-end gap-1.5 sm:gap-2.5">

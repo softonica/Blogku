@@ -30,7 +30,7 @@ const accessibleLabel = computed(() => {
       ? `Remove "${props.postTitle}" from bookmarks`
       : `Save "${props.postTitle}" to bookmarks`
   }
-  return saved.value ? 'Remove from bookmarks' : 'Save story to bookmarks'
+  return saved.value ? 'Remove from bookmarks' : 'Save post to bookmarks'
 })
 
 function toggle(): void {

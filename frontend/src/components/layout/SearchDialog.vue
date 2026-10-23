@@ -42,7 +42,7 @@ function onKeydown(event: KeyboardEvent): void {
       class="fixed inset-0 z-50 flex items-start justify-center bg-neutral-950/60 px-4 pt-24 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label="Search stories"
+      aria-label="Search posts"
       @click.self="close"
       @keydown="onKeydown"
     >
@@ -55,7 +55,7 @@ function onKeydown(event: KeyboardEvent): void {
             ref="input"
             v-model="query"
             type="search"
-            placeholder="Search stories, topics, authors…"
+            placeholder="Search posts, topics, authors…"
             class="h-10 flex-1 border-0 bg-transparent text-base text-neutral-900 placeholder:text-neutral-400 focus:ring-0 dark:text-white"
             aria-label="Search query"
           />

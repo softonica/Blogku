@@ -79,7 +79,7 @@ describe('sanitizePlainText', () => {
   })
 
   it('trims whitespace and preserves clean punctuation', () => {
-    expect(sanitizePlainText('   My Story Title!   ')).toBe('My Story Title!')
+    expect(sanitizePlainText('   My Post Title!   ')).toBe('My Post Title!')
   })
 })
 

@@ -118,7 +118,7 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
               <tr>
                 <th scope="col" class="px-6 py-4">User</th>
                 <th scope="col" class="px-6 py-4">Email</th>
-                <th scope="col" class="px-6 py-4 text-center">Stories</th>
+                <th scope="col" class="px-6 py-4 text-center">Posts</th>
                 <th scope="col" class="px-6 py-4">Current Role</th>
                 <th scope="col" class="px-6 py-4 text-end">Change Role</th>
               </tr>

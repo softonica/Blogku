@@ -106,10 +106,10 @@ const roleDescription = computed(() => {
     case 'admin':
       return 'Administrator with full privileges over settings, users, and moderation.'
     case 'penulis':
-      return 'Author privileges: write and manage your own stories, drafts, tags, and categories.'
+      return 'Author privileges: write and manage your own posts, drafts, tags, and categories.'
     case 'subscriber':
     default:
-      return 'Subscriber privileges: bookmark stories, participate in discussions, and react.'
+      return 'Subscriber privileges: bookmark posts, participate in discussions, and react.'
   }
 })
 

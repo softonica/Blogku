@@ -414,7 +414,7 @@ async function executeDeleteTag() {
                 <th scope="col" class="px-6 py-4 font-semibold">Category</th>
                 <th scope="col" class="px-6 py-4 font-semibold">Slug</th>
                 <th scope="col" class="px-6 py-4 font-semibold">Description</th>
-                <th scope="col" class="px-6 py-4 font-semibold text-center">Stories</th>
+                <th scope="col" class="px-6 py-4 font-semibold text-center">Posts</th>
                 <th scope="col" class="px-6 py-4 font-semibold text-end">Actions</th>
               </tr>
             </thead>
@@ -545,7 +545,7 @@ async function executeDeleteTag() {
               #{{ tag.name }}
             </RouterLink>
             <p class="mt-0.5 truncate font-mono text-[11px] text-neutral-400">
-              {{ tag.slug }} · {{ tag.postCount ?? 0 }} stories
+              {{ tag.slug }} · {{ tag.postCount ?? 0 }} posts
             </p>
           </div>
 

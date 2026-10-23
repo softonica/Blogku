@@ -9,8 +9,10 @@ import type {
   Category,
   CategoryInput,
   Comment,
+  EditorSettings,
   ListPostsParams,
   Page,
+  PageContent,
   Post,
   PostInput,
   ReactionType,
@@ -20,6 +22,7 @@ import type {
   TagInput,
   User,
 } from './types'
+import { DEFAULT_EDITOR_SETTINGS } from '@/lib/editor-defaults'
 import { comments as seedComments } from './mock-data/comments'
 import { categories as seedCategories } from './mock-data/categories'
 import { posts as seedPosts } from './mock-data/posts'
@@ -34,6 +37,8 @@ const USERS_KEY = 'ncmaz.mock.users.v1'
 const COMMENTS_KEY = 'ncmaz.mock.comments.v1'
 const REACTIONS_KEY = 'ncmaz.mock.reactions.v1'
 const SETTINGS_KEY = 'ncmaz.mock.settings.v1'
+const PAGES_KEY = 'ncmaz.mock.pages.v1'
+const EDITOR_SETTINGS_KEY = 'ncmaz.mock.editor-settings.v1'
 
 interface ReactionRecord {
   postId: string
@@ -43,7 +48,7 @@ interface ReactionRecord {
 
 const defaultSettings: SiteSettings = {
   siteName: 'Blogku',
-  siteDescription: 'Modern magazine, editorial and community stories written with care.',
+  siteDescription: 'Modern magazine, editorial and community posts written with care.',
   contactEmail: 'contact@blogku.com',
   allowRegistration: true,
   footerText: '© 2026 Blogku — Safe · Fast · Simple digital editorial platform.',
@@ -57,6 +62,24 @@ const defaultSettings: SiteSettings = {
     'cdn.jsdelivr.net',
     'picsum.photos',
   ],
+}
+
+const defaultPages: Record<string, PageContent> = {
+  about: {
+    slug: 'about',
+    title: 'About',
+    body: '<p>Blogku is a modern editorial platform focused on technology, design, travel and culture. This is a phase 1 rewrite built with Vue 3 and a backend-ready data adapter.</p>',
+  },
+  contact: {
+    slug: 'contact',
+    title: 'Contact',
+    body: '<p>Reach out to us and we will get back to you as soon as possible.</p><p>Email: contact@blogku.com</p>',
+  },
+  privacy: {
+    slug: 'privacy',
+    title: 'Privacy Policy',
+    body: '<p>This privacy policy explains what information we collect and how we use it. In this phase 1 mock, all data stays in your browser.</p>',
+  },
 }
 
 const isTest = import.meta.env.MODE === 'test'
@@ -149,6 +172,8 @@ export class MockSource implements DataSource {
   private comments: Comment[]
   private reactions: ReactionRecord[]
   private settings: SiteSettings
+  private pages: Record<string, PageContent>
+  private editorSettings: EditorSettings
 
   constructor() {
     this.posts = readJson<Post[]>(POSTS_KEY, seedPosts)
@@ -158,6 +183,11 @@ export class MockSource implements DataSource {
     this.comments = readJson<Comment[]>(COMMENTS_KEY, seedComments)
     this.reactions = readJson<ReactionRecord[]>(REACTIONS_KEY, [])
     this.settings = readJson<SiteSettings>(SETTINGS_KEY, defaultSettings)
+    this.pages = readJson<Record<string, PageContent>>(PAGES_KEY, defaultPages)
+    this.editorSettings = readJson<EditorSettings>(
+      EDITOR_SETTINGS_KEY,
+      DEFAULT_EDITOR_SETTINGS,
+    )
   }
 
   async listPosts(params: ListPostsParams): Promise<Page<Post>> {
@@ -222,7 +252,7 @@ export class MockSource implements DataSource {
 
     const title = sanitizePlainText(input.title)
     if (!title) throw new Error('Title is required')
-    const slug = (input.slug && slugify(input.slug)) || slugify(title) || `story-${Date.now()}`
+    const slug = (input.slug && slugify(input.slug)) || slugify(title) || `post-${Date.now()}`
     const excerpt = sanitizePlainText(input.excerpt)
     const content = sanitizeHtml(input.content)
     const words = content.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).filter(Boolean).length
@@ -237,7 +267,7 @@ export class MockSource implements DataSource {
           id: 'cat_general',
           name: 'General',
           slug: 'general',
-          description: 'Stories',
+          description: 'Posts',
           image: 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1200',
           parentId: null,
         }]
@@ -700,6 +730,63 @@ export class MockSource implements DataSource {
     this.settings = { ...this.settings, ...sanitizedInput }
     writeJson(SETTINGS_KEY, this.settings)
     return this.settings
+  }
+
+  async getPage(slug: string): Promise<PageContent | null> {
+    await wait()
+    const page = this.pages[slug]
+    if (!page) return null
+    return { ...page }
+  }
+
+  async updatePage(
+    slug: string,
+    input: { title?: string; body?: string },
+  ): Promise<PageContent> {
+    await wait()
+    const current = this.currentUser()
+    if (!current || current.role !== 'admin') {
+      throw new Error('FORBIDDEN')
+    }
+    const existing = this.pages[slug]
+    if (!existing) throw new Error('Page not found')
+
+    const next: PageContent = {
+      ...existing,
+      title:
+        input.title !== undefined ? sanitizePlainText(input.title) : existing.title,
+      body:
+        input.body !== undefined ? sanitizeHtml(input.body) : existing.body,
+    }
+    this.pages = { ...this.pages, [slug]: next }
+    writeJson(PAGES_KEY, this.pages)
+    return { ...next }
+  }
+
+  async getEditorSettings(): Promise<EditorSettings> {
+    await wait()
+    return { ...this.editorSettings }
+  }
+
+  async updateEditorSettings(input: Partial<EditorSettings>): Promise<EditorSettings> {
+    await wait()
+    const current = this.currentUser()
+    if (!current || current.role !== 'admin') {
+      throw new Error('FORBIDDEN')
+    }
+    const sanitized: Partial<EditorSettings> = { ...input }
+    if (input.placeholder !== undefined) {
+      sanitized.placeholder = sanitizePlainText(input.placeholder)
+    }
+    if (typeof input.maxContentLength === 'number') {
+      sanitized.maxContentLength = Math.max(0, Math.floor(input.maxContentLength))
+    }
+    if (typeof input.maxImageUploadSize === 'number') {
+      sanitized.maxImageUploadSize = Math.max(0, Math.floor(input.maxImageUploadSize))
+    }
+    this.editorSettings = { ...this.editorSettings, ...sanitized }
+    writeJson(EDITOR_SETTINGS_KEY, this.editorSettings)
+    return { ...this.editorSettings }
   }
 
   async updateUserProfile(input: {

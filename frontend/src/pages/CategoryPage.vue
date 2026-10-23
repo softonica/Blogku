@@ -76,7 +76,7 @@ watch(slug, init, { immediate: true })
           {{ category.description }}
         </p>
         <p class="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
-          {{ totalItems }} stories
+          {{ totalItems }} posts
         </p>
       </div>
     </div>
@@ -115,7 +115,7 @@ watch(slug, init, { immediate: true })
 
         <EmptyState
           v-else-if="!items.length"
-          title="No stories yet"
+          title="No posts yet"
           description="This desk is quiet for now. Check back soon or explore another category."
         />
 

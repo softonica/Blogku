@@ -110,7 +110,7 @@ async function follow(): Promise<void> {
               {{ author.bio }}
             </p>
             <div class="mt-4 flex flex-wrap items-center gap-5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              <span>{{ totalItems }} stories</span>
+              <span>{{ totalItems }} posts</span>
               <span>{{ author.postCount ?? totalItems }} published</span>
               <span>Phase 1 mock profile</span>
             </div>
@@ -133,7 +133,7 @@ async function follow(): Promise<void> {
 
       <div class="mt-10">
         <h2 class="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
-          Stories by {{ author.name }}
+          Posts by {{ author.name }}
         </h2>
 
         <div
@@ -148,7 +148,7 @@ async function follow(): Promise<void> {
         <EmptyState
           v-else-if="!items.length"
           class="mt-6"
-          title="No stories yet"
+          title="No posts yet"
           description="This author has not published anything in the mock data."
         />
         <template v-else>

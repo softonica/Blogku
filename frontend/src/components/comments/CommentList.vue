@@ -36,7 +36,7 @@ const emit = defineEmits<{ delete: [id: string] }>()
       v-else-if="!comments.length"
       class="mt-6"
       title="No comments yet"
-      description="Be the first to add a thoughtful note to this story."
+      description="Be the first to add a thoughtful note to this post."
     />
     <div v-else class="mt-6 space-y-6">
       <CommentItem

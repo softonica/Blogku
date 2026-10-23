@@ -219,7 +219,7 @@ useIntersectionObserver(
                 variant="outline"
                 @click="loadMoreLatest()"
               >
-                Load more stories
+                Load more posts
               </BaseButton>
               <p
                 v-else-if="latestItems.length"

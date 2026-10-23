@@ -68,7 +68,7 @@ function clearAll(): void {
           Your bookmarks
         </h1>
         <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-          {{ bookmarks.count }} saved {{ bookmarks.count === 1 ? 'story' : 'stories' }}.
+          {{ bookmarks.count }} saved {{ bookmarks.count === 1 ? 'post' : 'posts' }}.
           Stored locally in this browser.
         </p>
       </div>
@@ -90,9 +90,9 @@ function clearAll(): void {
       v-else-if="!items.length"
       class="mt-10"
       title="No bookmarks yet"
-      description="Tap the bookmark icon on any story to keep it here for later."
+      description="Tap the bookmark icon on any post to keep it here for later."
     >
-      <BaseButton to="/" size="sm">Browse stories</BaseButton>
+      <BaseButton to="/" size="sm">Browse posts</BaseButton>
     </EmptyState>
 
     <div v-else class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

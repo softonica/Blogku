@@ -77,7 +77,7 @@ export const users: User[] = [
     name: 'Sam Subscriber',
     email: 'subscriber@ncmaz.com',
     avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=256&h=256&q=80',
-    bio: 'Avid reader and community subscriber. Can bookmark stories and leave comments.',
+    bio: 'Avid reader and community subscriber. Can bookmark posts and leave comments.',
     role: 'subscriber',
     postCount: 0,
   },

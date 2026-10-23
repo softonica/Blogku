@@ -9,7 +9,7 @@ import NewsletterForm from './NewsletterForm.vue'
     </p>
     <h3 class="mt-2 text-lg font-bold">One good read, every Sunday.</h3>
     <p class="mt-2 text-sm text-neutral-400">
-      No noise, no growth hacks. Just the stories worth your morning coffee.
+      No noise, no growth hacks. Just the posts worth your morning coffee.
     </p>
     <div class="mt-4">
       <NewsletterForm inverted compact />

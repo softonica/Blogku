@@ -73,7 +73,7 @@ async function removeComment(comment: Comment): Promise<void> {
             Comment Moderation
           </h1>
           <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-            Review community remarks across all stories and remove abusive or spam comments.
+            Review community remarks across all posts and remove abusive or spam comments.
           </p>
         </div>
 

@@ -1,6 +1,6 @@
 ﻿import { expect, test } from '@playwright/test'
 
-test('home renders the hero and opens a story', async ({ page }) => {
+test('home renders the hero and opens a post', async ({ page }) => {
   await page.goto('/')
   await expect(
     page.getByRole('heading', {
@@ -9,7 +9,7 @@ test('home renders the hero and opens a story', async ({ page }) => {
     }),
   ).toBeVisible()
 
-  await page.getByRole('link', { name: /read story/i }).click()
+  await page.getByRole('link', { name: /read post/i }).click()
   await expect(page).toHaveURL(/\/post\/the-quiet-rise-of-slow-technology$/)
   await expect(page.getByRole('heading', { name: /comments/i })).toBeVisible()
 })
@@ -34,7 +34,7 @@ test('demo user can sign in and reach the dashboard', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/dashboard$/)
   await expect(page.getByRole('heading', { name: 'Demo Reader' })).toBeVisible()
-  await expect(page.getByText(/published stories/i)).toBeVisible()
+  await expect(page.getByText(/published posts/i)).toBeVisible()
 })
 
 test('theme toggle switches between dark and light', async ({ page }) => {
@@ -49,7 +49,7 @@ test('theme toggle switches between dark and light', async ({ page }) => {
   await expect(html).toHaveClass(/dark/)
 })
 
-test('saving a story adds it to bookmarks and can be removed individually', async ({ page }) => {
+test('saving a post adds it to bookmarks and can be removed individually', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: /^Save ".+" to bookmarks$/ }).first().click()
   await page.goto('/bookmarks')
@@ -124,7 +124,7 @@ test('admin can access site settings, users and comment moderation', async ({ pa
   await expect(page.getByRole('heading', { name: 'Comment Moderation' })).toBeVisible()
 })
 
-test('author can publish a new story in editor and view it', async ({ page }) => {
+test('author can publish a new post in editor and view it', async ({ page }) => {
   await page.goto('/login')
   await page.getByLabel('Username or email').fill('demo')
   await page.getByLabel('Password', { exact: true }).fill('password')
@@ -134,7 +134,7 @@ test('author can publish a new story in editor and view it', async ({ page }) =>
   await page.goto('/editor')
   const title = page.getByPlaceholder(/new post title here/i)
   await expect(title).toBeVisible()
-  await title.fill('Automated E2E Test Story')
+  await title.fill('Automated E2E Test Post')
   await page.locator('.tiptap').fill('This is a paragraph created during E2E testing.')
 
   await page.getByRole('button', { name: /options/i }).click()
@@ -144,6 +144,6 @@ test('author can publish a new story in editor and view it', async ({ page }) =>
   await page.getByRole('button', { name: 'Publish', exact: true }).click()
 
   // Redirected to single post view
-  await expect(page).toHaveURL(/\/post\/automated-e2e-test-story$/)
-  await expect(page.getByRole('heading', { name: 'Automated E2E Test Story' })).toBeVisible()
+  await expect(page).toHaveURL(/\/post\/automated-e2e-test-post$/)
+  await expect(page.getByRole('heading', { name: 'Automated E2E Test Post' })).toBeVisible()
 })

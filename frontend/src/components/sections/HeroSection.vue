@@ -66,9 +66,9 @@ const subPosts = computed(() => (props.posts && props.posts.length > 1 ? props.p
             <RouterLink
               :to="`/post/${heroPost.slug}`"
               class="nc-Button inline-flex items-center justify-center rounded-2xl bg-primary-600 hover:bg-primary-500 text-white text-sm sm:text-base font-semibold py-3 px-5 sm:py-3.5 sm:px-6 transition shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-              :aria-label="`Read story: ${heroPost.title}`"
+              :aria-label="`Read post: ${heroPost.title}`"
             >
-              <span>Read story</span>
+              <span>Read post</span>
               <ArrowRight class="ms-2.5 h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             </RouterLink>
             <div class="flex items-center gap-2.5 text-xs text-neutral-300">
@@ -81,7 +81,7 @@ const subPosts = computed(() => (props.posts && props.posts.length > 1 ? props.p
     </div>
 
     <!-- 3 Overlapping Floating Cards (nc-Card5) -->
-    <h2 class="sr-only">Featured stories</h2>
+    <h2 class="sr-only">Featured posts</h2>
     <div
       v-if="subPosts.length"
       class="mt-6 grid transform gap-4 sm:grid-cols-2 md:-mt-20 md:grid-cols-3 lg:gap-8 lg:px-12 xl:px-16 2xl:px-24 relative z-10"
