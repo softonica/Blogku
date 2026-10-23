@@ -22,9 +22,3 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **07** | **Default Dark Theme & PageSpeed Audit** | ✅ Stable | [07-default-dark-theme-and-pagespeed-audit.md](./features/07-default-dark-theme-and-pagespeed-audit.md) |
 | **08** | **Blogku Branding & Taxonomies CRUD** | ✅ Stable | [08-blogku-branding-and-taxonomies-crud.md](./features/08-blogku-branding-and-taxonomies-crud.md) |
 
----
-
-## 📐 Arsitektur Keseluruhan
-- [Spesifikasi Rewrite Vue 3 + PocketBase (REWRITE-SPEC.md)](./../REWRITE-SPEC.md)
-- [Catatan Audit Keamanan (VULNERABILITY-NOTES.md)](./../VULNERABILITY-NOTES.md)
-- [Panduan Kontribusi (CONTRIBUTING.md)](./../CONTRIBUTING.md)
