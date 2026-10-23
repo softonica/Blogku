@@ -7,6 +7,7 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 import BgGlassmorphism from '@/components/layout/BgGlassmorphism.vue'
 import SearchDialog from '@/components/layout/SearchDialog.vue'
 import ToastHost from '@/components/layout/ToastHost.vue'
+import BackToTop from '@/components/layout/BackToTop.vue'
 
 const ui = useUiStore()
 const auth = useAuthStore()
@@ -44,5 +45,6 @@ watch(
     <AppFooter />
     <SearchDialog />
     <ToastHost />
+    <BackToTop />
   </div>
 </template>

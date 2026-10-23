@@ -1,7 +1,8 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Clock, Eye, Headphones, Link2, PenLine } from 'lucide-vue-next'
+import { Clock, Eye, Link2, PenLine, Share2, X } from 'lucide-vue-next'
+import { Facebook, Linkedin, MessageCircle, Send, Twitter } from 'lucide-vue-next'
 import type { Category, Comment, Post, Tag } from '@/api/types'
 import { getDataSource } from '@/api'
 import { formatDate, formatNumber, getErrorMessage } from '@/lib/format'
@@ -11,17 +12,13 @@ import { canManagePost } from '@/lib/permissions'
 import { useAuthStore } from '@/stores/auth'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useUiStore } from '@/stores/ui'
-import PostImage from '@/components/ui/PostImage.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import CategoryBadgeList from '@/components/post/CategoryBadgeList.vue'
 import TagBadge from '@/components/post/TagBadge.vue'
 import LikeButton from '@/components/post/LikeButton.vue'
 import SaveButton from '@/components/post/SaveButton.vue'
 import PostCard from '@/components/post/PostCard.vue'
-import AuthorCard from '@/components/widgets/AuthorCard.vue'
-import SidebarCategories from '@/components/widgets/SidebarCategories.vue'
-import SidebarTags from '@/components/widgets/SidebarTags.vue'
-import SidebarNewsletter from '@/components/widgets/SidebarNewsletter.vue'
+
 import CommentList from '@/components/comments/CommentList.vue'
 import CommentForm from '@/components/comments/CommentForm.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
@@ -31,7 +28,6 @@ const route = useRoute()
 const ui = useUiStore()
 const auth = useAuthStore()
 const slug = computed(() => String(route.params.slug ?? ''))
-
 const post = ref<Post | null>(null)
 const comments = ref<Comment[]>([])
 const related = ref<Post[]>([])
@@ -40,6 +36,7 @@ const tags = ref<Tag[]>([])
 const loading = ref(true)
 const error = ref('')
 const title = ref('Story')
+const shareOpen = ref(false)
 useDocumentTitle(title)
 
 const cleanContent = computed(() => sanitizeHtml(post.value?.content ?? ''))
@@ -48,6 +45,22 @@ const videoEmbedUrl = computed(() =>
 )
 const shareUrl = computed(() =>
   typeof window === 'undefined' ? '' : window.location.href,
+)
+
+const twitterShareUrl = computed(() =>
+  `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl.value)}&text=${encodeURIComponent(post.value?.title ?? '')}`,
+)
+const facebookShareUrl = computed(() =>
+  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl.value)}`,
+)
+const linkedinShareUrl = computed(() =>
+  `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl.value)}`,
+)
+const whatsappShareUrl = computed(() =>
+  `https://wa.me/?text=${encodeURIComponent(`${post.value?.title ?? ''} ${shareUrl.value}`)}`,
+)
+const telegramShareUrl = computed(() =>
+  `https://t.me/share/url?url=${encodeURIComponent(shareUrl.value)}&text=${encodeURIComponent(post.value?.title ?? '')}`,
 )
 
 async function load(): Promise<void> {
@@ -112,10 +125,19 @@ async function deleteComment(commentId: string): Promise<void> {
   }
 }
 
+function openShare(): void {
+  shareOpen.value = true
+}
+
+function closeShare(): void {
+  shareOpen.value = false
+}
+
 async function copyLink(): Promise<void> {
   try {
     await navigator.clipboard.writeText(shareUrl.value)
     ui.notify('Link copied to your clipboard.')
+    closeShare()
   } catch {
     ui.notify('Could not copy the link.', 'error')
   }
@@ -218,19 +240,16 @@ async function copyLink(): Promise<void> {
           <button
             type="button"
             class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 px-4 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
-            @click="copyLink"
+            aria-label="Share story"
+            @click="openShare"
           >
-            <Link2 class="h-4 w-4" aria-hidden="true" />
-            Copy link
+            <Share2 class="h-4 w-4" aria-hidden="true" />
+            Share
           </button>
         </div>
       </header>
 
-      <!-- Video embed (YouTube / Vimeo) -->
-      <div
-        v-if="post.postType === 'video' && videoEmbedUrl"
-        class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800"
-      >
+      <div v-if="post.postType === 'video' && videoEmbedUrl" class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
         <div class="aspect-[16/9] w-full bg-black">
           <iframe
             :src="videoEmbedUrl"
@@ -242,141 +261,145 @@ async function copyLink(): Promise<void> {
         </div>
       </div>
 
-      <!-- Direct Video file -->
-      <div
-        v-else-if="post.postType === 'video' && post.videoUrl"
-        class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800"
-      >
+      <div v-else-if="post.postType === 'video' && post.videoUrl" class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
         <div class="aspect-[16/9] w-full bg-black">
-          <video
-            :src="post.videoUrl"
-            controls
-            class="h-full w-full object-cover"
-          ></video>
+          <video :src="post.videoUrl" controls class="h-full w-full object-cover"></video>
         </div>
       </div>
 
-      <!-- Audio Story / Podcast -->
-      <div
-        v-else-if="post.postType === 'audio' && post.audioUrl"
-        class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] bg-neutral-900 shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800"
-      >
-        <div class="relative">
-          <PostImage
-            :src="post.cover"
-            :alt="post.title"
-            aspect="aspect-[16/9]"
-            sizes="(max-width: 1024px) 100vw, 1024px"
-            priority
-          />
-          <div
-            class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent"
-          ></div>
-          <div class="absolute inset-x-4 bottom-4 sm:inset-x-8 sm:bottom-8">
-            <div
-              class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/95 p-4 shadow-xl backdrop-blur-md dark:bg-neutral-900/95 sm:p-5"
+      <article class="prose prose-neutral mx-auto mt-10 max-w-3xl dark:prose-invert" v-html="cleanContent"></article>
+
+      <div v-if="post.tags?.length" class="mx-auto mt-8 flex max-w-3xl flex-wrap gap-2">
+        <TagBadge v-for="tag in post.tags" :key="tag.id" :tag="tag" />
+      </div>
+
+      <div class="mt-10 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-neutral-200 p-5 dark:border-neutral-800">
+        <div class="flex items-center gap-3">
+          <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+              Written by
+            </p>
+            <RouterLink
+              :to="`/author/${post.author.username}`"
+              class="text-sm font-bold text-neutral-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-300"
             >
-              <div class="flex items-center gap-3">
-                <div
-                  class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white"
-                >
-                  <Headphones class="h-5 w-5" aria-hidden="true" />
-                </div>
-                <div class="min-w-0 flex-1">
-                  <p
-                    class="truncate text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400"
-                  >
-                    Audio Story / Podcast
-                  </p>
-                  <p class="truncate text-sm font-semibold text-neutral-900 dark:text-white">
-                    {{ post.title }}
-                  </p>
-                </div>
-              </div>
-              <audio
-                :src="post.audioUrl"
-                controls
-                preload="metadata"
-                class="w-full focus:outline-none"
-              ></audio>
-            </div>
+              {{ post.author.name }}
+            </RouterLink>
           </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <LikeButton :post="post" />
+          <SaveButton :post-id="post.id" :post-title="post.title" show-label />
         </div>
       </div>
 
-      <!-- Standard Image Cover -->
-      <div v-else class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem]">
-        <PostImage
-          :src="post.cover"
-          :alt="post.title"
-          aspect="aspect-[16/9]"
-          sizes="(max-width: 1024px) 100vw, 1024px"
-          priority
-        />
+      <div class="mt-12">
+        <CommentList :comments="comments" @delete="deleteComment" />
+        <div class="mt-8">
+          <CommentForm :post-id="post.id" @created="addComment" />
+        </div>
       </div>
-
-      <div class="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_21rem]">
-        <div class="min-w-0">
-          <div class="prose-ncmaz" v-html="cleanContent"></div>
-
-          <div class="mt-8 flex flex-wrap gap-2">
-            <TagBadge v-for="tag in post.tags" :key="tag.id" :tag="tag" />
-          </div>
-
-          <div class="mt-10 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-neutral-200 p-5 dark:border-neutral-800">
-            <div class="flex items-center gap-3">
-              <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                  Written by
-                </p>
-                <RouterLink
-                  :to="`/author/${post.author.username}`"
-                  class="text-sm font-bold text-neutral-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-300"
-                >
-                  {{ post.author.name }}
-                </RouterLink>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <LikeButton :post="post" />
-              <SaveButton :post-id="post.id" :post-title="post.title" show-label />
-            </div>
-          </div>
-
-          <div class="mt-12">
-            <CommentList :comments="comments" @delete="deleteComment" />
-            <div class="mt-8">
-              <CommentForm :post-id="post.id" @created="addComment" />
-            </div>
-          </div>
-        </div>
-
-        <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
-          <AuthorCard :author="post.author" compact />
-          <SidebarCategories :categories="categories" />
-          <SidebarTags :tags="tags" />
-          <SidebarNewsletter />
-        </aside>
-      </div>
-
-      <section v-if="related.length" class="mt-16">
-        <div class="mb-6 flex items-end justify-between">
-          <h2 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-            Keep reading
-          </h2>
-          <RouterLink
-            v-if="post.categories[0]"
-            :to="`/category/${post.categories[0].slug}`"
-            class="text-sm font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-300"
-          >
-            More in {{ post.categories[0].name }}
-          </RouterLink>
-        </div>
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <PostCard v-for="item in related" :key="item.id" :post="item" />
-        </div>
-      </section>
     </template>
+
+    <section v-if="related.length" class="mt-16">
+      <div class="mb-6 flex items-end justify-between">
+        <h2 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+          Keep reading
+        </h2>
+        <RouterLink
+          v-if="post?.categories?.[0]"
+          :to="`/category/${post.categories[0].slug}`"
+          class="text-sm font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-300"
+        >
+          More in {{ post.categories[0].name }}
+        </RouterLink>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <PostCard v-for="item in related" :key="item.id" :post="item" />
+      </div>
+    </section>
   </div>
+
+  <Teleport to="body">
+    <div
+      v-if="shareOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/60 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Share story"
+      @click.self="closeShare"
+      @keydown.esc="closeShare"
+    >
+      <div class="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-float dark:border-neutral-800 dark:bg-neutral-950">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-lg font-bold text-neutral-900 dark:text-white">Share this story</h2>
+          <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            aria-label="Close share"
+            @click="closeShare"
+          >
+            <X class="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <a
+            :href="twitterShareUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+          >
+            <Twitter class="h-4 w-4" aria-hidden="true" />
+            X
+          </a>
+          <a
+            :href="facebookShareUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+          >
+            <Facebook class="h-4 w-4" aria-hidden="true" />
+            Facebook
+          </a>
+          <a
+            :href="linkedinShareUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+          >
+            <Linkedin class="h-4 w-4" aria-hidden="true" />
+            LinkedIn
+          </a>
+          <a
+            :href="whatsappShareUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+          >
+            <MessageCircle class="h-4 w-4" aria-hidden="true" />
+            WhatsApp
+          </a>
+          <a
+            :href="telegramShareUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+          >
+            <Send class="h-4 w-4" aria-hidden="true" />
+            Telegram
+          </a>
+          <button
+            type="button"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-primary-600 px-4 text-sm font-semibold text-white transition hover:bg-primary-700"
+            @click="copyLink"
+          >
+            <Link2 class="h-4 w-4" aria-hidden="true" />
+            Copy link
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>

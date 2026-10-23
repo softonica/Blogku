@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Bookmark } from 'lucide-vue-next'
+import { Bookmark, Trash2 } from 'lucide-vue-next'
 import type { Post } from '@/api/types'
 import { getDataSource } from '@/api'
 import { useBookmarkStore } from '@/stores/bookmark'
@@ -44,6 +44,11 @@ watch(
   },
   { immediate: true, deep: true },
 )
+
+function remove(post: Post): void {
+  bookmarks.remove(post.id)
+  ui.notify(`Removed "${post.title}" from bookmarks.`)
+}
 
 function clearAll(): void {
   bookmarks.clear()
@@ -91,7 +96,20 @@ function clearAll(): void {
     </EmptyState>
 
     <div v-else class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <PostCard v-for="post in items" :key="post.id" :post="post" show-excerpt />
+      <div v-for="post in items" :key="post.id" class="flex flex-col">
+        <div class="flex-1">
+          <PostCard :post="post" show-excerpt />
+        </div>
+        <button
+          type="button"
+          class="mt-3 inline-flex items-center gap-1.5 self-start rounded-full border border-rose-200 bg-white px-3.5 py-2 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:border-rose-900 dark:bg-neutral-900 dark:text-rose-300 dark:hover:border-rose-800 dark:hover:bg-rose-950/60 dark:focus-visible:ring-offset-neutral-900"
+          :aria-label="`Remove ${post.title} from bookmarks list`"
+          @click="remove(post)"
+        >
+          <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />
+          Remove
+        </button>
+      </div>
     </div>
   </div>
 </template>

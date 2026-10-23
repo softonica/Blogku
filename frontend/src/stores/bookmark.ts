@@ -43,10 +43,16 @@ export const useBookmarkStore = defineStore('bookmark', () => {
     return true
   }
 
+  function remove(postId: string): void {
+    if (!has(postId)) return
+    ids.value = ids.value.filter((id) => id !== postId)
+    persist()
+  }
+
   function clear(): void {
     ids.value = []
     persist()
   }
 
-  return { ids, count, has, toggle, clear }
+  return { ids, count, has, toggle, remove, clear }
 })

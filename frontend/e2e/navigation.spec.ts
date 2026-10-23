@@ -49,13 +49,16 @@ test('theme toggle switches between dark and light', async ({ page }) => {
   await expect(html).toHaveClass(/dark/)
 })
 
-test('saving a story adds it to bookmarks', async ({ page }) => {
+test('saving a story adds it to bookmarks and can be removed individually', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: /^Save ".+" to bookmarks$/ }).first().click()
   await page.goto('/bookmarks')
 
   await expect(page.getByRole('heading', { name: 'Your bookmarks' })).toBeVisible()
   await expect(page.getByRole('article').first()).toBeVisible()
+
+  await page.getByRole('button', { name: /^Remove .+ from bookmarks list$/ }).click()
+  await expect(page.getByRole('heading', { name: 'No bookmarks yet' })).toBeVisible()
 })
 
 test('unknown routes render the 404 page', async ({ page }) => {

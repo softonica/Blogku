@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { ArrowUpRight } from 'lucide-vue-next'
+
 import type { Category, Tag } from '@/api/types'
 import { getDataSource } from '@/api'
 import Brand from './Brand.vue'
@@ -92,13 +92,6 @@ const year = new Date().getFullYear()
 
       <div class="mt-12 flex flex-col items-start justify-between gap-4 border-t border-neutral-200 pt-6 text-xs text-neutral-500 sm:flex-row sm:items-center dark:border-neutral-800 dark:text-neutral-400">
         <p>© {{ year }} Blogku. Safe · Fast · Simple digital editorial platform.</p>
-        <RouterLink
-          to="/"
-          class="inline-flex items-center gap-1 font-semibold text-neutral-600 hover:text-primary-600 dark:text-neutral-300 dark:hover:text-primary-300"
-        >
-          Back to top
-          <ArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />
-        </RouterLink>
       </div>
     </div>
   </footer>
