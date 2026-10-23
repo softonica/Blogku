@@ -285,6 +285,8 @@ async function onFileSelected(event: Event): Promise<void> {
 </template>
 
 <style scoped>
+@reference "../../styles/main.css";
+
 .toolbar-btn {
   @apply flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 transition hover:bg-neutral-200 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-white;
 }
