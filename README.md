@@ -29,22 +29,6 @@ Proyek ini dirilis sebagai perangkat lunak sumber terbuka di bawah lisensi **[MI
 Sebagai proyek Open Source berlisensi MIT, **setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis**.
 Silakan membaca indeks dokumentasi lengkap kami:
 
-👉 **[Buka Indeks Dokumentasi Fitur (`docs/README.md`)](./docs/README.md)**
-
-### Daftar Dokumentasi Fitur:
-1. [01 - Authentication & RBAC](./docs/features/01-auth-and-rbac.md)
-2. [02 - Post Formats & Taxonomies](./docs/features/02-post-formats-and-taxonomies.md)
-3. [03 - Tiptap v2 Rich Text Editor](./docs/features/03-rich-text-editor.md)
-4. [04 - Comments & Reactions](./docs/features/04-comments-and-reactions.md)
-5. [05 - Media Upload & Storage System](./docs/features/05-media-upload-and-storage.md)
-6. [06 - Ncmaz Faust Redesign & Submission](./docs/features/06-ncmaz-faust-redesign-and-submission.md)
-7. [07 - Default Dark Theme & PageSpeed Audit](./docs/features/07-default-dark-theme-and-pagespeed-audit.md)
-8. [08 - Blogku Branding & Taxonomies CRUD](./docs/features/08-blogku-branding-and-taxonomies-crud.md)
-
-Pedoman penulisan dokumen fitur baru dapat dilihat di **[Feature Documentation Guidelines](./docs/FEATURE-DOCUMENTATION-GUIDELINES.md)**.
-
----
-
 ## 🚀 Memulai Pengembangan Lokal
 
 ```bash
