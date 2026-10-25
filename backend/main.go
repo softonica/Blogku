@@ -678,12 +678,15 @@ func registerUserHooks(app core.App) {
 			record.Set("role", roleSubscriber)
 		}
 
-		// Respect site_settings.allowRegistration.
-		settings, err := app.FindRecordById("site_settings", "site_settings")
+		// Respect site_settings.allowRegistration (first record, not fixed id).
+		settingsList, err := app.FindRecordsByFilter("site_settings", "", "", 1, 0)
 		if err != nil {
 			return err
 		}
-		if !settings.GetBool("allowRegistration") {
+		if len(settingsList) == 0 {
+			return errors.New("site settings are not initialized")
+		}
+		if !settingsList[0].GetBool("allowRegistration") {
 			return errors.New("registration is disabled")
 		}
 		return e.Next()
