@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { commentSchema, firstError } from '@/lib/validation'
 import { getErrorMessage } from '@/lib/format'
+import { useRateLimit } from '@/composables/useRateLimit'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 
@@ -18,6 +19,7 @@ const auth = useAuthStore()
 const ui = useUiStore()
 const router = useRouter()
 const route = useRoute()
+const { retryAfter, isLimited, start: startRateLimit } = useRateLimit()
 
 const content = ref('')
 const website = ref('')
@@ -50,6 +52,7 @@ async function submit(): Promise<void> {
     content.value = ''
     ui.notify('Comment posted.')
   } catch (err) {
+    startRateLimit(err)
     error.value = getErrorMessage(err)
   } finally {
     working.value = false
@@ -68,7 +71,7 @@ async function submit(): Promise<void> {
       class="mt-4 flex flex-col items-start gap-4 rounded-2xl bg-neutral-50 p-5 sm:flex-row sm:items-center sm:justify-between dark:bg-neutral-800/60"
     >
       <p class="text-sm text-neutral-600 dark:text-neutral-300">
-        Sign in to join the conversation. Comments stay on this device in phase 1.
+        Sign in to join the conversation.
       </p>
       <BaseButton :to="{ name: 'login', query: { redirect: route.fullPath } }" size="sm">
         Sign in
@@ -99,10 +102,16 @@ async function submit(): Promise<void> {
             <button
               type="submit"
               class="inline-flex h-10 items-center gap-2 rounded-full bg-primary-600 px-5 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:opacity-60 dark:bg-primary-500 dark:text-neutral-950 dark:hover:bg-primary-400"
-              :disabled="working"
+              :disabled="working || isLimited"
             >
               <MessageCircle class="h-4 w-4" aria-hidden="true" />
-              {{ working ? 'Posting…' : 'Post comment' }}
+              {{
+                working
+                  ? 'Posting…'
+                  : isLimited
+                    ? `Try again in ${retryAfter}s`
+                    : 'Post comment'
+              }}
             </button>
           </div>
         </div>

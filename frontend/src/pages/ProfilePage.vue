@@ -22,7 +22,9 @@ import {
   extractDomain,
   isAllowedImageDomain,
 } from '@/lib/image-domains'
+import { changePasswordSchema, firstError } from '@/lib/validation'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
+import { useRateLimit } from '@/composables/useRateLimit'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
@@ -32,6 +34,7 @@ const auth = useAuthStore()
 const bookmarks = useBookmarkStore()
 const ui = useUiStore()
 const router = useRouter()
+const { retryAfter, isLimited, start: startRateLimit } = useRateLimit()
 
 const pageTitle = ref('Your Profile')
 useDocumentTitle(pageTitle)
@@ -43,6 +46,13 @@ const saving = ref(false)
 const saved = ref(false)
 const uploadingAvatar = ref(false)
 const allowedDomains = ref<string[]>([...DEFAULT_ALLOWED_IMAGE_DOMAINS])
+
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const passwordSaving = ref(false)
+const passwordSaved = ref(false)
+const passwordError = ref('')
 
 onMounted(async () => {
   try {
@@ -65,6 +75,7 @@ async function onAvatarUpload(event: Event): Promise<void> {
     avatar.value = result.url
     ui.notify('Avatar uploaded successfully.')
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Failed to upload avatar.', 'error')
   } finally {
     uploadingAvatar.value = false
@@ -145,9 +156,43 @@ async function saveProfile(): Promise<void> {
       saved.value = false
     }, 2500)
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Failed to update profile.', 'error')
   } finally {
     saving.value = false
+  }
+}
+
+async function savePassword(): Promise<void> {
+  passwordError.value = ''
+  const parsed = changePasswordSchema.safeParse({
+    currentPassword: currentPassword.value,
+    newPassword: newPassword.value,
+    confirm: confirmPassword.value,
+  })
+  if (!parsed.success) {
+    passwordError.value = firstError(parsed.error)
+    return
+  }
+  passwordSaving.value = true
+  try {
+    await getDataSource().changePassword({
+      currentPassword: parsed.data.currentPassword,
+      newPassword: parsed.data.newPassword,
+    })
+    currentPassword.value = ''
+    newPassword.value = ''
+    confirmPassword.value = ''
+    passwordSaved.value = true
+    ui.notify('Password updated.')
+    setTimeout(() => {
+      passwordSaved.value = false
+    }, 3000)
+  } catch (err) {
+    startRateLimit(err)
+    passwordError.value = err instanceof Error ? err.message : 'Failed to change password.'
+  } finally {
+    passwordSaving.value = false
   }
 }
 
@@ -307,10 +352,18 @@ async function logout(): Promise<void> {
 
         <div class="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-100 pt-5 dark:border-neutral-800">
           <div class="flex items-center gap-3">
-            <BaseButton type="submit" size="md" :disabled="saving">
+            <BaseButton type="submit" size="md" :disabled="saving || isLimited">
               <CheckCircle2 v-if="saved" class="h-4 w-4" aria-hidden="true" />
               <Save v-else class="h-4 w-4" aria-hidden="true" />
-              {{ saving ? 'Saving…' : saved ? 'Saved' : 'Save Changes' }}
+              {{
+                saving
+                  ? 'Saving…'
+                  : isLimited
+                    ? `Try again in ${retryAfter}s`
+                    : saved
+                      ? 'Saved'
+                      : 'Save Changes'
+              }}
             </BaseButton>
 
             <BaseButton to="/bookmarks" variant="outline" size="md">
@@ -327,6 +380,69 @@ async function logout(): Promise<void> {
             <LogOut class="h-4 w-4" aria-hidden="true" />
             Sign out
           </button>
+        </div>
+      </form>
+
+      <!-- Change password form -->
+      <form
+        class="mt-8 space-y-6 rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
+        @submit.prevent="savePassword"
+      >
+        <div>
+          <h2 class="text-lg font-bold text-neutral-900 dark:text-white">
+            Change Password
+          </h2>
+          <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Use at least 8 characters, including letters and numbers.
+          </p>
+        </div>
+
+        <div>
+          <label for="profile-current-password" class="mb-1.5 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+            Current Password
+          </label>
+          <input
+            id="profile-current-password"
+            v-model="currentPassword"
+            type="password"
+            autocomplete="current-password"
+            class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+          />
+        </div>
+
+        <div class="grid gap-6 sm:grid-cols-2">
+          <div>
+            <label for="profile-new-password" class="mb-1.5 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+              New Password
+            </label>
+            <input
+              id="profile-new-password"
+              v-model="newPassword"
+              type="password"
+              autocomplete="new-password"
+              class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+            />
+          </div>
+          <div>
+            <label for="profile-confirm-password" class="mb-1.5 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+              Confirm New Password
+            </label>
+            <input
+              id="profile-confirm-password"
+              v-model="confirmPassword"
+              type="password"
+              autocomplete="new-password"
+              class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+            />
+          </div>
+        </div>
+
+        <p v-if="passwordError" class="text-sm font-medium text-rose-500">{{ passwordError }}</p>
+
+        <div class="flex items-center gap-4 border-t border-neutral-100 pt-5 dark:border-neutral-800">
+          <BaseButton type="submit" size="md" :disabled="passwordSaving || isLimited">
+            {{ passwordSaving ? 'Saving…' : isLimited ? `Try again in ${retryAfter}s` : passwordSaved ? 'Password updated' : 'Update password' }}
+          </BaseButton>
         </div>
       </form>
 

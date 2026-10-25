@@ -37,6 +37,15 @@ export interface DataSource {
     type: ReactionType
   }): Promise<void>
   login(username: string, password: string): Promise<User>
+  register(input: {
+    name: string
+    username: string
+    email: string
+    password: string
+  }): Promise<User>
+  requestPasswordReset(email: string): Promise<void>
+  confirmPasswordReset(token: string, newPassword: string): Promise<void>
+  changePassword(input: { currentPassword: string; newPassword: string }): Promise<void>
   logout(): Promise<void>
   currentUser(): User | null
 

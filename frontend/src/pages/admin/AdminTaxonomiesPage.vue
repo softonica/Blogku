@@ -16,12 +16,14 @@ import { getDataSource } from '@/api'
 import type { Category, CategoryInput, Tag, TagInput } from '@/api/types'
 import { useUiStore } from '@/stores/ui'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
+import { useRateLimit } from '@/composables/useRateLimit'
 import AdminNav from '@/components/admin/AdminNav.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import { categorySchema, firstError, tagSchema } from '@/lib/validation'
 
 const ui = useUiStore()
+const { retryAfter, isLimited, start: startRateLimit } = useRateLimit()
 const pageTitle = ref('Categories & Tags — Admin')
 useDocumentTitle(pageTitle)
 
@@ -147,8 +149,9 @@ async function handleCategoryImageUpload(event: Event) {
   const file = target.files?.[0]
   if (!file) return
 
-  if (!file.type.startsWith('image/')) {
-    ui.notify('Please select an image file (PNG, JPG, WebP, SVG).', 'error')
+  const allowedMime = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
+  if (!allowedMime.includes(file.type)) {
+    ui.notify('Please select an image file (PNG, JPG, WebP, GIF, AVIF).', 'error')
     return
   }
 
@@ -158,6 +161,7 @@ async function handleCategoryImageUpload(event: Event) {
     categoryForm.value.image = res.url
     ui.notify('Category image uploaded successfully!')
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Image upload failed.', 'error')
   } finally {
     uploadingCategoryImage.value = false
@@ -193,6 +197,7 @@ async function saveCategorySubmit() {
     categoryModalOpen.value = false
     await loadData()
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Failed to save category.', 'error')
   } finally {
     categorySaving.value = false
@@ -271,6 +276,7 @@ async function saveTagSubmit() {
     tagModalOpen.value = false
     await loadData()
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Failed to save tag.', 'error')
   } finally {
     tagSaving.value = false
@@ -681,7 +687,7 @@ async function executeDeleteTag() {
                     <span>{{ uploadingCategoryImage ? 'Uploading...' : 'Upload Image' }}</span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
                       class="hidden"
                       :disabled="uploadingCategoryImage"
                       @change="handleCategoryImageUpload"
@@ -724,9 +730,17 @@ async function executeDeleteTag() {
             <BaseButton
               type="submit"
               variant="primary"
-              :disabled="categorySaving"
+              :disabled="categorySaving || isLimited"
             >
-              {{ categorySaving ? 'Saving...' : editingCategoryId ? 'Save Changes' : 'Create Category' }}
+              {{
+                categorySaving
+                  ? 'Saving...'
+                  : isLimited
+                    ? `Try again in ${retryAfter}s`
+                    : editingCategoryId
+                      ? 'Save Changes'
+                      : 'Create Category'
+              }}
             </BaseButton>
           </div>
         </form>
@@ -841,9 +855,17 @@ async function executeDeleteTag() {
             <BaseButton
               type="submit"
               variant="primary"
-              :disabled="tagSaving"
+              :disabled="tagSaving || isLimited"
             >
-              {{ tagSaving ? 'Saving...' : editingTagId ? 'Save Changes' : 'Create Tag' }}
+              {{
+                tagSaving
+                  ? 'Saving...'
+                  : isLimited
+                    ? `Try again in ${retryAfter}s`
+                    : editingTagId
+                      ? 'Save Changes'
+                      : 'Create Tag'
+              }}
             </BaseButton>
           </div>
         </form>

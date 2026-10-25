@@ -39,8 +39,7 @@ const socials = [
           <Brand />
           <p class="max-w-sm text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
             A calm magazine about technology, design, travel and culture.
-            Built as a phase 1 rewrite with Vue 3 and a backend-ready data
-            adapter.
+            Built with Vue 3 and a backend-ready data adapter.
           </p>
           <div class="flex items-center gap-2">
             <a

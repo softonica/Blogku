@@ -6,11 +6,13 @@ import type { EditorSettings } from '@/api/types'
 import { DEFAULT_EDITOR_SETTINGS } from '@/lib/editor-defaults'
 import { useUiStore } from '@/stores/ui'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
+import { useRateLimit } from '@/composables/useRateLimit'
 import AdminNav from '@/components/admin/AdminNav.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const ui = useUiStore()
+const { retryAfter, isLimited, start: startRateLimit } = useRateLimit()
 const pageTitle = ref('Text Editor Settings — Admin')
 useDocumentTitle(pageTitle)
 
@@ -41,6 +43,7 @@ async function save(): Promise<void> {
     })
     ui.notify('Editor settings saved.')
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Failed to save settings.', 'error')
   } finally {
     saving.value = false
@@ -140,9 +143,15 @@ const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'm
         </div>
 
         <div class="mt-6 flex justify-end">
-          <BaseButton type="button" :disabled="saving" @click="save">
+          <BaseButton type="button" :disabled="saving || isLimited" @click="save">
             <Save class="h-4 w-4" aria-hidden="true" />
-            {{ saving ? 'Saving…' : 'Save changes' }}
+            {{
+              saving
+                ? 'Saving…'
+                : isLimited
+                  ? `Try again in ${retryAfter}s`
+                  : 'Save changes'
+            }}
           </BaseButton>
         </div>
       </div>

@@ -41,6 +41,10 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# backend build artifacts
+backend/*.exe
+backend/pb_data/
+
 # vercel
 .vercel
 .yarn

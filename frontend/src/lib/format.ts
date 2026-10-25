@@ -52,6 +52,9 @@ export function slugify(value: string): string {
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     if (error.message === 'LOGIN_REQUIRED') return 'Please sign in to continue.'
+    if (error.message === 'FORBIDDEN') {
+      return 'You do not have permission to perform this action.'
+    }
     return error.message
   }
   return 'Something went wrong. Please try again.'

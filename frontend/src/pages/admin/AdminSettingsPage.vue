@@ -15,12 +15,14 @@ import { getDataSource } from '@/api'
 import type { SiteSettings } from '@/api/types'
 import { useUiStore } from '@/stores/ui'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
+import { useRateLimit } from '@/composables/useRateLimit'
 import AdminNav from '@/components/admin/AdminNav.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import { DEFAULT_ALLOWED_IMAGE_DOMAINS } from '@/lib/image-domains'
 
 const ui = useUiStore()
+const { retryAfter, isLimited, start: startRateLimit } = useRateLimit()
 const pageTitle = ref('Site Settings — Admin')
 useDocumentTitle(pageTitle)
 
@@ -95,6 +97,7 @@ async function onLogoUpload(event: Event): Promise<void> {
     settings.value.logo = result.url
     ui.notify('Logo uploaded successfully.')
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Failed to upload logo.', 'error')
   } finally {
     uploadingLogo.value = false
@@ -112,6 +115,7 @@ async function onFaviconUpload(event: Event): Promise<void> {
     settings.value.favicon = result.url
     ui.notify('Favicon uploaded successfully.')
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Failed to upload favicon.', 'error')
   } finally {
     uploadingFavicon.value = false
@@ -130,6 +134,7 @@ async function save(): Promise<void> {
       saved.value = false
     }, 2500)
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Failed to save settings.', 'error')
   } finally {
     saving.value = false
@@ -301,7 +306,7 @@ async function save(): Promise<void> {
               <!-- Recommendation notice -->
               <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                 <strong class="font-medium text-neutral-700 dark:text-neutral-300">Rekomendasi:</strong>
-                Ukuran <strong>240 × 60 px</strong> (rasio 4:1), format PNG transparan atau SVG, file &lt; 1 MB.
+                Ukuran <strong>240 × 60 px</strong> (rasio 4:1), format PNG transparan atau WebP, file &lt; 1 MB.
               </p>
 
               <!-- Logo Preview -->
@@ -329,7 +334,7 @@ async function save(): Promise<void> {
                   <span>{{ uploadingLogo ? 'Uploading…' : 'Upload Logo' }}</span>
                   <input
                     type="file"
-                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    accept="image/png,image/jpeg,image/webp"
                     class="sr-only"
                     :disabled="uploadingLogo"
                     @change="onLogoUpload"
@@ -366,7 +371,7 @@ async function save(): Promise<void> {
               <!-- Recommendation notice -->
               <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                 <strong class="font-medium text-neutral-700 dark:text-neutral-300">Rekomendasi:</strong>
-                Ukuran <strong>64 × 64 px</strong> atau <strong>32 × 32 px</strong> (rasio 1:1), format PNG / ICO, file &lt; 200 KB.
+                Ukuran <strong>64 × 64 px</strong> atau <strong>32 × 32 px</strong> (rasio 1:1), format PNG / WebP, file &lt; 200 KB.
               </p>
 
               <!-- Favicon Preview -->
@@ -400,7 +405,7 @@ async function save(): Promise<void> {
                   <span>{{ uploadingFavicon ? 'Uploading…' : 'Upload Icon' }}</span>
                   <input
                     type="file"
-                    accept="image/png,image/x-icon,image/svg+xml"
+                    accept="image/png,image/webp"
                     class="sr-only"
                     :disabled="uploadingFavicon"
                     @change="onFaviconUpload"
@@ -474,11 +479,11 @@ async function save(): Promise<void> {
           <div class="flex items-center gap-2">
             <HardDrive class="h-5 w-5 text-primary-600 dark:text-primary-400" aria-hidden="true" />
             <h3 class="text-sm font-bold text-neutral-900 dark:text-white">
-              Target Sistem Storage Backend (Spesifikasi Fase 2)
+              Konfigurasi Storage Backend
             </h3>
           </div>
           <p class="mt-1 text-xs text-neutral-600 dark:text-neutral-300">
-            Di Fase 2 (PocketBase), sistem storage dapat dikonfigurasi melalui dua pilihan:
+            Saat PocketBase digunakan, storage dapat dikonfigurasi melalui dua pilihan:
           </p>
           <div class="mt-3 grid gap-3 sm:grid-cols-2 text-xs">
             <div class="rounded-xl border border-white/60 bg-white/80 p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/80">
@@ -498,10 +503,18 @@ async function save(): Promise<void> {
 
         <!-- Save Button -->
         <div class="flex items-center gap-4 border-t border-neutral-100 pt-6 dark:border-neutral-800">
-          <BaseButton type="submit" size="md" :disabled="saving">
+          <BaseButton type="submit" size="md" :disabled="saving || isLimited">
             <CheckCircle2 v-if="saved" class="h-4 w-4" aria-hidden="true" />
             <Save v-else class="h-4 w-4" aria-hidden="true" />
-            {{ saving ? 'Saving…' : saved ? 'Saved' : 'Save Settings' }}
+            {{
+              saving
+                ? 'Saving…'
+                : isLimited
+                  ? `Try again in ${retryAfter}s`
+                  : saved
+                    ? 'Saved'
+                    : 'Save Settings'
+            }}
           </BaseButton>
         </div>
       </form>

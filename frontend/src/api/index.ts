@@ -1,4 +1,5 @@
 import { MockSource } from './mock.source'
+import { PocketBaseSource } from './pocketbase.source'
 import type { DataSource } from './source'
 
 let source: DataSource = new MockSource()
@@ -13,3 +14,5 @@ export function getDataSource(): DataSource {
 
 export * from './types'
 export type { DataSource } from './source'
+export { MockSource, PocketBaseSource }
+export * from './errors'

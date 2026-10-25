@@ -14,18 +14,14 @@ import PostCard from '@/components/post/PostCard.vue'
 import AuthorCard from '@/components/widgets/AuthorCard.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
-import { posts as seedPosts } from '@/api/mock-data/posts'
-import { categories as seedCategories } from '@/api/mock-data/categories'
-import { users as seedUsers } from '@/api/mock-data/users'
-import { tags as seedTags } from '@/api/mock-data/tags'
 
-const featured = ref<Post[]>(seedPosts.filter((p) => p.featured).slice(0, 4))
-const podcastPosts = ref<Post[]>(seedPosts.filter((p) => p.postType === 'audio').slice(0, 6))
-const videoPosts = ref<Post[]>(seedPosts.filter((p) => p.postType === 'video').slice(0, 5))
-const categories = ref<Category[]>(seedCategories)
-const authors = ref<User[]>(seedUsers.slice(0, 4))
-const tags = ref<Tag[]>(seedTags.slice(0, 10))
-const loadingFeatured = ref(false)
+const featured = ref<Post[]>([])
+const podcastPosts = ref<Post[]>([])
+const videoPosts = ref<Post[]>([])
+const categories = ref<Category[]>([])
+const authors = ref<User[]>([])
+const tags = ref<Tag[]>([])
+const loadingFeatured = ref(true)
 const featuredError = ref('')
 const sentinel = ref<HTMLElement | null>(null)
 
@@ -42,8 +38,6 @@ const {
 } = useInfinitePosts({
   perPage: 6,
   sort: '-createdAt',
-  initialItems: seedPosts.slice(0, 6),
-  initialTotalItems: seedPosts.length,
   getFilter: () =>
     selectedCategory.value === 'all'
       ? undefined
@@ -86,6 +80,8 @@ onMounted(async () => {
     // Filter video posts for video section
     const videos = allPostsPage.items.filter((p) => p.postType === 'video')
     videoPosts.value = videos.length >= 2 ? videos : allPostsPage.items.slice(1, 6)
+
+    void reloadLatest()
   } catch (error) {
     featuredError.value = getErrorMessage(error)
   } finally {

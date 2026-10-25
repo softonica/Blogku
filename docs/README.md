@@ -21,4 +21,15 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **06** | **Ncmaz Faust Redesign & Submission** | ✅ Stable | [06-ncmaz-faust-redesign-and-submission.md](./features/06-ncmaz-faust-redesign-and-submission.md) |
 | **07** | **Default Dark Theme & PageSpeed Audit** | ✅ Stable | [07-default-dark-theme-and-pagespeed-audit.md](./features/07-default-dark-theme-and-pagespeed-audit.md) |
 | **08** | **Blogku Branding & Taxonomies CRUD** | ✅ Stable | [08-blogku-branding-and-taxonomies-crud.md](./features/08-blogku-branding-and-taxonomies-crud.md) |
+| **09** | **PocketBase Backend Integration** | Frontend adapter | [09-pocketbase-backend-integration.md](./features/09-pocketbase-backend-integration.md) |
+| **10** | **Change Password** | Implementasi | [10-change-password.md](./features/10-change-password.md) |
+
+---
+
+## 🗄️ Spesifikasi Backend
+
+| Dokumen | Status | Keterangan |
+| :--- | :---: | :--- |
+| [backend-integration-spec.md](./backend-integration-spec.md) | Spesifikasi + Adapter frontend | Pemetaan `DataSource` ke PocketBase, skema koleksi, RBAC, auth, upload, error contract, rate limit berlapis; `PocketBaseSource` diimplementasikan (backend di-deploy di luar repo ini) |
+| [backend-deployment-spec.md](./backend-deployment-spec.md) | Panduan deploy & integrasi | Instalasi PocketBase, migrasi, storage, reverse proxy/TLS, keamanan, backup, monitoring, CI/CD, checklist verifikasi |
 

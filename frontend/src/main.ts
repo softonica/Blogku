@@ -3,10 +3,12 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { MockSource } from './api/mock.source'
+import { PocketBaseSource } from './api/pocketbase.source'
 import { setDataSource } from './api'
 import './styles/main.css'
 
-setDataSource(new MockSource())
+const usePocketBase = import.meta.env.VITE_USE_POCKETBASE === 'true'
+setDataSource(usePocketBase ? new PocketBaseSource() : new MockSource())
 
 // Load Google Font asynchronously to keep critical render path non-blocking
 if (typeof document !== 'undefined') {

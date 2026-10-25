@@ -46,6 +46,26 @@ export const resetPasswordSchema = z.object({
     .pipe(z.email('Enter a valid email')),
 })
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(6, 'Current password must be at least 6 characters'),
+    newPassword: z
+      .string()
+      .min(8, 'New password must be at least 8 characters')
+      .refine((val) => /[a-zA-Z]/.test(val) && /\d/.test(val), {
+        message: 'New password must contain both letters and numbers',
+      }),
+    confirm: z.string(),
+  })
+  .refine((values) => values.newPassword === values.confirm, {
+    path: ['confirm'],
+    message: 'Passwords do not match',
+  })
+  .refine((values) => values.newPassword !== values.currentPassword, {
+    path: ['newPassword'],
+    message: 'New password must be different from the current password',
+  })
+
 export const commentSchema = z.object({
   content: z
     .string()

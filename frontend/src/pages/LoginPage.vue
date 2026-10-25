@@ -7,6 +7,7 @@ import { useUiStore } from '@/stores/ui'
 import { firstError, loginSchema, signUpSchema } from '@/lib/validation'
 import { getErrorMessage } from '@/lib/format'
 import { can } from '@/lib/permissions'
+import { useRateLimit } from '@/composables/useRateLimit'
 import AuthShell from '@/components/layout/AuthShell.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 
@@ -14,13 +15,16 @@ const auth = useAuthStore()
 const ui = useUiStore()
 const router = useRouter()
 const route = useRoute()
+const { retryAfter, isLimited, start: startRateLimit } = useRateLimit()
+
+const usingPocketBase = import.meta.env.VITE_USE_POCKETBASE === 'true'
 
 const mode = ref<'login' | 'register'>(
   route.query.mode === 'register' ? 'register' : 'login',
 )
 
-const identifier = ref('demo')
-const password = ref('demo')
+const identifier = ref(usingPocketBase ? '' : 'demo')
+const password = ref(usingPocketBase ? '' : 'demo')
 const showPassword = ref(false)
 const error = ref('')
 
@@ -58,6 +62,7 @@ async function submitLogin(): Promise<void> {
         : defaultTarget,
     )
   } catch (err) {
+    startRateLimit(err)
     error.value = getErrorMessage(err)
   }
 }
@@ -75,13 +80,19 @@ async function submitRegister(): Promise<void> {
     error.value = firstError(parsed.error)
     return
   }
-  auth.register({
-    name: parsed.data.name,
-    username: parsed.data.username,
-    email: parsed.data.email,
-  })
-  ui.notify('Account created locally. Welcome to the phase 1 mock.')
-  await router.push({ name: 'dashboard' })
+  try {
+    await auth.register({
+      name: parsed.data.name,
+      username: parsed.data.username,
+      email: parsed.data.email,
+      password: parsed.data.password,
+    })
+    ui.notify('Account created. Welcome!')
+    await router.push({ name: 'dashboard' })
+  } catch (err) {
+    startRateLimit(err)
+    error.value = getErrorMessage(err)
+  }
 }
 
 const inputClass =
@@ -98,7 +109,7 @@ const tabClass =
     :subtitle="
       mode === 'login'
         ? 'Sign in to comment, like posts and keep your bookmarks.'
-        : 'Phase 1 accounts live only in this browser. Nothing is sent to a server.'
+        : 'Create an account to comment, react and publish your stories.'
     "
   >
     <div
@@ -180,9 +191,20 @@ const tabClass =
 
       <p v-if="error" class="text-sm font-medium text-rose-500">{{ error }}</p>
 
-      <BaseButton type="submit" block size="lg" :disabled="auth.loading">
+      <BaseButton
+        type="submit"
+        block
+        size="lg"
+        :disabled="auth.loading || isLimited"
+      >
         <LogIn class="h-4 w-4" aria-hidden="true" />
-        {{ auth.loading ? 'Signing in…' : 'Sign in' }}
+        {{
+          auth.loading
+            ? 'Signing in…'
+            : isLimited
+              ? `Try again in ${retryAfter}s`
+              : 'Sign in'
+        }}
       </BaseButton>
     </form>
 
@@ -231,14 +253,20 @@ const tabClass =
 
       <p v-if="error" class="text-sm font-medium text-rose-500">{{ error }}</p>
 
-      <BaseButton type="submit" block size="lg">
+      <BaseButton type="submit" block size="lg" :disabled="auth.loading || isLimited">
         <UserPlus class="h-4 w-4" aria-hidden="true" />
-        Create account
+        {{
+          auth.loading
+            ? 'Creating account…'
+            : isLimited
+              ? `Try again in ${retryAfter}s`
+              : 'Create account'
+        }}
       </BaseButton>
     </form>
 
     <div
-      v-if="mode === 'login'"
+      v-if="mode === 'login' && !usingPocketBase"
       class="mt-5 rounded-2xl border border-primary-100 bg-primary-50 p-4 text-xs leading-relaxed text-primary-800 dark:border-primary-900 dark:bg-primary-950 dark:text-primary-200"
     >
       <p class="font-semibold">Demo account: Try sign in with <code class="font-mono">demo / demo</code></p>

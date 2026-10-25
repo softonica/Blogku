@@ -653,6 +653,67 @@ export class MockSource implements DataSource {
     return user
   }
 
+  async register(input: {
+    name: string
+    username: string
+    email: string
+    password: string
+  }): Promise<User> {
+    await wait()
+    const name = sanitizePlainText(input.name)
+    const username = sanitizePlainText(input.username).toLowerCase()
+    if (!name || !username || !input.email || !input.password) {
+      throw new Error('Invalid registration data')
+    }
+    if (this.users.some((u) => u.username.toLowerCase() === username)) {
+      throw new Error('Username is already taken')
+    }
+    const user: User = {
+      id: `local_${Date.now()}`,
+      username,
+      name,
+      email: sanitizeEmail(input.email),
+      avatar:
+        'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=256&h=256&q=80',
+      bio: 'New member.',
+      role: 'subscriber',
+      postCount: 0,
+    }
+    this.users = [...this.users, user]
+    writeJson(USERS_KEY, this.users)
+    writeJson(SESSION_KEY, { userId: user.id })
+    return user
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    await wait()
+    void email
+  }
+
+  async confirmPasswordReset(token: string, newPassword: string): Promise<void> {
+    await wait()
+    void token
+    void newPassword
+  }
+
+  async changePassword(input: {
+    currentPassword: string
+    newPassword: string
+  }): Promise<void> {
+    await wait()
+    const current = this.currentUser()
+    if (!current) throw new Error('LOGIN_REQUIRED')
+
+    const mockPasswordValid =
+      (current.username === 'demo' &&
+        (input.currentPassword === 'demo' || input.currentPassword === 'password')) ||
+      input.currentPassword === 'password'
+    if (!mockPasswordValid) {
+      throw new Error('Current password is incorrect')
+    }
+    void input.newPassword
+  }
+
   async logout(): Promise<void> {
     await wait(40)
     try {

@@ -27,6 +27,7 @@ import {
 } from '@/lib/image-domains'
 import { canManagePost } from '@/lib/permissions'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
+import { useRateLimit } from '@/composables/useRateLimit'
 import { useEditorSettingsStore } from '@/stores/editor-settings'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import RichTextEditor from '@/components/editor/RichTextEditor.vue'
@@ -38,6 +39,7 @@ const drafts = useDraftStore()
 const auth = useAuthStore()
 const ui = useUiStore()
 const editorSettings = useEditorSettingsStore()
+const { retryAfter, isLimited, start: startRateLimit } = useRateLimit()
 
 onMounted(() => {
   editorSettings.load()
@@ -49,9 +51,10 @@ const postId = computed(() =>
 const draftId = computed(() =>
   typeof route.query.draft === 'string' ? route.query.draft : '',
 )
+const activeDraftId = ref(draftId.value)
 
 const existingDraft = computed(() =>
-  drafts.drafts.find((item) => item.id === draftId.value),
+  drafts.drafts.find((item) => item.id === activeDraftId.value),
 )
 
 const post = ref<Post | null>(null)
@@ -112,6 +115,7 @@ async function onCoverUpload(event: Event): Promise<void> {
     cover.value = result.url
     ui.notify('Cover image uploaded.')
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Upload failed', 'error')
   } finally {
     uploadingCover.value = false
@@ -186,8 +190,8 @@ watch(
     if (postId.value) return
     if (!title.value.trim() && !content.value.trim()) return
 
-    drafts.save({
-      id: draftId.value || undefined,
+    const saved = drafts.save({
+      id: activeDraftId.value || undefined,
       title: title.value,
       excerpt: excerpt.value,
       content: content.value,
@@ -198,6 +202,7 @@ watch(
       videoUrl: videoUrl.value,
       audioUrl: audioUrl.value,
     })
+    if (!activeDraftId.value) activeDraftId.value = saved.id
   },
   { deep: true },
 )
@@ -290,8 +295,8 @@ function saveLocalDraft(): void {
     error.value = firstError(parsed.error)
     return
   }
-  drafts.save({
-    id: draftId.value || undefined,
+  const saved = drafts.save({
+    id: activeDraftId.value || undefined,
     title: parsed.data.title,
     excerpt: parsed.data.excerpt,
     content: parsed.data.content,
@@ -302,6 +307,7 @@ function saveLocalDraft(): void {
     videoUrl: videoUrl.value,
     audioUrl: audioUrl.value,
   })
+  if (!activeDraftId.value) activeDraftId.value = saved.id
   ui.notify('Draft saved.')
 }
 
@@ -374,6 +380,7 @@ async function publishStory(): Promise<void> {
       void router.push({ name: 'post', params: { slug: created.slug } })
     }
   } catch (err) {
+    startRateLimit(err)
     error.value = err instanceof Error ? err.message : 'Failed to publish post.'
   } finally {
     publishing.value = false
@@ -463,12 +470,20 @@ async function publishStory(): Promise<void> {
             <!-- Publish Button -->
             <button
               type="button"
-              :disabled="publishing"
+              :disabled="publishing || isLimited"
               class="inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50"
               @click="publishStory"
             >
               <Globe class="h-3.5 w-3.5" />
-              {{ publishing ? 'Publishing…' : postId ? 'Update' : 'Publish' }}
+              {{
+                publishing
+                  ? 'Publishing…'
+                  : isLimited
+                    ? `Try again in ${retryAfter}s`
+                    : postId
+                      ? 'Update'
+                      : 'Publish'
+              }}
             </button>
           </div>
         </div>

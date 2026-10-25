@@ -26,18 +26,31 @@ const bookmarks = useBookmarkStore()
 const drafts = useDraftStore()
 const ui = useUiStore()
 
-const posts = ref<Post[]>([])
+type PostTab = 'published' | 'draft'
+
+const activeTab = ref<PostTab>('published')
+const publishedPosts = ref<Post[]>([])
+const draftPosts = ref<Post[]>([])
 const loading = ref(true)
 
+const posts = computed(() =>
+  activeTab.value === 'published' ? publishedPosts.value : draftPosts.value,
+)
+
 const totalLikes = computed(() =>
-  posts.value.reduce((total, post) => total + post.likeCount, 0),
+  publishedPosts.value.reduce((total, post) => total + post.likeCount, 0),
 )
 
 const stats = computed(() => [
   {
     label: 'Published posts',
-    value: formatNumber(posts.value.length),
+    value: formatNumber(publishedPosts.value.length),
     icon: FileText,
+  },
+  {
+    label: 'Drafts',
+    value: formatNumber(draftPosts.value.length),
+    icon: PenLine,
   },
   {
     label: 'Local drafts',
@@ -56,21 +69,38 @@ const stats = computed(() => [
   },
 ])
 
-onMounted(async () => {
+async function loadPosts(): Promise<void> {
   const username = auth.user?.username
-  if (!username) return
+  if (!username) {
+    loading.value = false
+    return
+  }
+  loading.value = true
   try {
-    const page = await getDataSource().listPosts({
-      page: 1,
-      perPage: 100,
-      sort: '-createdAt',
-      filter: { authorUsername: username },
-    })
-    posts.value = page.items
+    const [publishedPage, draftPage] = await Promise.all([
+      getDataSource().listPosts({
+        page: 1,
+        perPage: 100,
+        sort: '-createdAt',
+        filter: { authorUsername: username, status: 'published' },
+      }),
+      getDataSource().listPosts({
+        page: 1,
+        perPage: 100,
+        sort: '-createdAt',
+        filter: { authorUsername: username, status: 'draft' },
+      }),
+    ])
+    publishedPosts.value = publishedPage.items
+    draftPosts.value = draftPage.items
+  } catch (err) {
+    ui.notify(err instanceof Error ? err.message : 'Failed to load posts.', 'error')
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadPosts)
 
 function removeDraft(id: string): void {
   drafts.remove(id)
@@ -81,7 +111,8 @@ async function deletePost(id: string): Promise<void> {
   if (!confirm('Are you sure you want to delete this post?')) return
   try {
     await getDataSource().deletePost(id)
-    posts.value = posts.value.filter((p) => p.id !== id)
+    publishedPosts.value = publishedPosts.value.filter((p) => p.id !== id)
+    draftPosts.value = draftPosts.value.filter((p) => p.id !== id)
     ui.notify('Post deleted.')
   } catch (err) {
     ui.notify(err instanceof Error ? err.message : 'Failed to delete post.', 'error')
@@ -154,14 +185,53 @@ async function deletePost(id: string): Promise<void> {
           </RouterLink>
         </div>
 
+        <div
+          class="mt-4 inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 p-1 dark:border-neutral-800 dark:bg-neutral-950"
+          role="tablist"
+          aria-label="Post status"
+        >
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="activeTab === 'published'"
+            :class="[
+              'rounded-full px-4 py-1.5 text-xs font-semibold transition',
+              activeTab === 'published'
+                ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
+                : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
+            ]"
+            @click="activeTab = 'published'"
+          >
+            Published ({{ publishedPosts.length }})
+          </button>
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="activeTab === 'draft'"
+            :class="[
+              'rounded-full px-4 py-1.5 text-xs font-semibold transition',
+              activeTab === 'draft'
+                ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
+                : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
+            ]"
+            @click="activeTab = 'draft'"
+          >
+            Drafts ({{ draftPosts.length }})
+          </button>
+        </div>
+
         <div v-if="loading" class="flex justify-center py-14">
           <LoadingSpinner />
         </div>
         <EmptyState
           v-else-if="!posts.length"
           class="mt-5"
-          title="No published posts"
-          description="This account has no posts in the mock data. Try the demo account or save a local draft."
+          :title="activeTab === 'published' ? 'No published posts' : 'No drafts'"
+          :description="
+            activeTab === 'published'
+              ? 'Publish a story to see it here.'
+              : 'Server-side drafts will appear here when you save them.'
+          "
         >
           <BaseButton to="/editor" size="sm">Write a draft</BaseButton>
         </EmptyState>
@@ -239,12 +309,11 @@ async function deletePost(id: string): Promise<void> {
 
         <div class="rounded-3xl bg-neutral-900 p-6 text-white">
           <h2 class="text-sm font-bold uppercase tracking-[0.18em] text-neutral-400">
-            Phase 2 preview
+            Backend-backed content
           </h2>
           <p class="mt-3 text-sm leading-relaxed text-neutral-300">
-            Publishing, uploads and realtime comments arrive when
-            <code class="font-mono text-primary-300">PocketBaseSource</code>
-            replaces the mock adapter. The UI will not need to change.
+            When <code class="font-mono text-primary-300">PocketBaseSource</code>
+            is enabled, posts, comments and reactions are stored in PocketBase.
           </p>
         </div>
       </aside>

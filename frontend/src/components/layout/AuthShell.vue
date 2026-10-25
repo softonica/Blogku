@@ -27,8 +27,8 @@ defineProps<{
             A calm place to read, write and keep what matters.
           </p>
           <p class="mt-4 max-w-sm text-sm leading-relaxed text-neutral-400">
-            Ncmaz is being rewritten on a safer foundation: Vue 3 on the front,
-            PocketBase on the way. Phase 1 runs entirely on local mock data.
+            Ncmaz is built on Vue 3 with a PocketBase-ready data layer, so
+            your stories and account stay in sync.
           </p>
         </div>
         <div class="relative rounded-2xl border border-white/10 bg-white/5 p-5">

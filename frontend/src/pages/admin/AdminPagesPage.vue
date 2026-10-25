@@ -4,11 +4,13 @@ import { Save } from 'lucide-vue-next'
 import { getDataSource } from '@/api'
 import { useUiStore } from '@/stores/ui'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
+import { useRateLimit } from '@/composables/useRateLimit'
 import AdminNav from '@/components/admin/AdminNav.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const ui = useUiStore()
+const { retryAfter, isLimited, start: startRateLimit } = useRateLimit()
 const pageTitle = ref('Manage Pages — Admin')
 useDocumentTitle(pageTitle)
 
@@ -50,6 +52,7 @@ async function save(item: EditablePage): Promise<void> {
     })
     ui.notify('Page updated.')
   } catch (err) {
+    startRateLimit(err)
     ui.notify(err instanceof Error ? err.message : 'Failed to save page.', 'error')
   } finally {
     saving.value = null
@@ -81,11 +84,17 @@ const inputClass =
           <BaseButton
             type="button"
             size="sm"
-            :disabled="saving === item.slug"
+            :disabled="saving === item.slug || isLimited"
             @click="save(item)"
           >
             <Save class="h-4 w-4" aria-hidden="true" />
-            {{ saving === item.slug ? 'Saving…' : 'Save' }}
+            {{
+              saving === item.slug
+                ? 'Saving…'
+                : isLimited
+                  ? `Try again in ${retryAfter}s`
+                  : 'Save'
+            }}
           </BaseButton>
         </div>
 
