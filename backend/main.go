@@ -38,6 +38,17 @@ func main() {
 		if err := bootstrap(app); err != nil {
 			return fmt.Errorf("bootstrap: %w", err)
 		}
+
+		// Serve the embedded SPA for every route that is not a PocketBase
+		// API/admin route. PocketBase's own routes (/api/*, /_/*) are
+		// registered earlier and take precedence; this wildcard catches the
+		// remaining requests.
+		spa := newSPAHandler(embeddedDist)
+		se.Router.GET("/", func(e *core.RequestEvent) error {
+			spa.ServeHTTP(e.Response, e.Request)
+			return nil
+		})
+
 		return se.Next()
 	})
 
