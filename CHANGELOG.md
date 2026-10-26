@@ -5,6 +5,26 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-25] — Deploy Blogku single-binary ke server 64
+**Author** · **Role** (DevOps) · **Status** (Done)
+
+### What changed
+- Server `64.235.45.122` — deploy binary `blogku` (Linux amd64) ke `/opt/blogku`, unit systemd `blogku.service` (user `blogku`, `WorkingDirectory=/opt/blogku`, `--http=127.0.0.1:8090`, `--dir=/opt/blogku/data`, hardening ProtectSystem/NoNewPrivileges), enabled + active.
+- `docs/how-to-deploy-blogku.md` (baru) — panduan deploy langkah-demi-langkah (prasyarat, setup dir/user, salin binary, unit systemd, verifikasi, first-run admin).
+- `docs/README.md` — index + baris `how-to-deploy-blogku.md`.
+
+### Why
+- Permintaan user: deploy ke server 64 di `/opt/blogku` + buat 1 post panduan deploy.
+
+### How it was verified
+- `systemctl is-active blogku` → `active`; `systemctl is-enabled` → `enabled`.
+- `curl http://127.0.0.1:8090/` → 200; body mengandung `<html`; login demo (`demo/demo12345`) → token.
+- First-run journal: `Blogku admin created:` dengan URL/Email/Password dicetak sekali.
+
+### Handover notes
+- Admin first-run: `admin@blogku.com` / password acak (lihat `journalctl -u blogku`; hanya dicetak sekali).
+- Listen `127.0.0.1:8090` lokal; expose via reverse-proxy + TLS bila perlu (di luar cakupan).
+
 ## [2026-10-25] — Blogku Single-Binary Setup (fitur besar)
 **Author** · **Role** (Dev/Backend/DevOps/Docs) · **Status** (Done)
 

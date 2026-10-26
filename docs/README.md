@@ -35,4 +35,5 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | [backend-deployment-spec.md](./backend-deployment-spec.md) | Panduan deploy & integrasi | Instalasi PocketBase, migrasi, storage, reverse proxy/TLS, keamanan, backup, monitoring, CI/CD, checklist verifikasi |
 | [blogku-single-binary-setup-spec.md](./blogku-single-binary-setup-spec.md) | Spesifikasi single-binary | Desain satu binary Linux (embed frontend + backend PocketBase, auto-provision admin, same-origin) |
 | [blogku-single-binary-setup-plan.md](./blogku-single-binary-setup-plan.md) | Implementasi plan | Rincian task 1-7 (TDD) yang membangun fitur single-binary |
+| [how-to-deploy-blogku.md](./how-to-deploy-blogku.md) | Panduan deploy | Langkah-langkah men-deploy single-binary ke VPS (contoh nyata server 64) |
 
