@@ -23,6 +23,7 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **08** | **Blogku Branding & Taxonomies CRUD** | ✅ Stable | [08-blogku-branding-and-taxonomies-crud.md](./features/08-blogku-branding-and-taxonomies-crud.md) |
 | **09** | **PocketBase Backend Integration** | Frontend adapter | [09-pocketbase-backend-integration.md](./features/09-pocketbase-backend-integration.md) |
 | **10** | **Change Password** | Implementasi | [10-change-password.md](./features/10-change-password.md) |
+| **11** | **Blogku Single-Binary Setup** | ✅ Stable | [11-blogku-single-binary-setup.md](./features/11-blogku-single-binary-setup.md) |
 
 ---
 
@@ -32,4 +33,6 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | :--- | :---: | :--- |
 | [backend-integration-spec.md](./backend-integration-spec.md) | Spesifikasi + Adapter frontend | Pemetaan `DataSource` ke PocketBase, skema koleksi, RBAC, auth, upload, error contract, rate limit berlapis; `PocketBaseSource` diimplementasikan (backend di-deploy di luar repo ini) |
 | [backend-deployment-spec.md](./backend-deployment-spec.md) | Panduan deploy & integrasi | Instalasi PocketBase, migrasi, storage, reverse proxy/TLS, keamanan, backup, monitoring, CI/CD, checklist verifikasi |
+| [blogku-single-binary-setup-spec.md](./blogku-single-binary-setup-spec.md) | Spesifikasi single-binary | Desain satu binary Linux (embed frontend + backend PocketBase, auto-provision admin, same-origin) |
+| [blogku-single-binary-setup-plan.md](./blogku-single-binary-setup-plan.md) | Implementasi plan | Rincian task 1-7 (TDD) yang membangun fitur single-binary |
 
