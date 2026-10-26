@@ -5,6 +5,48 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-26] — Release `v0.0.3-alpha` & upload binary ke assets
+**Author** · **Role** (DevOps/Release) · **Status** (Done)
+
+### What changed
+- Tag anotasi `v0.0.3-alpha` dibuat di commit `679bdc2` dan di-push ke `origin`.
+- GitHub Release **Blogku v0.0.3-alpha** dipublikasikan (prerelease):
+  https://github.com/softonica/Blogku/releases/tag/v0.0.3-alpha
+- Asset rilis diunggah:
+  - `blogku-linux-amd64` — 26.742.944 byte, state `uploaded`
+  - `blogku-linux-amd64.sha256` — 84 byte, state `uploaded`
+- Branch `feat/blogku-single-binary` dan `main` di-push ke `origin` pada commit
+  `679bdc2` (main fast-forward dari `9ef57aa`).
+- Versi monorepo tetap `0.0.3-alpha` (sudah termasuk dalam commit rilis).
+
+### Why
+- Menerbitkan versi baru yang memuat admin console, dashboard, dan penguncian
+  akses `/admin` untuk role admin, dalam bentuk binary single-file siap deploy.
+- Menyediakan checksum agar integritas binary dapat diverifikasi sebelum deploy.
+
+### How it was verified
+- `git ls-remote origin refs/heads/main refs/heads/feat/blogku-single-binary refs/tags/v0.0.3-alpha`
+  → main & feature branch = `679bdc25e4...`, tag = `91b79891...`.
+- GitHub API `GET /repos/softonica/Blogku/releases/tags/v0.0.3-alpha` →
+  release id `424805116`, `prerelease: true`, dua asset dengan state `uploaded`.
+- Ukuran asset binary `26.742.944` byte dan digest `sha256:4e5a084bfe69e5c0026fbb9c91bcdfa0bd455f9de760f885ca98891c4471a399`
+  sesuai hasil `Get-FileHash`.
+- Smoke test binary sebelumnya: `GET /` dan `GET /admin` = 200, HTML berisi
+  `id="app"`.
+
+### Handover notes
+- Release ditandai **prerelease**; naikkan ke stable hanya setelah verifikasi
+  produksi.
+- URL unduhan binary:
+  `https://github.com/softonica/Blogku/releases/download/v0.0.3-alpha/blogku-linux-amd64`
+- Verifikasi checksum di server:
+  `sha256sum -c blogku-linux-amd64.sha256`.
+- Commit dokumentasi release ini berada **setelah** tag. Jangan pindahkan tag
+  `v0.0.3-alpha`; bila binary perlu dibangun ulang, buat tag/rilis versi baru.
+- `pw-check.cjs` masih untracked dan sengaja tidak di-commit.
+
+---
+
 ## [2026-10-26] — Build binary rilis & commit admin console
 **Author** · **Role** (DevOps/Release) · **Status** (Done)
 
