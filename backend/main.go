@@ -41,10 +41,9 @@ func main() {
 			return fmt.Errorf("bootstrap: %w", err)
 		}
 
-		// Serve the embedded SPA for every route that is not a PocketBase
-		// API/admin route. PocketBase's own routes (/api/*, /_/*) are
-		// registered earlier and take precedence; this wildcard catches the
-		// remaining requests.
+		// Serve the embedded SPA for non-API paths. PocketBase's own routes
+		// (/api/*, /_/*) are registered earlier and take precedence; this
+		// subtree route serves the SPA for the remaining requests.
 		distFS, err := fs.Sub(embeddedDist, "dist")
 		if err != nil {
 			return fmt.Errorf("sub dist: %w", err)

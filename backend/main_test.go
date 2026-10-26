@@ -7,6 +7,9 @@ import (
 )
 
 func TestEnsureSuperuserGeneratesCredentials(t *testing.T) {
+	t.Setenv("PB_SUPERUSER_EMAIL", "")
+	t.Setenv("PB_SUPERUSER_PASSWORD", "")
+
 	app, err := tests.NewTestApp()
 	if err != nil {
 		t.Fatalf("failed to create test app: %v", err)
