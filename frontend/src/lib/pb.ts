@@ -1,6 +1,6 @@
 import PocketBase from 'pocketbase'
 
-const DEFAULT_PB_URL = 'http://127.0.0.1:8090'
+const DEFAULT_PB_URL = ''
 
 function resolveUrl(): string {
   const fromEnv = (import.meta.env.VITE_PB_URL as string | undefined)?.trim()
