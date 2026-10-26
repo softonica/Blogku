@@ -86,6 +86,49 @@ const postRecord = {
 }
 
 describe('PocketBaseSource', () => {
+  it('maps postStyle from the record and defaults to style1', async () => {
+    const styled = { ...postRecord, postStyle: 'style3' }
+    const { pb } = makePb({
+      collections: {
+        posts: {
+          getList: vi
+            .fn()
+            .mockResolvedValue({ items: [styled, postRecord], page: 1, perPage: 10, totalItems: 2, totalPages: 1 }),
+        },
+      },
+    })
+    const source = new PocketBaseSource(pb as never)
+
+    const page = await source.listPosts({ page: 1, perPage: 10 })
+
+    expect(page.items[0].postStyle).toBe('style3')
+    expect(page.items[1].postStyle).toBe('style1')
+  })
+
+  it('sends postStyle when creating a post', async () => {
+    const created = { ...postRecord, postStyle: 'style2' }
+    const { pb, collections } = makePb({
+      collections: {
+        posts: {
+          create: vi.fn().mockResolvedValue(created),
+          getOne: vi.fn().mockResolvedValue(created),
+        },
+      },
+    })
+    const source = new PocketBaseSource(pb as never)
+
+    await source.createPost({
+      title: 'Styled post',
+      excerpt: 'An excerpt that is long enough.',
+      content: '<p>Body content long enough.</p>',
+      status: 'published',
+      postStyle: 'style2',
+    })
+
+    const [body] = collections.posts.create!.mock.calls[0]
+    expect(body.postStyle).toBe('style2')
+  })
+
   it('maps post records (created/updated + expand)', async () => {
     const { pb } = makePb({
       collections: {

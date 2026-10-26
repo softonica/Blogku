@@ -104,6 +104,10 @@ func bootstrap(app core.App, httpAddr string) error {
 	if err != nil {
 		return err
 	}
+	// Idempotent migration: older databases predate the post layout style.
+	if err := ensurePostStyleField(app); err != nil {
+		return err
+	}
 	if _, err := ensureCommentsCollection(app, users, posts); err != nil {
 		return err
 	}
@@ -284,6 +288,7 @@ func ensurePostsCollection(app core.App, users, categories, tags *core.Collectio
 	posts.Fields.Add(&core.URLField{Name: "cover"})
 	posts.Fields.Add(&core.SelectField{Name: "status", Values: []string{"draft", "published"}, MaxSelect: 1, Required: true})
 	posts.Fields.Add(&core.SelectField{Name: "postType", Values: []string{"standard", "video", "audio", "gallery"}, MaxSelect: 1})
+	posts.Fields.Add(&core.SelectField{Name: "postStyle", Values: []string{"style1", "style2", "style3", "style4"}, MaxSelect: 1})
 	posts.Fields.Add(&core.URLField{Name: "videoUrl"})
 	posts.Fields.Add(&core.URLField{Name: "audioUrl"})
 	posts.Fields.Add(&core.JSONField{Name: "gallery"})
@@ -304,6 +309,25 @@ func ensurePostsCollection(app core.App, users, categories, tags *core.Collectio
 	posts.AddIndex("idx_posts_tags", false, "tags", "")
 
 	return saveCollection(app, posts)
+}
+
+// ensurePostStyleField adds the postStyle select field to an existing posts
+// collection. Safe to run on every boot; no-op once the field exists.
+func ensurePostStyleField(app core.App) error {
+	collection, err := app.FindCollectionByNameOrId("posts")
+	if err != nil {
+		return err
+	}
+	if collection.Fields.GetByName("postStyle") != nil {
+		return nil
+	}
+	collection.Fields.Add(&core.SelectField{
+		Name:      "postStyle",
+		Values:    []string{"style1", "style2", "style3", "style4"},
+		MaxSelect: 1,
+	})
+	_, err = saveCollection(app, collection)
+	return err
 }
 
 func ensureCommentsCollection(app core.App, users, posts *core.Collection) (*core.Collection, error) {

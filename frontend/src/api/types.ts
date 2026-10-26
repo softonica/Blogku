@@ -2,6 +2,7 @@ export type PostStatus = 'published' | 'draft'
 export type ReactionType = 'like' | 'dislike' | 'favorite'
 export type Role = 'admin' | 'penulis' | 'subscriber'
 export type PostType = 'standard' | 'video' | 'audio' | 'gallery'
+export type PostStyle = 'style1' | 'style2' | 'style3' | 'style4'
 
 export interface User {
   id: string
@@ -40,6 +41,7 @@ export interface Post {
   cover: string
   status: PostStatus
   postType?: PostType
+  postStyle?: PostStyle
   videoUrl?: string
   audioUrl?: string
   gallery?: string[]
@@ -97,6 +99,7 @@ export interface PostInput {
   cover?: string
   status?: PostStatus
   postType?: PostType
+  postStyle?: PostStyle
   videoUrl?: string
   audioUrl?: string
   gallery?: string[]

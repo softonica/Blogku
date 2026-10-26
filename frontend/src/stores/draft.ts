@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { PostType } from '@/api/types'
+import type { PostStyle, PostType } from '@/api/types'
 
 export interface Draft {
   id: string
@@ -8,6 +8,7 @@ export interface Draft {
   excerpt: string
   content: string
   postType?: PostType
+  postStyle?: PostStyle
   categoryIds?: string[]
   tagIds?: string[]
   cover?: string
@@ -53,6 +54,7 @@ export const useDraftStore = defineStore('draft', () => {
     excerpt: string
     content: string
     postType?: PostType
+    postStyle?: PostStyle
     categoryIds?: string[]
     tagIds?: string[]
     cover?: string
@@ -65,6 +67,7 @@ export const useDraftStore = defineStore('draft', () => {
       excerpt: input.excerpt,
       content: input.content,
       postType: input.postType ?? 'standard',
+      postStyle: input.postStyle ?? 'style1',
       categoryIds: input.categoryIds ?? [],
       tagIds: input.tagIds ?? [],
       cover: input.cover,

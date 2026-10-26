@@ -5,6 +5,34 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-26] — Editor: tag, auto-excerpt, kategori admin, post style
+**Author** · **Role** (Frontend/Backend) · **Status** (Done, deployed)
+
+### What changed
+- `frontend/src/pages/EditorPage.vue`
+  - **Tag**: `addNewTag()` async memakai `createTag()` (id asli) + guard `addingTag`; UI diganti form input + tombol **Add** persis seperti kategori (mobile tidak lagi bergantung pada Enter).
+  - **Excerpt**: `ensureExcerpt()` mengisi excerpt kosong dari `firstParagraphExcerpt(content)` sebelum validasi (save draft & publish). Konten awal editor dikosongkan agar placeholder yang tampil.
+  - **Kategori (admin)**: form **+ New category** inline, hanya untuk `role === 'admin'`, dengan dedupe nama/slug.
+  - **Post style**: `postStyle` dimuat dari post/draft dan dikirim pada create/update/draft.
+- `frontend/src/lib/excerpt.ts` + `excerpt.test.ts` (baru) — ekstraksi paragraf pertama, truncate 300 char di batas kata.
+- `frontend/src/api/types.ts`, `pocketbase.source.ts` (+test), `stores/draft.ts` — dukung `postStyle`.
+- `frontend/src/pages/PostPage.vue` — 4 layout: style1 classic centered, style2 wide/no-sidebar, style3 magazine + sidebar, style4 full-bleed hero.
+- `backend/main.go` — field `postStyle` pada `posts` + migrasi idempoten `ensurePostStyleField()`.
+
+### Why
+- Tag baru tidak pernah tersimpan (id relasi palsu); input tag tidak bisa dipakai di mobile; excerpt wajib ≥10 char; admin tidak bisa menambah kategori dari editor; pilihan Style 1–4 tidak berpengaruh apa pun.
+
+### How it was verified
+- `npx vitest run` → 93 passed; `vue-tsc --noEmit` & `eslint` bersih; `go test ./...` ok.
+- Playwright mobile (iPhone 13): tap **Add** → `POST tags` → chip muncul; Enter juga jalan.
+- Playwright produksi: pilih Style 2 → Publish → `article[data-post-style="style2"]` dengan `max-w-5xl`; excerpt terisi dari paragraf pertama.
+- 4 post uji (style1–4) dirender berbeda lalu dihapus (cleanup 4/4).
+
+### Handover notes
+- Style hanya berlaku untuk `postType = standard`.
+- DB lama mendapat field `postStyle` otomatis saat service restart (idempoten).
+- Backlog: dedupe request taksonomi in-flight; kelola tag/kategori dari halaman admin.
+
 ## [2026-10-26] — Fix false "Unable to reach the server" saat load/login
 **Author** · **Role** (Frontend/Backend) · **Status** (Done, deployed)
 

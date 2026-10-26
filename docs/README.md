@@ -34,6 +34,7 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **09** | **PocketBase Backend Integration** | Frontend adapter | [09-pocketbase-backend-integration.md](./features/09-pocketbase-backend-integration.md) |
 | **10** | **Change Password** | Implementasi | [10-change-password.md](./features/10-change-password.md) |
 | **11** | **Blogku Single-Binary Setup** | ✅ Stable | [11-blogku-single-binary-setup.md](./features/11-blogku-single-binary-setup.md) |
+| **12** | **Editor: Tag, Auto-Excerpt, Kategori & Post Styles** | ✅ Stable | [12-editor-taxonomy-excerpt-and-post-styles.md](./features/12-editor-taxonomy-excerpt-and-post-styles.md) |
 
 ---
 
@@ -47,4 +48,5 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | [blogku-single-binary-setup-plan.md](./blogku-single-binary-setup-plan.md) | Implementasi plan | Rincian task 1-7 (TDD) yang membangun fitur single-binary |
 | [how-to-deploy-blogku.md](./how-to-deploy-blogku.md) | Panduan deploy | Langkah-langkah men-deploy single-binary ke VPS (contoh nyata server 64) |
 | [HANDOVER-CONTEXT.md](./HANDOVER-CONTEXT.md) | ✅ Aktual (2026-10-26) | Konteks menyeluruh untuk handover: arsitektur, server, build/deploy, konfigurasi, status, utang repo, backlog |
+| [editor-tag-excerpt-category-spec.md](./editor-tag-excerpt-category-spec.md) | ✅ Diimplementasi | Spec tag editor, auto-excerpt, kategori admin, dan 4 post layout style |
 

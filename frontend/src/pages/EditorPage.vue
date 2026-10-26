@@ -20,6 +20,7 @@ import { getDataSource } from '@/api'
 import type { Category, Post, PostType, Tag } from '@/api/types'
 import { draftSchema, firstError } from '@/lib/validation'
 import { sanitizeHtml, sanitizePlainText } from '@/lib/sanitize'
+import { firstParagraphExcerpt } from '@/lib/excerpt'
 import {
   DEFAULT_ALLOWED_IMAGE_DOMAINS,
   extractDomain,
@@ -63,9 +64,7 @@ const loading = ref(false)
 // Form fields
 const title = ref('')
 const excerpt = ref('')
-const content = ref(
-  '<p>Start writing here. Formatting, rich links, and responsive images are supported.</p>',
-)
+const content = ref('')
 const postType = ref<PostType>('standard')
 const postStyle = ref<'style1' | 'style2' | 'style3' | 'style4'>('style1')
 const videoUrl = ref('')
@@ -81,6 +80,11 @@ const allowComments = ref(true)
 const selectedCategoryIds = ref<string[]>([])
 const selectedTagIds = ref<string[]>([])
 const newTagName = ref('')
+const addingTag = ref(false)
+const newCategoryName = ref('')
+const addingCategory = ref(false)
+
+const isAdmin = computed(() => auth.user?.role === 'admin')
 
 // Post Options Modal state
 const showOptionsModal = ref(false)
@@ -155,6 +159,7 @@ onMounted(async () => {
       excerpt.value = fetched.excerpt
       content.value = fetched.content
       postType.value = fetched.postType || 'standard'
+      postStyle.value = fetched.postStyle || 'style1'
       videoUrl.value = fetched.videoUrl || ''
       audioUrl.value = fetched.audioUrl || ''
       cover.value = fetched.cover
@@ -167,6 +172,7 @@ onMounted(async () => {
       excerpt.value = existingDraft.value.excerpt
       content.value = existingDraft.value.content
       postType.value = existingDraft.value.postType || 'standard'
+      postStyle.value = existingDraft.value.postStyle || 'style1'
       videoUrl.value = existingDraft.value.videoUrl || ''
       audioUrl.value = existingDraft.value.audioUrl || ''
       cover.value = existingDraft.value.cover || sampleCovers[0]
@@ -185,7 +191,7 @@ onMounted(async () => {
 
 // Auto-save draft changes locally
 watch(
-  [title, excerpt, content, postType, selectedCategoryIds, selectedTagIds, cover, videoUrl, audioUrl],
+  [title, excerpt, content, postType, postStyle, selectedCategoryIds, selectedTagIds, cover, videoUrl, audioUrl],
   () => {
     if (postId.value) return
     if (!title.value.trim() && !content.value.trim()) return
@@ -196,6 +202,7 @@ watch(
       excerpt: excerpt.value,
       content: content.value,
       postType: postType.value,
+      postStyle: postStyle.value,
       categoryIds: selectedCategoryIds.value,
       tagIds: selectedTagIds.value,
       cover: cover.value,
@@ -235,16 +242,9 @@ function removeTag(tagId: string): void {
   selectedTagIds.value = selectedTagIds.value.filter((id) => id !== tagId)
 }
 
-function onTagInputKeydown(e: KeyboardEvent): void {
-  if (['Enter', ',', ' '].includes(e.key)) {
-    e.preventDefault()
-    addNewTag()
-  }
-}
-
-function addNewTag(): void {
+async function addNewTag(): Promise<void> {
   const raw = newTagName.value.replace(/[,#]/g, '').trim()
-  if (!raw) return
+  if (!raw || addingTag.value) return
   if (selectedTagIds.value.length >= 5) {
     ui.notify('Maximum 5 tags allowed.', 'info')
     newTagName.value = ''
@@ -258,17 +258,54 @@ function addNewTag(): void {
     if (!selectedTagIds.value.includes(existing.id)) {
       selectedTagIds.value.push(existing.id)
     }
-  } else {
-    const newTag: Tag = {
-      id: `tag_${Date.now()}`,
-      name: clean,
-      slug: clean.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      postCount: 1,
-    }
-    tags.value.push(newTag)
-    selectedTagIds.value.push(newTag.id)
+    newTagName.value = ''
+    return
   }
-  newTagName.value = ''
+
+  addingTag.value = true
+  try {
+    const created = await getDataSource().createTag({ name: clean })
+    if (!tags.value.some((t) => t.id === created.id)) tags.value.push(created)
+    if (!selectedTagIds.value.includes(created.id)) selectedTagIds.value.push(created.id)
+    newTagName.value = ''
+  } catch (err) {
+    startRateLimit(err)
+    ui.notify(err instanceof Error ? err.message : 'Failed to create tag', 'error')
+  } finally {
+    addingTag.value = false
+  }
+}
+
+async function addNewCategory(): Promise<void> {
+  const clean = sanitizePlainText(newCategoryName.value.trim())
+  if (!clean || addingCategory.value) return
+  const slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  const existing = categories.value.find(
+    (c) => c.name.toLowerCase() === clean.toLowerCase() || c.slug === slug,
+  )
+  if (existing) {
+    if (!selectedCategoryIds.value.includes(existing.id)) {
+      selectedCategoryIds.value.push(existing.id)
+    }
+    newCategoryName.value = ''
+    return
+  }
+
+  addingCategory.value = true
+  try {
+    const created = await getDataSource().createCategory({ name: clean })
+    categories.value.push(created)
+    if (!selectedCategoryIds.value.includes(created.id)) {
+      selectedCategoryIds.value.push(created.id)
+    }
+    newCategoryName.value = ''
+    ui.notify(`Category "${created.name}" created.`)
+  } catch (err) {
+    startRateLimit(err)
+    ui.notify(err instanceof Error ? err.message : 'Failed to create category', 'error')
+  } finally {
+    addingCategory.value = false
+  }
 }
 
 const sanitizedPreview = computed(() => sanitizeHtml(content.value))
@@ -278,8 +315,15 @@ function applyPostOptions(): void {
   ui.notify('Post options applied!')
 }
 
+/** Fill an empty excerpt from the first paragraph so short cards stay useful. */
+function ensureExcerpt(): void {
+  if (excerpt.value.trim()) return
+  excerpt.value = firstParagraphExcerpt(content.value)
+}
+
 function saveLocalDraft(): void {
   error.value = ''
+  ensureExcerpt()
   const parsed = draftSchema.safeParse({
     title: title.value || 'Untitled draft',
     excerpt: excerpt.value,
@@ -301,6 +345,7 @@ function saveLocalDraft(): void {
     excerpt: parsed.data.excerpt,
     content: parsed.data.content,
     postType: postType.value,
+    postStyle: postStyle.value,
     categoryIds: selectedCategoryIds.value,
     tagIds: selectedTagIds.value,
     cover: cover.value,
@@ -313,6 +358,7 @@ function saveLocalDraft(): void {
 
 async function publishStory(): Promise<void> {
   error.value = ''
+  ensureExcerpt()
   if (cover.value && !isAllowedImageDomain(cover.value, allowedDomains.value)) {
     const domain = extractDomain(cover.value) || 'eksternal'
     error.value = `Domain gambar cover "${domain}" tidak diizinkan. Gunakan upload gambar atau domain yang diizinkan.`
@@ -349,6 +395,7 @@ async function publishStory(): Promise<void> {
         excerpt: parsed.data.excerpt,
         content: parsed.data.content,
         postType: postType.value,
+        postStyle: postStyle.value,
         videoUrl: videoUrl.value || undefined,
         audioUrl: audioUrl.value || undefined,
         cover: cover.value,
@@ -365,6 +412,7 @@ async function publishStory(): Promise<void> {
         excerpt: parsed.data.excerpt,
         content: parsed.data.content,
         postType: postType.value,
+        postStyle: postStyle.value,
         videoUrl: videoUrl.value || undefined,
         audioUrl: audioUrl.value || undefined,
         cover: cover.value,
@@ -537,16 +585,28 @@ async function publishStory(): Promise<void> {
               </button>
             </span>
 
-            <!-- Tag input -->
-            <div v-if="selectedTagIds.length < 5" class="relative flex items-center">
+            <!-- Tag input (same pattern as the category form) -->
+            <form
+              v-if="selectedTagIds.length < 5"
+              class="flex items-center gap-1.5"
+              @submit.prevent="addNewTag"
+            >
               <input
                 v-model="newTagName"
                 type="text"
-                placeholder="+ Add tag (press enter)"
-                class="h-8 rounded-full border-none bg-transparent px-3 text-xs text-neutral-600 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:text-neutral-300"
-                @keydown="onTagInputKeydown"
+                maxlength="40"
+                placeholder="+ New tag"
+                class="h-8 w-40 rounded-full border border-neutral-200 bg-white px-3 text-xs text-neutral-700 placeholder:text-neutral-400 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+                :disabled="addingTag"
               />
-            </div>
+              <button
+                type="submit"
+                class="h-8 rounded-full bg-neutral-900 px-3 text-xs font-semibold text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950"
+                :disabled="addingTag || !newTagName.trim()"
+              >
+                {{ addingTag ? 'Adding…' : 'Add' }}
+              </button>
+            </form>
           </div>
 
           <!-- Cover Image Widget / Banner -->
@@ -790,6 +850,28 @@ async function publishStory(): Promise<void> {
                   {{ cat.name }}
                 </button>
               </div>
+
+              <form
+                v-if="isAdmin"
+                class="mt-2 flex items-center gap-1.5"
+                @submit.prevent="addNewCategory"
+              >
+                <input
+                  v-model="newCategoryName"
+                  type="text"
+                  maxlength="60"
+                  placeholder="+ New category"
+                  class="h-8 w-40 rounded-full border border-neutral-200 bg-white px-3 text-xs text-neutral-700 placeholder:text-neutral-400 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+                  :disabled="addingCategory"
+                />
+                <button
+                  type="submit"
+                  class="h-8 rounded-full bg-neutral-900 px-3 text-xs font-semibold text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950"
+                  :disabled="addingCategory || !newCategoryName.trim()"
+                >
+                  {{ addingCategory ? 'Adding…' : 'Add' }}
+                </button>
+              </form>
             </div>
 
             <!-- Tags -->

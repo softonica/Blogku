@@ -57,6 +57,7 @@ interface PbPostRecord extends PbRecord {
   cover?: string | null
   status?: string
   postType?: string
+  postStyle?: string
   videoUrl?: string | null
   audioUrl?: string | null
   gallery?: string[] | null
@@ -186,6 +187,7 @@ function mapPost(record: PbPostRecord): Post {
     cover: typeof record.cover === 'string' ? record.cover : '',
     status: record.status === 'draft' ? 'draft' : 'published',
     postType: (record.postType as Post['postType']) ?? 'standard',
+    postStyle: (record.postStyle as Post['postStyle']) ?? 'style1',
     videoUrl: typeof record.videoUrl === 'string' ? record.videoUrl : undefined,
     audioUrl: typeof record.audioUrl === 'string' ? record.audioUrl : undefined,
     gallery: Array.isArray(record.gallery) ? record.gallery.map(String) : undefined,
@@ -331,6 +333,7 @@ export class PocketBaseSource implements DataSource {
     if (input.cover !== undefined) body.cover = sanitizeUrl(input.cover)
     if (input.status !== undefined) body.status = statusToPb(input.status)
     if (input.postType !== undefined) body.postType = input.postType
+    if (input.postStyle !== undefined) body.postStyle = input.postStyle
     if (input.videoUrl !== undefined) body.videoUrl = sanitizeUrl(input.videoUrl) || null
     if (input.audioUrl !== undefined) body.audioUrl = sanitizeUrl(input.audioUrl) || null
     if (input.gallery !== undefined) {

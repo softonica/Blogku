@@ -43,6 +43,18 @@ const cleanContent = computed(() => sanitizeHtml(post.value?.content ?? ''))
 const videoEmbedUrl = computed(() =>
   post.value?.postType === 'video' ? getEmbedUrl(post.value.videoUrl) : null,
 )
+
+// Layout style is picked in the editor (standard posts only).
+const postStyle = computed(() => {
+  const current = post.value
+  if (!current || (current.postType && current.postType !== 'standard')) return 'style1'
+  return current.postStyle ?? 'style1'
+})
+const isWideStyle = computed(() => postStyle.value === 'style2')
+const isMagazineStyle = computed(() => postStyle.value === 'style3')
+const isHeroStyle = computed(() => postStyle.value === 'style4')
+const isCenteredStyle = computed(() => postStyle.value === 'style1')
+const contentWidthClass = computed(() => (isWideStyle.value ? 'max-w-5xl' : 'max-w-3xl'))
 const shareUrl = computed(() =>
   typeof window === 'undefined' ? '' : window.location.href,
 )
@@ -185,8 +197,38 @@ async function copyLink(): Promise<void> {
         <span class="line-clamp-1 text-neutral-500 dark:text-neutral-400">{{ post.title }}</span>
       </nav>
 
-      <header class="mx-auto max-w-4xl text-center">
-        <div class="flex justify-center">
+      <!-- Style 4: full-bleed hero with overlay title -->
+      <div
+        v-if="isHeroStyle && post.cover"
+        class="relative mt-2 overflow-hidden rounded-[2rem] ring-1 ring-neutral-200 dark:ring-neutral-800"
+      >
+        <img :src="post.cover" :alt="post.title" class="h-[360px] w-full object-cover sm:h-[480px]" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
+        <div class="absolute inset-x-0 bottom-0 p-6 sm:p-10">
+          <CategoryBadgeList :categories="post.categories" />
+          <h1 class="mt-4 max-w-4xl text-balance text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+            {{ post.title }}
+          </h1>
+          <p class="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
+            {{ post.excerpt }}
+          </p>
+          <div class="mt-5 flex flex-wrap items-center gap-4 text-xs font-medium text-white/80">
+            <RouterLink :to="`/author/${post.author.username}`" class="font-semibold text-white hover:underline">
+              {{ post.author.name }}
+            </RouterLink>
+            <span>·</span>
+            <span>{{ formatDate(post.createdAt) }}</span>
+            <span>·</span>
+            <span>{{ post.readingTime }} min read</span>
+          </div>
+        </div>
+      </div>
+
+      <header
+        v-if="!isHeroStyle"
+        :class="['mx-auto', isWideStyle ? 'max-w-5xl' : 'max-w-4xl', isCenteredStyle ? 'text-center' : 'text-start']"
+      >
+        <div :class="['flex', isCenteredStyle ? 'justify-center' : 'justify-start']">
           <CategoryBadgeList :categories="post.categories" />
         </div>
         <h1
@@ -195,12 +237,15 @@ async function copyLink(): Promise<void> {
           {{ post.title }}
         </h1>
         <p
-          class="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-neutral-500 sm:text-lg dark:text-neutral-400"
+          :class="[
+            'mt-5 text-base leading-relaxed text-neutral-500 sm:text-lg dark:text-neutral-400',
+            isCenteredStyle ? 'mx-auto max-w-3xl' : 'max-w-3xl',
+          ]"
         >
           {{ post.excerpt }}
         </p>
 
-        <div class="mt-7 flex flex-wrap items-center justify-center gap-5">
+        <div :class="['mt-7 flex flex-wrap items-center gap-5', isCenteredStyle ? 'justify-center' : 'justify-start']">
           <div class="flex items-center gap-3">
             <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
             <div class="text-start text-sm">
@@ -225,29 +270,46 @@ async function copyLink(): Promise<void> {
             {{ formatNumber(post.viewCount) }} views
           </span>
         </div>
-
-        <div class="mt-7 flex flex-wrap items-center justify-center gap-2">
-          <RouterLink
-            v-if="canManagePost(auth.user?.role, auth.user?.id, post.author.id)"
-            :to="`/editor/${post.id}`"
-            class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
-          >
-            <PenLine class="h-4 w-4" aria-hidden="true" />
-            Edit post
-          </RouterLink>
-          <LikeButton :post="post" />
-          <SaveButton :post-id="post.id" :post-title="post.title" show-label />
-          <button
-            type="button"
-            class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 px-4 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
-            aria-label="Share post"
-            @click="openShare"
-          >
-            <Share2 class="h-4 w-4" aria-hidden="true" />
-            Share
-          </button>
-        </div>
       </header>
+
+      <div
+        :class="[
+          'mt-7 flex flex-wrap items-center gap-2',
+          isCenteredStyle || isHeroStyle ? 'justify-center' : 'justify-start',
+        ]"
+      >
+        <RouterLink
+          v-if="canManagePost(auth.user?.role, auth.user?.id, post.author.id)"
+          :to="`/editor/${post.id}`"
+          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        >
+          <PenLine class="h-4 w-4" aria-hidden="true" />
+          Edit post
+        </RouterLink>
+        <LikeButton :post="post" />
+        <SaveButton :post-id="post.id" :post-title="post.title" show-label />
+        <button
+          type="button"
+          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 px-4 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          aria-label="Share post"
+          @click="openShare"
+        >
+          <Share2 class="h-4 w-4" aria-hidden="true" />
+          Share
+        </button>
+      </div>
+
+      <!-- Styles 2 & 3 show the cover as a wide banner -->
+      <div
+        v-if="(isWideStyle || isMagazineStyle) && post.cover"
+        :class="['mt-8 overflow-hidden rounded-[2rem] ring-1 ring-neutral-200 dark:ring-neutral-800', isWideStyle ? 'mx-auto max-w-5xl' : '']"
+      >
+        <img
+          :src="post.cover"
+          :alt="post.title"
+          class="h-[280px] w-full object-cover sm:h-[400px]"
+        />
+      </div>
 
       <div v-if="post.postType === 'video' && videoEmbedUrl" class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
         <div class="aspect-[16/9] w-full bg-black">
@@ -267,13 +329,77 @@ async function copyLink(): Promise<void> {
         </div>
       </div>
 
-      <article class="prose prose-neutral mx-auto mt-10 max-w-3xl dark:prose-invert" v-html="cleanContent"></article>
+      <!-- Style 3: content + sticky sidebar -->
+      <div :class="isMagazineStyle ? 'mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px]' : ''">
+        <div>
+          <article
+            :class="[
+              'prose prose-neutral dark:prose-invert',
+              isMagazineStyle ? 'mt-0 max-w-none' : ['mt-10 mx-auto', contentWidthClass],
+            ]"
+            :data-post-style="postStyle"
+            v-html="cleanContent"
+          ></article>
 
-      <div v-if="post.tags?.length" class="mx-auto mt-8 flex max-w-3xl flex-wrap gap-2">
-        <TagBadge v-for="tag in post.tags" :key="tag.id" :tag="tag" />
+          <div
+            v-if="post.tags?.length"
+            :class="['mt-8 flex flex-wrap gap-2', isMagazineStyle ? '' : ['mx-auto', contentWidthClass]]"
+          >
+            <TagBadge v-for="tag in post.tags" :key="tag.id" :tag="tag" />
+          </div>
+        </div>
+
+        <aside v-if="isMagazineStyle" class="space-y-5 lg:sticky lg:top-24 lg:self-start">
+          <div class="rounded-3xl border border-neutral-200 p-5 dark:border-neutral-800">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+              Written by
+            </p>
+            <div class="mt-3 flex items-center gap-3">
+              <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
+              <div>
+                <RouterLink
+                  :to="`/author/${post.author.username}`"
+                  class="text-sm font-bold text-neutral-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-300"
+                >
+                  {{ post.author.name }}
+                </RouterLink>
+                <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                  {{ formatDate(post.createdAt) }}
+                </p>
+              </div>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <LikeButton :post="post" />
+              <SaveButton :post-id="post.id" :post-title="post.title" show-label />
+            </div>
+            <button
+              type="button"
+              class="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-full border border-neutral-200 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              @click="openShare"
+            >
+              <Share2 class="h-4 w-4" aria-hidden="true" />
+              Share
+            </button>
+          </div>
+
+          <div class="rounded-3xl border border-neutral-200 p-5 dark:border-neutral-800">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+              Post details
+            </p>
+            <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+              {{ post.readingTime }} min read · {{ formatNumber(post.viewCount) }} views
+            </p>
+            <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+              {{ formatNumber(post.commentCount) }} comments
+            </p>
+          </div>
+        </aside>
       </div>
 
-      <div class="mt-10 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-neutral-200 p-5 dark:border-neutral-800">
+      <div
+        v-if="!isMagazineStyle"
+        class="mt-10 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-neutral-200 p-5 dark:border-neutral-800"
+      >
         <div class="flex items-center gap-3">
           <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
           <div>
