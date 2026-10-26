@@ -1,4 +1,4 @@
-$Root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$Root = Split-Path $PSScriptRoot -Parent
 Push-Location "$Root\frontend"
 $env:VITE_USE_POCKETBASE='true'
 $env:VITE_PB_URL=''
