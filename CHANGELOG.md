@@ -5,6 +5,101 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-26] — Build binary rilis & commit admin console
+**Author** · **Role** (DevOps/Release) · **Status** (Done)
+
+### What changed
+- Versi monorepo dinaikkan dari `0.0.2-alpha` menjadi **`0.0.3-alpha`** (`package.json`, `frontend/package.json`, `package-lock.json`).
+- Frontend release build dijalankan dengan `VITE_USE_POCKETBASE=true` dan `VITE_PB_URL=` (same-origin), lalu aset `frontend/dist` disalin ke `backend/dist` melalui `backend/build.ps1`.
+- Binary Windows dibangun: `backend/blogku.exe` (37.481.472 byte) via `backend/build.ps1`.
+- Binary Linux amd64 dibangun untuk deploy: `backend/blogku` (26.742.944 byte) via `go build -trimpath -ldflags="-s -w"` dengan `CGO_ENABLED=0 GOOS=linux GOARCH=amd64`.
+- `docs/features/13-admin-console-shell-and-dashboard.md` — menambahkan bagian build binary dan hasil smoke test.
+- Perubahan fitur admin console, penguncian akses role admin, dokumentasi, dan test di-commit bersama entri ini.
+
+### Why
+- Menyediakan artefak rilis single-binary yang siap dideploy setelah perubahan admin console dan aturan akses.
+- Memenuhi permintaan untuk mendokumentasikan proses build sekaligus menyerahkan riwayat perubahan dalam satu commit.
+
+### How it was verified
+- `& .\backend\build.ps1` → frontend `vite build` sukses; `backend/blogku.exe` terbentuk.
+- `go test ./...` di `backend/` → `ok ncmaz.backend` (cached).
+- Cross-compile Linux → `backend/blogku` 26.742.944 byte (target `linux/amd64`; tidak dieksekusi di Windows).
+- Smoke test binary Windows: `blogku.exe serve --http=127.0.0.1:8091 --dir=<temp>` →
+  `GET /` = **200**, `GET /admin` = **200**, HTML mengandung `id="app"` (SPA fallback bekerja). Data dir sementara dihapus setelah test.
+- `npm run typecheck`, `npm run lint`, `npm run test` (13 file / 103 test), dan `npm run build` sudah lulus sebelum build binary.
+
+### Handover notes
+- Binary ada di `backend/blogku` (Linux amd64, untuk deploy) dan `backend/blogku.exe` (Windows, untuk smoke lokal). Keduanya **di-ignore** oleh `backend/.gitignore`, jadi tidak masuk commit.
+- Untuk deploy: unggah `backend/blogku` ke server, jalankan `./blogku serve --http=0.0.0.0:8090 --dir=<data-dir>`.
+- Build berikutnya: jalankan `backend/build.sh` di Linux atau `backend/build.ps1` di Windows, lalu cross-compile Linux bila perlu. Pastikan `frontend/dist` dan `backend/dist` sudah diperbarui sebelum `go build`.
+- `pw-check.cjs` di root adalah script debug yang sudah ada sebelumnya dan sengaja tidak di-commit.
+
+---
+
+## [2026-10-26] — Kunci akses `/admin` dan seluruh `/admin/*` untuk role admin
+**Author** · **Role** (Frontend/Security) · **Status** (Done)
+
+### What changed
+- `frontend/src/router/index.ts` — parent route `/admin` kini memakai meta `{ requiresAuth: true, adminOnly: true }`. `router.beforeEach()` mengecek `adminOnly` **sebelum** permission child: user belum login → `/login`, `penulis` → `/dashboard`, `subscriber` → `/profile`. Karena meta parent diwarisi seluruh child, aturan ini otomatis berlaku untuk setiap route `/admin/*` saat ini dan yang ditambahkan nanti.
+- `frontend/src/types/router.d.ts` — menambahkan `adminOnly?: boolean` pada `RouteMeta`.
+- `frontend/src/router/admin-access.test.ts` (baru) — 4 test regresi: semua route `/admin*` terdaftar, seluruhnya resolve dengan `adminOnly: true`, tidak ada permission admin yang bisa dipegang `penulis`/`subscriber`, dan `adminOnly` tidak bocor ke route publik/penulis.
+- `AGENTS.md` — menambahkan aturan wajib **"Admin Area Terkunci"** pada Prinsip Keamanan & Arsitektur agar keputusan ini konsisten untuk pekerjaan berikutnya.
+- `docs/features/13-admin-console-shell-and-dashboard.md` — memperbarui metadata izin, bagian Otorisasi & Keamanan, test, dan tabel verifikasi role.
+
+### Why
+- Parent `/admin` sebelumnya hanya `requiresAuth`; proteksi bergantung pada permission masing-masing child. Itu berisiko jika kelak ada child admin yang lupa dipasangi permission atau memakai permission yang juga dimiliki penulis.
+- Permintaan eksplisit: hanya role `admin` yang boleh mengakses `/admin` dan `/admin/*`, dan aturan ini harus tercatat agar konsisten.
+
+### How it was verified
+- `npm run typecheck` → lulus tanpa error.
+- `npm run lint` → 0 error, 0 warning.
+- `npm run test` → **13 file, 103 test lulus** (4 test baru `admin-access.test.ts`).
+- `npm run build` → sukses.
+- Playwright role smoke (MockSource, dev server 4173, 0 console error):
+  - `user_admin` `/admin` → `/admin/dashboard`; `/admin/users` → tetap `/admin/users`.
+  - `user_demo` (penulis) `/admin` → `/dashboard`; `/admin/settings` → `/dashboard`.
+  - `user_subscriber` `/admin` → `/profile`; `/admin/moderation` → `/profile`.
+
+### Handover notes
+- Jangan menghapus meta `adminOnly: true` dari parent `/admin`. Menambah halaman admin cukup menambahkan child di bawah parent tersebut; guard parent otomatis mengunci role.
+- Permission child tetap dipertahankan sebagai lapisan kedua (defense in depth), tetapi bukan lagi satu-satunya kontrol akses area admin.
+- `auth.isAdmin` (berbasis `manage_settings`) tetap dipakai untuk UI; guard memakai `role === 'admin'` secara eksplisit agar tidak bergantung pada pemetaan permission.
+
+---
+
+## [2026-10-26] — Admin console shell & overview dashboard
+**Author** · **Role** (Frontend) · **Status** (Done)
+
+### What changed
+- `frontend/src/layouts/AdminLayout.vue` (baru) — shell admin dua kolom: sidebar tetap di desktop, off-canvas + backdrop di mobile, topbar sticky, dan `RouterView` untuk child routes.
+- `frontend/src/components/admin/AdminSidebar.vue` (baru) — brand situs, grup collapsible **Main / Content / Community / System** dengan submenu (Overview, My Posts, New Post, Categories & Tags, Pages, Comments, Users & Roles, Site Settings, Editor Settings), penanda `aria-current`, kartu profil, logout, dan tautan kembali ke situs.
+- `frontend/src/components/admin/AdminTopbar.vue` (baru) — judul dari `route.meta.title`, tombol search (dialog global), pintasan Site Settings & Comment Moderation, `ThemeToggle`, dan avatar profil.
+- `frontend/src/pages/admin/AdminDashboardPage.vue` (baru) — overview bergaya papan kerja: 4 kartu metrik gradien, content board (Drafts/Published/Featured/Top read), timeline publikasi 7 hari, dan ringkasan editorial reach. Data diambil paralel lewat `DataSource` (published, drafts, komentar, users).
+- `frontend/src/lib/admin-timeline.ts` + `admin-timeline.test.ts` (baru) — fungsi murni `buildTimeline()` (window 7 hari, clamp jam 08:00–20:00, palette warna) beserta 6 unit test.
+- `frontend/src/router/index.ts` — `/admin` dijadikan parent route dengan child routes; `/admin` redirect ke `/admin/dashboard`. Nama route lama dipertahankan.
+- `frontend/src/App.vue` — `AppHeader`, `AppFooter`, dan `BgGlassmorphism` tidak dirender pada area `/admin`.
+- Enam halaman admin (`AdminSettingsPage`, `AdminTaxonomiesPage`, `AdminUsersPage`, `AdminModerationPage`, `AdminPagesPage`, `AdminEditorSettingsPage`) — `AdminNav` dilepas dan padding disesuaikan dengan shell baru. `frontend/src/components/admin/AdminNav.vue` dihapus.
+- `docs/features/13-admin-console-shell-and-dashboard.md` (baru) + indeks `docs/README.md`.
+
+### Why
+- Halaman admin sebelumnya memakai tab horizontal di dalam header/footer publik; tidak ada grup menu, tidak konsisten dengan shell aplikasi, dan tidak memberi ringkasan operasional konten.
+- Permintaan produk: halaman `/admin` dengan layout seperti referensi (sidebar bergrup, kartu metrik berwarna, board, timeline) dan setiap menu berada dalam submenu grupnya.
+
+### How it was verified
+- `npm run typecheck` → `vue-tsc --noEmit` lulus tanpa error.
+- `npm run lint` → `eslint .` 0 error, 0 warning.
+- `npm run test` → 12 file test, **99 test lulus** (6 test baru untuk `buildTimeline`).
+- `npm run build` → `vue-tsc --noEmit && vite build` sukses.
+- Playwright smoke (MockSource, sesi `user_admin`, dev server 4173): `/admin` → `/admin/dashboard`, 4 kartu metrik, 4 grup sidebar, 9 kartu board, **0 console error**. Mobile: sidebar off-canvas terbuka, navigasi ke `/admin/taxonomies` berhasil, header situs publik tidak dirender (`HAS_SITE_HEADER: 0`). Screenshot light/dark desktop 1440×1000 dan mobile 390×844 diperiksa.
+
+### Handover notes
+- `/admin` (parent) hanya `requiresAuth`; izin tetap per-child (`manage_settings`, `manage_taxonomies`, `manage_users`, `moderate_comment`). Menambah menu admin baru cukup menambah child route + item di `AdminSidebar.vue`.
+- Timeline dashboard memakai 7 hari terakhir yang berakhir pada tanggal post terbaru (fallback: hari ini), sehingga data demo lama tetap terlihat. Bila ingin selalu "minggu berjalan", ganti opsi `reference` pada `buildTimeline()`.
+- `AdminNav.vue` sudah dihapus; jangan mengimpor ulang dari halaman admin.
+- Timeline pada layar sempit memakai scroll horizontal internal (`min-w-[620px]`); jaga nilai ini bila mengubah jumlah kolom hari.
+
+---
+
 ## [2026-10-26] — Editor: tag, auto-excerpt, kategori admin, post style
 **Author** · **Role** (Frontend/Backend) · **Status** (Done, deployed)
 

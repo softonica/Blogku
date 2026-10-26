@@ -29,13 +29,33 @@ Setiap dokumen fitur harus memuat bagian-bagian berikut sesuai template di `docs
 5. **Panduan Penggunaan (UI/UX)**: Cara pengguna berinteraksi dengan fitur tersebut.
 6. **Pengujian & Verifikasi**: Cara menguji (unit test, integrasi, dan manual check).
 
-### 3. Checklist Definition of Done (DoD)
-Sebelum menandai tugas fitur selesai:
+---
+
+## 🚨 ATURAN WAJIB: LOG PERUBAHAN GAYA KERJA TEAM (MANDATORY)
+
+**Setiap perubahan** (kode, dokumen, konfigurasi, test, deploy) **WAJIB dicatat** di `CHANGELOG.md` pada root repo, ditulis seperti catatan serah-terima kerja team.
+Template aturan lengkap: `.agents/rules/change-log.md`.
+
+### Format wajib setiap entri
+```markdown
+## [YYYY-MM-DD] — <Judul singkat>
+**Author** · **Role** (Dev/Backend/QA/DevOps/Docs) · **Status** (Draft/In Review/Done)
+### What changed   → file/area apa, diubah apa
+### Why            → alasan/issue yang diselesaikan
+### How it was verified → command dijalankan + hasil nyata
+### Handover notes → catatan untuk orang berikutnya (deploy pending, bug terbuka, keputusan)
+```
+- Entri **appended, tidak pernah dihapus/direwrite**; satu perubahan logis = satu entri.
+- `Status: Done` hanya boleh jika bagian **How it was verified** berisi bukti nyata (output test/smoke/build).
+- Gagal deploy/test dicatat apa adanya beserta root cause — jangan dibersihkan.
+
+### Checklist Definition of Done (DoD) — diperbarui
 - [ ] Kode terimplementasi dan lulus typecheck (`vue-tsc --noEmit`).
 - [ ] Linter bersih tanpa error (`eslint .`).
 - [ ] Unit test dibuat dan lulus (`vitest run`).
 - [ ] Dokumen fitur ditulis di `docs/features/`.
 - [ ] Indeks dokumentasi di `docs/README.md` diperbarui.
+- [ ] **Entri `CHANGELOG.md` ditulis dengan format team-work (Author/Role/What/Why/Verified/Handover).**
 
 ---
 
@@ -43,6 +63,7 @@ Sebelum menandai tugas fitur selesai:
 1. **Aman by Default**: Sanitasi semua render HTML kaya dengan DOMPurify (`sanitizeHtml`). Dilarang keras menggunakan `eval()`, `new Function()`, atau bypass sanitasi.
 2. **Layering Bersih (DataSource)**: Semua interaksi data UI **harus** melalui antarmuka `DataSource` (`src/api/source.ts`), tidak boleh memanggil backend/mock data secara langsung dari komponen.
 3. **Dark Mode & Aksesibilitas**: Setiap komponen UI harus mendukung mode gelap (`dark:`) dan atribut aksesibilitas (`aria-*`).
+4. **Admin Area Terkunci**: `/admin` dan **seluruh** `/admin/*` hanya boleh diakses role `admin`. Route parent wajib memakai meta `adminOnly: true`; jangan menambahkan child route admin dengan permission yang bisa diberikan ke `penulis`/`subscriber`. Dokumentasikan setiap perubahan aturan akses di `docs/features/13-admin-console-shell-and-dashboard.md` dan `CHANGELOG.md`.
 
 <!-- CODEGRAPH_START -->
 ## CodeGraph

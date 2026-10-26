@@ -17,7 +17,6 @@ import type { Category, CategoryInput, Tag, TagInput } from '@/api/types'
 import { useUiStore } from '@/stores/ui'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useRateLimit } from '@/composables/useRateLimit'
-import AdminNav from '@/components/admin/AdminNav.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import { categorySchema, firstError, tagSchema } from '@/lib/validation'
@@ -306,10 +305,7 @@ async function executeDeleteTag() {
 </script>
 
 <template>
-  <div class="page-shell space-y-8 pb-24">
-    <!-- Admin Header Tabs -->
-    <AdminNav />
-
+  <div class="space-y-8 pb-10">
     <!-- Top Headline & Action Bar -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>

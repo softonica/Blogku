@@ -153,64 +153,86 @@ const router = createRouter({
       },
     },
     {
-      path: '/admin/settings',
-      name: 'admin-settings',
-      component: () => import('@/pages/admin/AdminSettingsPage.vue'),
-      meta: {
-        title: 'Site Settings',
-        requiresAuth: true,
-        permission: 'manage_settings',
-      },
-    },
-    {
-      path: '/admin/taxonomies',
-      name: 'admin-taxonomies',
-      component: () => import('@/pages/admin/AdminTaxonomiesPage.vue'),
-      meta: {
-        title: 'Categories & Tags',
-        requiresAuth: true,
-        permission: 'manage_taxonomies',
-      },
-    },
-    {
-      path: '/admin/users',
-      name: 'admin-users',
-      component: () => import('@/pages/admin/AdminUsersPage.vue'),
-      meta: {
-        title: 'User Management',
-        requiresAuth: true,
-        permission: 'manage_users',
-      },
-    },
-    {
-      path: '/admin/moderation',
-      name: 'admin-moderation',
-      component: () => import('@/pages/admin/AdminModerationPage.vue'),
-      meta: {
-        title: 'Comment Moderation',
-        requiresAuth: true,
-        permission: 'moderate_comment',
-      },
-    },
-    {
-      path: '/admin/pages',
-      name: 'admin-pages',
-      component: () => import('@/pages/admin/AdminPagesPage.vue'),
-      meta: {
-        title: 'Manage Pages',
-        requiresAuth: true,
-        permission: 'manage_settings',
-      },
-    },
-    {
-      path: '/admin/editor-settings',
-      name: 'admin-editor-settings',
-      component: () => import('@/pages/admin/AdminEditorSettingsPage.vue'),
-      meta: {
-        title: 'Text Editor Settings',
-        requiresAuth: true,
-        permission: 'manage_settings',
-      },
+      path: '/admin',
+      component: () => import('@/layouts/AdminLayout.vue'),
+      meta: { requiresAuth: true, adminOnly: true },
+      children: [
+        {
+          path: '',
+          name: 'admin',
+          redirect: { name: 'admin-dashboard' },
+        },
+        {
+          path: 'dashboard',
+          name: 'admin-dashboard',
+          component: () => import('@/pages/admin/AdminDashboardPage.vue'),
+          meta: {
+            title: 'Admin Overview',
+            requiresAuth: true,
+            permission: 'manage_settings',
+          },
+        },
+        {
+          path: 'settings',
+          name: 'admin-settings',
+          component: () => import('@/pages/admin/AdminSettingsPage.vue'),
+          meta: {
+            title: 'Site Settings',
+            requiresAuth: true,
+            permission: 'manage_settings',
+          },
+        },
+        {
+          path: 'taxonomies',
+          name: 'admin-taxonomies',
+          component: () => import('@/pages/admin/AdminTaxonomiesPage.vue'),
+          meta: {
+            title: 'Categories & Tags',
+            requiresAuth: true,
+            permission: 'manage_taxonomies',
+          },
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: () => import('@/pages/admin/AdminUsersPage.vue'),
+          meta: {
+            title: 'User Management',
+            requiresAuth: true,
+            permission: 'manage_users',
+          },
+        },
+        {
+          path: 'moderation',
+          name: 'admin-moderation',
+          component: () => import('@/pages/admin/AdminModerationPage.vue'),
+          meta: {
+            title: 'Comment Moderation',
+            requiresAuth: true,
+            permission: 'moderate_comment',
+          },
+        },
+        {
+          path: 'pages',
+          name: 'admin-pages',
+          component: () => import('@/pages/admin/AdminPagesPage.vue'),
+          meta: {
+            title: 'Manage Pages',
+            requiresAuth: true,
+            permission: 'manage_settings',
+          },
+        },
+        {
+          path: 'editor-settings',
+          name: 'admin-editor-settings',
+          component: () => import('@/pages/admin/AdminEditorSettingsPage.vue'),
+          meta: {
+            title: 'Text Editor Settings',
+            requiresAuth: true,
+            permission: 'manage_settings',
+          },
+        },
+      ],
     },
     {
       path: '/:pathMatch(.*)*',
@@ -227,6 +249,17 @@ router.beforeEach((to) => {
   // Check general authentication requirement
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  // The whole admin area is reserved for the admin role. This parent-level
+  // check applies to every /admin/* child even if a child permission changes.
+  if (to.meta.adminOnly) {
+    if (!auth.isAuthenticated) {
+      return { name: 'login', query: { redirect: to.fullPath } }
+    }
+    if (auth.user?.role !== 'admin') {
+      return can(auth.user?.role, 'write_post') ? { name: 'dashboard' } : { name: 'profile' }
+    }
   }
 
   // Check specific permission requirements

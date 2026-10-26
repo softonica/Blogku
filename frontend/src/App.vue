@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useUiStore } from '@/stores/ui'
 import { useAuthStore } from '@/stores/auth'
 import AppHeader from '@/components/layout/AppHeader.vue'
@@ -9,8 +10,13 @@ import SearchDialog from '@/components/layout/SearchDialog.vue'
 import ToastHost from '@/components/layout/ToastHost.vue'
 import BackToTop from '@/components/layout/BackToTop.vue'
 
+const route = useRoute()
 const ui = useUiStore()
 const auth = useAuthStore()
+
+const isAdminArea = computed(
+  () => route.path === '/admin' || route.path.startsWith('/admin/'),
+)
 
 onMounted(() => {
   ui.initTheme()
@@ -27,10 +33,10 @@ watch(
 
 <template>
   <div class="relative flex min-h-screen flex-col bg-white dark:bg-neutral-950">
-    <BgGlassmorphism />
-    <AppHeader />
-    <main class="flex-1">
-      <RouterView v-slot="{ Component, route }">
+    <BgGlassmorphism v-if="!isAdminArea" />
+    <AppHeader v-if="!isAdminArea" />
+    <main :class="isAdminArea ? '' : 'flex-1'">
+      <RouterView v-slot="{ Component, route: currentRoute }">
         <Transition
           enter-active-class="transition duration-200 ease-out"
           enter-from-class="opacity-0 translate-y-1"
@@ -38,11 +44,11 @@ watch(
           leave-to-class="opacity-0"
           mode="out-in"
         >
-          <component :is="Component" :key="route.fullPath" />
+          <component :is="Component" :key="currentRoute.fullPath" />
         </Transition>
       </RouterView>
     </main>
-    <AppFooter />
+    <AppFooter v-if="!isAdminArea" />
     <SearchDialog />
     <ToastHost />
     <BackToTop />

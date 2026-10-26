@@ -6,7 +6,6 @@ import type { Role, User } from '@/api/types'
 import { useUiStore } from '@/stores/ui'
 import { useAuthStore } from '@/stores/auth'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
-import AdminNav from '@/components/admin/AdminNav.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
@@ -70,10 +69,8 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
 </script>
 
 <template>
-  <div class="page-shell pb-20">
+  <div class="pb-10">
     <div class="mx-auto max-w-5xl">
-      <AdminNav />
-
       <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl dark:text-white">

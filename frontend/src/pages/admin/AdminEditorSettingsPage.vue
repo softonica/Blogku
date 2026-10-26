@@ -7,7 +7,6 @@ import { DEFAULT_EDITOR_SETTINGS } from '@/lib/editor-defaults'
 import { useUiStore } from '@/stores/ui'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useRateLimit } from '@/composables/useRateLimit'
-import AdminNav from '@/components/admin/AdminNav.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
@@ -67,9 +66,7 @@ const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'm
 </script>
 
 <template>
-  <div class="page-shell">
-    <AdminNav />
-
+  <div class="pb-10">
     <div v-if="loading" class="flex justify-center py-20">
       <LoadingSpinner />
     </div>

@@ -16,7 +16,6 @@ import type { SiteSettings } from '@/api/types'
 import { useUiStore } from '@/stores/ui'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useRateLimit } from '@/composables/useRateLimit'
-import AdminNav from '@/components/admin/AdminNav.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import { DEFAULT_ALLOWED_IMAGE_DOMAINS } from '@/lib/image-domains'
@@ -143,10 +142,8 @@ async function save(): Promise<void> {
 </script>
 
 <template>
-  <div class="page-shell pb-20">
+  <div class="pb-10">
     <div class="mx-auto max-w-4xl space-y-8">
-      <AdminNav />
-
       <!-- Quick Link Banner to Taxonomies -->
       <div
         class="flex flex-col gap-3 rounded-2xl border border-neutral-200/80 bg-neutral-50/70 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800 dark:bg-neutral-900/60"

@@ -35,6 +35,7 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **10** | **Change Password** | Implementasi | [10-change-password.md](./features/10-change-password.md) |
 | **11** | **Blogku Single-Binary Setup** | ✅ Stable | [11-blogku-single-binary-setup.md](./features/11-blogku-single-binary-setup.md) |
 | **12** | **Editor: Tag, Auto-Excerpt, Kategori & Post Styles** | ✅ Stable | [12-editor-taxonomy-excerpt-and-post-styles.md](./features/12-editor-taxonomy-excerpt-and-post-styles.md) |
+| **13** | **Admin Console Shell & Overview Dashboard** | ✅ Stable | [13-admin-console-shell-and-dashboard.md](./features/13-admin-console-shell-and-dashboard.md) |
 
 ---
 
