@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -110,7 +111,14 @@ func bootstrap(app core.App) error {
 	if err := seedUsers(app); err != nil {
 		return err
 	}
-	return ensureSuperuser(app)
+	created, email, password, err := ensureSuperuser(app)
+	if err != nil {
+		return err
+	}
+	if created {
+		fmt.Printf("\nBlogku admin created:\n  URL:  %s\n  Email: %s\n  Password: %s\n  (save these now — shown only once)\n\n", "http://127.0.0.1:8090", email, password)
+	}
+	return nil
 }
 
 func collectionExists(app core.App, name string) bool {
@@ -567,29 +575,51 @@ func seedUsers(app core.App) error {
 	return nil
 }
 
-func ensureSuperuser(app core.App) error {
-	email := os.Getenv("PB_SUPERUSER_EMAIL")
-	password := os.Getenv("PB_SUPERUSER_PASSWORD")
-	if email == "" || password == "" {
-		return nil
-	}
-
+func ensureSuperuser(app core.App) (bool, string, string, error) {
 	collection, err := app.FindCollectionByNameOrId(core.CollectionNameSuperusers)
 	if err != nil {
-		return err
+		return false, "", "", err
 	}
+
+	email := strings.TrimSpace(os.Getenv("PB_SUPERUSER_EMAIL"))
+	password := os.Getenv("PB_SUPERUSER_PASSWORD")
+	if email == "" {
+		email = "admin@blogku.com"
+	}
+	if password == "" {
+		password, err = randomPassword(24)
+		if err != nil {
+			return false, "", "", err
+		}
+	}
+
 	existing, err := app.FindFirstRecordByFilter(collection, "email = {:email}", map[string]any{"email": email})
 	if err == nil && existing != nil {
-		return nil
+		return false, email, "", nil
 	}
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return err
+		return false, "", "", err
 	}
 
 	record := core.NewRecord(collection)
 	record.Set("email", email)
 	record.SetPassword(password)
-	return app.Save(record)
+	if err := app.Save(record); err != nil {
+		return false, "", "", err
+	}
+	return true, email, password, nil
+}
+
+func randomPassword(n int) (string, error) {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	for i := range b {
+		b[i] = letters[int(b[i])%len(letters)]
+	}
+	return string(b), nil
 }
 
 func envOr(key, fallback string) string {
