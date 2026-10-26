@@ -36,7 +36,7 @@ func main() {
 	app := pocketbase.New()
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
-		if err := bootstrap(app); err != nil {
+		if err := bootstrap(app, se.Server.Addr); err != nil {
 			return fmt.Errorf("bootstrap: %w", err)
 		}
 
@@ -64,7 +64,7 @@ func main() {
 // Bootstrap: create schema + seeds
 // -------------------------------------------------------------------
 
-func bootstrap(app core.App) error {
+func bootstrap(app core.App, httpAddr string) error {
 	users, err := ensureUsersCollection(app)
 	if err != nil {
 		return err
@@ -116,7 +116,10 @@ func bootstrap(app core.App) error {
 		return err
 	}
 	if created {
-		fmt.Printf("\nBlogku admin created:\n  URL:  %s\n  Email: %s\n  Password: %s\n  (save these now — shown only once)\n\n", "http://127.0.0.1:8090", email, password)
+		if httpAddr == "" {
+			httpAddr = "127.0.0.1:8090"
+		}
+		fmt.Printf("\nBlogku admin created:\n  URL:  %s\n  Email: %s\n  Password: %s\n  (save these now — shown only once)\n\n", "http://"+httpAddr, email, password)
 	}
 	return nil
 }
