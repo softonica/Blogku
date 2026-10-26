@@ -37,6 +37,10 @@ Want a running Blogku with zero setup? Download the single Linux binary and run:
 It auto-provisions an admin account and prints the URL + credentials on first
 run. Full usage guide: [docs/blogku-single-binary-setup.md](./docs/blogku-single-binary-setup.md).
 
+> **Continuing work on this repo (human or AI)?** Start with
+> [docs/HANDOVER-CONTEXT.md](./docs/HANDOVER-CONTEXT.md) — architecture, live server,
+> build/deploy, config, known gotchas, current status and backlog.
+
 ---
 
 ## 🚀 Live Demo

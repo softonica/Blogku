@@ -4,6 +4,16 @@ Selamat datang di dokumentasi resmi **Blogku**, platform majalah dan editorial d
 
 ---
 
+## 🚀 Mulai Di Sini
+
+Baru bergabung di proyek ini (manusia maupun model AI)? Baca
+**[HANDOVER-CONTEXT.md](./HANDOVER-CONTEXT.md)** lebih dulu. Dokumen itu berisi
+konteks menyeluruh: arsitektur runtime, lokasi server & domain, perintah
+build/deploy, konfigurasi, data model, jebakan operasional, status pekerjaan
+(termasuk utang yang belum di-commit), dan backlog.
+
+---
+
 ## 📜 Kebijakan Dokumentasi Fitur
 Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap sesuai panduan di **[Feature Documentation Guidelines](./FEATURE-DOCUMENTATION-GUIDELINES.md)**.
 
@@ -36,4 +46,5 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | [blogku-single-binary-setup-spec.md](./blogku-single-binary-setup-spec.md) | Spesifikasi single-binary | Desain satu binary Linux (embed frontend + backend PocketBase, auto-provision admin, same-origin) |
 | [blogku-single-binary-setup-plan.md](./blogku-single-binary-setup-plan.md) | Implementasi plan | Rincian task 1-7 (TDD) yang membangun fitur single-binary |
 | [how-to-deploy-blogku.md](./how-to-deploy-blogku.md) | Panduan deploy | Langkah-langkah men-deploy single-binary ke VPS (contoh nyata server 64) |
+| [HANDOVER-CONTEXT.md](./HANDOVER-CONTEXT.md) | ✅ Aktual (2026-10-26) | Konteks menyeluruh untuk handover: arsitektur, server, build/deploy, konfigurasi, status, utang repo, backlog |
 

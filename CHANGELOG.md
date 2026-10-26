@@ -5,6 +5,24 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-26] — Dokumen handover konteks proyek
+**Author** · **Role** (Docs/AI handover) · **Status** (Done)
+
+### What changed
+- `docs/HANDOVER-CONTEXT.md` (baru) — single entry point konteks: TL;DR, arsitektur, inventaris lokal/server/domain, build & deploy (copy-paste), konfigurasi (`config.json`, flag, env), data model + RBAC, keamanan, 10 gotchas operasional, status pekerjaan (termasuk perubahan yang sudah live tapi belum di-commit), verifikasi cepat, rollback, konvensi repo, backlog, peta dokumen.
+- `docs/README.md` — section "Mulai Di Sini" + baris index untuk handover.
+
+### Why
+- Agar engineer/model berikutnya tidak mengulang eksplorasi dan tidak salah asumsi tentang state produksi vs repo.
+
+### How it was verified
+- Fakta server diambil langsung: `systemctl cat blogku`, `ls -la /opt/blogku`, `cat data/config.json`, `ss -ltn`, vhost nginx, cert, baris nftables.
+- Fakta repo diambil dari `git log`, `git status`, `git remote -v`, `go.mod`, `package.json`, `main.go`.
+- HTML live dicek ulang: canonical/og = `https://blog.artku.my.id/`.
+
+### Handover notes
+- Utang repo yang dicatat eksplisit: `frontend/src/lib/pb.ts` + `pb.test.ts` sudah live tapi belum di-commit; branch `feat/blogku-single-binary` belum merge/push.
+
 ## [2026-10-26] — Blogku: canonical/og dari config.json + deploy server 64
 **Author** · **Role** (Backend/DevOps) · **Status** (Done)
 
