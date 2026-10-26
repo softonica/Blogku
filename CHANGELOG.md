@@ -5,6 +5,27 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-26] — Blogku: canonical/og dari config.json + deploy server 64
+**Author** · **Role** (Backend/DevOps) · **Status** (Done)
+
+### What changed
+- `frontend/index.html` — canonical/og:url/JSON-LD diganti placeholder `{{SITE_URL}}` (tidak lagi hardcoded).
+- `backend/config.go` + `config_test.go` (baru) — `loadRuntimeConfig(dataDir)` membaca `data/config.json` (field `site_url`), trailing-slash-strip, toleran file hilang.
+- `backend/spa_handler.go` — `newSPAHandler(fsys, spaVars)`; saat serve index.html mengganti `{{SITE_URL}}`.
+- `backend/main.go` — resolve `site_url` dari config.json, fallback origin request (per `X-Forwarded-Proto`/TLS).
+- Deploy server 64 (`/opt/blogku`): binary baru + `data/config.json` = `{"site_url":"https://blog.artku.my.id"}`.
+
+### Why
+- Permintaan: canonical/og/URL jangan di-hardcode, harus diambil dari config.json (pola OpenList).
+
+### How it was verified
+- `cd backend && go test .` → ok (SPA substitution + config loader).
+- `https://blog.artku.my.id/` → `<link rel="canonical" href="https://blog.artku.my.id/" />`, tanpa placeholder tersisa.
+- API: health/categories/tags/posts/site_settings 200; login demo 200; SPA root 200.
+
+### Handover notes
+- `config.json` berada di `/opt/blogku/data/config.json` (owner `blogku`). Ubah `site_url` di sana lalu restart untuk efek.
+
 ## [2026-10-25] — Deploy Blogku single-binary ke server 64
 **Author** · **Role** (DevOps) · **Status** (Done)
 

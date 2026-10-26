@@ -48,8 +48,27 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("sub dist: %w", err)
 		}
-		spa := newSPAHandler(distFS)
+		// Load runtime config.json (site_url) from the data directory so the
+		// SPA canonical/og URLs are driven by config, never hardcoded.
+		cfg, cfgErr := loadRuntimeConfig(app.DataDir())
+
+		// resolveSiteURL returns the configured site URL, or falls back to the
+		// request origin when config.json is missing/unreadable.
+		resolveSiteURL := func(e *core.RequestEvent) string {
+			if cfgErr == nil && cfg.SiteURL != "" {
+				return cfg.SiteURL
+			}
+			scheme := "http"
+			if e.Request.TLS != nil {
+				scheme = "https"
+			} else if proto := e.Request.Header.Get("X-Forwarded-Proto"); proto != "" {
+				scheme = proto
+			}
+			return scheme + "://" + e.Request.Host
+		}
+
 		se.Router.GET("/", func(e *core.RequestEvent) error {
+			spa := newSPAHandler(distFS, spaVars{siteURL: resolveSiteURL(e)})
 			spa.ServeHTTP(e.Response, e.Request)
 			return nil
 		})
