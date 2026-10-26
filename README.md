@@ -26,6 +26,19 @@ Built with **Vue 3.5 (Composition API)**, **Vite 8**, **Tailwind CSS v4**, and d
 
 ---
 
+## ⚡ Quick Start (Single-Binary)
+
+Want a running Blogku with zero setup? Download the single Linux binary and run:
+
+```bash
+./blogku serve
+```
+
+It auto-provisions an admin account and prints the URL + credentials on first
+run. Full usage guide: [docs/blogku-single-binary-setup.md](./docs/blogku-single-binary-setup.md).
+
+---
+
 ## 🚀 Live Demo
 
 - **Production App**: [https://blogku-7rq.pages.dev](https://blogku-7rq.pages.dev)
