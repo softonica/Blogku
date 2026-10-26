@@ -1,10 +1,12 @@
 import PocketBase from 'pocketbase'
 
-const DEFAULT_PB_URL = ''
+function originUrl(): string {
+  return typeof window !== 'undefined' ? window.location.origin : ''
+}
 
 function resolveUrl(): string {
   const fromEnv = (import.meta.env.VITE_PB_URL as string | undefined)?.trim()
-  return fromEnv ?? DEFAULT_PB_URL
+  return fromEnv ?? originUrl()
 }
 
 export function createPb(): PocketBase {

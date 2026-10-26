@@ -5,11 +5,11 @@ describe('createPb base URL', () => {
     delete (import.meta.env as Record<string, unknown>).VITE_PB_URL
   })
 
-  it('defaults to empty string (same-origin) when VITE_PB_URL unset', async () => {
+  it('defaults to window.location.origin (same-origin) when VITE_PB_URL unset', async () => {
     delete (import.meta.env as Record<string, unknown>).VITE_PB_URL
     const { createPb } = await import('./pb')
     const pb = createPb()
-    expect((pb as unknown as { baseURL: string }).baseURL).toBe('')
+    expect((pb as unknown as { baseURL: string }).baseURL).toBe(window.location.origin)
   })
 
   it('uses VITE_PB_URL when provided', async () => {
