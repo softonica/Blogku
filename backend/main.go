@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"regexp"
@@ -44,7 +45,11 @@ func main() {
 		// API/admin route. PocketBase's own routes (/api/*, /_/*) are
 		// registered earlier and take precedence; this wildcard catches the
 		// remaining requests.
-		spa := newSPAHandler(embeddedDist)
+		distFS, err := fs.Sub(embeddedDist, "dist")
+		if err != nil {
+			return fmt.Errorf("sub dist: %w", err)
+		}
+		spa := newSPAHandler(distFS)
 		se.Router.GET("/", func(e *core.RequestEvent) error {
 			spa.ServeHTTP(e.Response, e.Request)
 			return nil
