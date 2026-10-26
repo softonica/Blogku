@@ -12,6 +12,14 @@ describe('createPb base URL', () => {
     expect((pb as unknown as { baseURL: string }).baseURL).toBe(window.location.origin)
   })
 
+  it('disables auto-cancellation so concurrent reads are not aborted', async () => {
+    const { createPb } = await import('./pb')
+    const pb = createPb()
+    expect(
+      (pb as unknown as { enableAutoCancellation: boolean }).enableAutoCancellation,
+    ).toBe(false)
+  })
+
   it('uses VITE_PB_URL when provided', async () => {
     ;(import.meta.env as Record<string, unknown>).VITE_PB_URL = 'http://127.0.0.1:8090'
     const { createPb } = await import('./pb')

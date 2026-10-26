@@ -10,7 +10,9 @@ function resolveUrl(): string {
 }
 
 export function createPb(): PocketBase {
-  return new PocketBase(resolveUrl())
+  const pb = new PocketBase(resolveUrl())
+  pb.autoCancellation(false)
+  return pb
 }
 
 let singleton: PocketBase | null = null

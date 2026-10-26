@@ -5,6 +5,28 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-26] — Fix false "Unable to reach the server" saat load/login
+**Author** · **Role** (Frontend/Backend) · **Status** (Done, deployed)
+
+### What changed
+- `frontend/src/lib/pb.ts` — `pb.autoCancellation(false)` pada instance PocketBase.
+- `frontend/src/lib/pb.test.ts` — test regresi: `enableAutoCancellation` harus `false`.
+- Rebuild frontend + binary, deploy ke server 64 (binary `dbf04149…`, bundle `api-B-uyDbCS.js`).
+- `docs/HANDOVER-CONTEXT.md` — gotcha §8.11 (auto-cancellation) & §8.12 (build binary harus setelah dist).
+
+### Why
+- SDK PocketBase men-cancel request duplikat (method+URL sama) yang dipanggil beberapa komponen bersamaan. Abort → `ClientResponseError{status:0}` → error mapper menampilkannya sebagai "Unable to reach the server", padahal semua API 200.
+
+### How it was verified
+- `npx vitest run src/lib/pb.test.ts` → 3 passed.
+- Playwright produksi: `HAS_ERROR_TEXT: false`, failed requests `[]`, console errors `[]`.
+- Login UI dengan `admin@blogku.com` → redirect ke `/dashboard`, tanpa error.
+- Backend langsung (`127.0.0.1:8090`) menyajikan `assets/api-B-uyDbCS.js` yang memuat `autoCancellation(!1)`.
+
+### Handover notes
+- Penyebab tambahan yang ditemukan: binary lama (build 19:16) men-embed bundle lama (dist 19:38), sehingga fix sempat tidak sampai ke produksi. Selalu rebuild berurutan (lihat §8.12).
+- Optimasi lanjutan: in-flight dedupe untuk `getSiteSettings`/kategori/tag agar tidak ada request duplikat.
+
 ## [2026-10-26] — Dokumen handover konteks proyek
 **Author** · **Role** (Docs/AI handover) · **Status** (Done)
 

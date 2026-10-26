@@ -385,7 +385,41 @@ digenerate dari `site_url`. Jika domain berubah, file ini **tidak** otomatis iku
 Pernah ada `.config.json.swp` milik root di `data/`. Selalu hapus swap file dan
 pastikan kepemilikan `blogku:blogku` agar service bisa membaca.
 
-### 8.11 Jangan menulis file lewat `Set-Content` PowerShell 5.1 untuk dokumen UTF-8
+### 8.11 "Unable to reach the server" padahal API 200 — auto-cancellation SDK
+Gejala: banner error muncul / login gagal, tapi semua request di DevTools
+sebenarnya **200** dan sebagian lain `net::ERR_ABORTED`.
+
+Penyebab: PocketBase JS SDK punya **auto-cancellation ON secara default**.
+Kalau dua komponen memanggil endpoint yang sama (method+URL identik) secara
+bersamaan — mis. `getSiteSettings()`, `listCategories()`, `listTags()` dipanggil
+beberapa komponen saat mount — request pertama **di-abort** oleh SDK. Abort
+menghasilkan `ClientResponseError{status:0, isAbort:true}`, lalu
+`errors.ts` memetakan `status === 0` menjadi "Unable to reach the server."
+
+Fix (sudah terpasang di `frontend/src/lib/pb.ts`):
+```ts
+const pb = new PocketBase(resolveUrl())
+pb.autoCancellation(false)
+```
+Dijaga oleh test `pb.test.ts` → "disables auto-cancellation...".
+
+Sisa optimasi (belum dikerjakan): lakukan **in-flight dedupe** (simpan Promise
+yang sedang berjalan) untuk `getSiteSettings`/kategori/tag supaya tidak ada
+request duplikat sama sekali.
+
+### 8.12 Build binary HARUS setelah dist frontend di-rebuild
+Pernah terjadi: `frontend/dist` di-rebuild jam 19:38 (berisi fix), tetapi binary
+masih hasil build jam 19:16 → binary yang dideploy meng-embed bundle **lama**,
+sehingga fix tidak pernah sampai ke produksi walau file sumbernya sudah benar.
+
+Selalu urutkan: `npm run build` → salin ke `backend/dist` → `go build` → deploy.
+Verifikasi setelah deploy bahwa hash aset berubah:
+```sh
+curl -s http://127.0.0.1:8090/ | grep -o 'assets/[A-Za-z0-9_.-]*\.js' | sort -u
+```
+Bandingkan dengan nama file di `frontend/dist/assets/`.
+
+### 8.13 Jangan menulis file lewat `Set-Content` PowerShell 5.1 untuk dokumen UTF-8
 `Get-Content -Raw` + `Set-Content -Encoding UTF8` membaca file UTF-8 sebagai
 cp1252 lalu menulis ulang → karakter seperti `—` dan `§` jadi mojibake. Pakai
 editor/alat yang menulis UTF-8 murni, dan verifikasi dengan membaca ulang.
@@ -406,6 +440,7 @@ editor/alat yang menulis UTF-8 murni, dan verifikasi dengan membaca ulang.
 | nftables 8090 | jarak jauh 200 |
 | **Canonical/OG dari `config.json`** | HTML served berisi `https://blog.artku.my.id/`, tanpa `{{SITE_URL}}` |
 | Fix base URL PocketBase | login 200 (sebelumnya 404 di `/login/api/...`) |
+| Fix false "Unable to reach the server" (auto-cancellation) | bundle `api-B-uyDbCS.js` live; Playwright: 0 failed request, 0 console error; login UI → `/dashboard` |
 | Unit test backend | `go test .` → ok |
 
 ### 9.2 ⚠️ Deployed tapi BELUM di-commit (ACTION REQUIRED)
