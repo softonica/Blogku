@@ -5,6 +5,25 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-27] — Deploy v0.0.3-alpha + halaman `/admin` ke server 64
+**Author** · **Role** (DevOps) · **Status** (Done)
+
+### What changed
+- Deploy binary `blogku` (26,7 MB, md5 `709b5b2f01e504d9597fb86d6f82db29`) ke `/opt/blogku/`.
+- Menyertakan fitur **halaman `/admin`** (console shell, dashboard, role-locked).
+
+### Why
+- Merilis versi dengan halaman admin baru.
+
+### How it was verified
+- `systemctl is-active blogku` → active; `systemctl is-enabled` → enabled; listen `*:8090`.
+- HTTP: `/` → 200, `/api/health` → 200, `/admin` → 200, `/assets/AdminDashboardPage-BhalQEqZ.js` → 200, `/assets/AdminLayout-bGTnkfG8.js` → 200.
+- Canonical/OG tetap dari `config.json`: `https://blog.artku.my.id/`.
+- Backup binary lama: `/opt/blogku/blogku.prev-*`.
+
+### Handover notes
+- Rollback: `systemctl stop blogku` → restore `blogku.prev-*`.
+
 ## [2026-10-26] — Release `v0.0.3-alpha` & upload binary ke assets
 **Author** · **Role** (DevOps/Release) · **Status** (Done)
 
