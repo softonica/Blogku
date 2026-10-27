@@ -6,6 +6,7 @@ import { getErrorMessage } from '@/lib/format'
 export function usePagedPosts(options: {
   perPage?: number
   sort?: string
+  getSort?: () => string | undefined
   getFilter?: () => PostFilter | undefined
 }) {
   const perPage = options.perPage ?? 9
@@ -23,7 +24,7 @@ export function usePagedPosts(options: {
       const result = await getDataSource().listPosts({
         page: nextPage,
         perPage,
-        sort: options.sort ?? '-createdAt',
+        sort: options.getSort?.() ?? options.sort ?? '-createdAt',
         filter: options.getFilter?.(),
       })
       items.value = result.items

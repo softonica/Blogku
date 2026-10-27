@@ -896,4 +896,12 @@ export class MockSource implements DataSource {
       reader.readAsDataURL(file)
     })
   }
+
+  async trackView(postId: string): Promise<void> {
+    if (!postId) return
+    this.posts = this.posts.map((p) =>
+      p.id === postId ? { ...p, viewCount: p.viewCount + 1 } : p,
+    )
+    writeJson(POSTS_KEY, this.posts)
+  }
 }

@@ -36,6 +36,8 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **11** | **Blogku Single-Binary Setup** | ✅ Stable | [11-blogku-single-binary-setup.md](./features/11-blogku-single-binary-setup.md) |
 | **12** | **Editor: Tag, Auto-Excerpt, Kategori & Post Styles** | ✅ Stable | [12-editor-taxonomy-excerpt-and-post-styles.md](./features/12-editor-taxonomy-excerpt-and-post-styles.md) |
 | **13** | **Admin Console Shell & Overview Dashboard** | ✅ Stable | [13-admin-console-shell-and-dashboard.md](./features/13-admin-console-shell-and-dashboard.md) |
+| **14** | **Post View Counter** | ✅ Stable | [14-post-view-counter.md](./features/14-post-view-counter.md) |
+| **15** | **Author & Profile Page Design** | Draft | [15-author-profile-page-design.md](./features/15-author-profile-page-design.md) |
 
 ---
 

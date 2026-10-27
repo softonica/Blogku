@@ -48,6 +48,9 @@ Menyediakan sistem penanganan media dan gambar yang aman dan fleksibel:
 ## 4. Keamanan & Pembatasan Domain (Image Whitelisting)
 - **Fungsi Verifikasi**: [`isAllowedImageDomain(url, allowedDomains)`](file:///c:/Users/Administrator/Desktop/ncmaz-clone/frontend/src/lib/image-domains.ts) memeriksa apakah host dari URL cocok dengan domain yang terdaftar di `siteSettings.allowedImageDomains` atau subdomain-nya.
 - **Upload Lokal & Data URL**: Gambar yang diunggah langsung (menghasilkan path lokal `/...` atau `data:image/...`) selalu diizinkan.
+- **Kontrak field avatar**: `users.avatar` adalah `URLField` (URL media dari
+  collection `media`), bukan file field. Backend memigrasi schema legacy
+  (file → url) otomatis via `ensureAvatarIsURLField` di `ensureUsersCollection`.
 - **Protokol Berbahaya**: Fungsi [`sanitizeUrl()`](file:///c:/Users/Administrator/Desktop/ncmaz-clone/frontend/src/lib/sanitize.ts) menolak protokol `javascript:`, `vbscript:`, atau `data:text/html`.
 
 ---

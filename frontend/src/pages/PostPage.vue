@@ -11,6 +11,7 @@ import { getEmbedUrl } from '@/lib/video'
 import { canManagePost } from '@/lib/permissions'
 import { useAuthStore } from '@/stores/auth'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
+import { trackViewIfNew } from '@/composables/useTrackView'
 import { useUiStore } from '@/stores/ui'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import CategoryBadgeList from '@/components/post/CategoryBadgeList.vue'
@@ -91,6 +92,7 @@ async function load(): Promise<void> {
     }
     post.value = found
     title.value = found.title
+    void trackViewIfNew(found.id)
 
     const [commentList, relatedPage, categoryList, tagList] = await Promise.all([
       source.listComments(found.id),

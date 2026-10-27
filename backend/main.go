@@ -3,11 +3,13 @@ package main
 import (
 	"crypto/rand"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"log"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -71,6 +73,30 @@ func main() {
 			spa := newSPAHandler(distFS, spaVars{siteURL: resolveSiteURL(e)})
 			spa.ServeHTTP(e.Response, e.Request)
 			return nil
+		})
+
+		// Track a post view (best-effort). The client calls this once per
+		// browser session per post; we just bump the counter atomically.
+		se.Router.POST("/track-view", func(e *core.RequestEvent) error {
+			var req struct {
+				PostID string `json:"postId"`
+			}
+			if err := json.NewDecoder(e.Request.Body).Decode(&req); err != nil {
+				return e.JSON(400, map[string]any{"error": "invalid request body"})
+			}
+			if req.PostID == "" {
+				return e.JSON(400, map[string]any{"error": "postId is required"})
+			}
+			post, err := app.FindRecordById("posts", req.PostID)
+			if err != nil {
+				return e.JSON(404, map[string]any{"error": "post not found"})
+			}
+			views := post.GetInt64("viewCount") + 1
+			post.Set("viewCount", views)
+			if err := app.Save(post); err != nil {
+				return e.JSON(500, map[string]any{"error": "failed to save view count"})
+			}
+			return e.JSON(200, map[string]any{"ok": true, "viewCount": views})
 		})
 
 		return se.Next()
@@ -190,8 +216,8 @@ func ensureUsersCollection(app core.App) (*core.Collection, error) {
 	if users.Fields.GetByName("name") == nil {
 		users.Fields.Add(&core.TextField{Name: "name", Required: true, Min: 2, Max: 80})
 	}
-	if users.Fields.GetByName("avatar") == nil {
-		users.Fields.Add(&core.URLField{Name: "avatar"})
+	if ensureAvatarIsURLField(users) {
+		added = true
 	}
 	if users.Fields.GetByName("bio") == nil {
 		users.Fields.Add(&core.TextField{Name: "bio", Max: 500})
@@ -201,6 +227,12 @@ func ensureUsersCollection(app core.App) (*core.Collection, error) {
 	}
 	if users.Fields.GetByName("postCount") == nil {
 		users.Fields.Add(&core.NumberField{Name: "postCount", Min: numRef(0)})
+	}
+	if users.Fields.GetByName("coverBanner") == nil {
+		users.Fields.Add(&core.URLField{Name: "coverBanner"})
+	}
+	if users.Fields.GetByName("socials") == nil {
+		users.Fields.Add(&core.JSONField{Name: "socials"})
 	}
 
 	public := `role != "subscriber" || id = @request.auth.id || @request.auth.role = "admin"`
@@ -216,6 +248,23 @@ func ensureUsersCollection(app core.App) (*core.Collection, error) {
 	}
 
 	return saveCollection(app, users)
+}
+
+// ensureAvatarIsURLField guarantees the users "avatar" field is a URL field.
+// The frontend stores media URLs directly, so a legacy File avatar makes every
+// profile update fail field validation. Returns true when the schema changed.
+func ensureAvatarIsURLField(users *core.Collection) bool {
+	switch f := users.Fields.GetByName("avatar"); {
+	case f == nil:
+		users.Fields.Add(&core.URLField{Name: "avatar"})
+		return true
+	case f.Type() == core.FieldTypeFile:
+		users.Fields.RemoveByName("avatar")
+		users.Fields.Add(&core.URLField{Name: "avatar"})
+		return true
+	default:
+		return false
+	}
 }
 
 func ensureCategoriesCollection(app core.App) (*core.Collection, error) {
@@ -590,24 +639,69 @@ func seedUsers(app core.App) error {
 	}
 
 	seed := []struct {
-		username string
-		email    string
-		name     string
-		role     string
-		password string
+		username    string
+		email       string
+		name        string
+		role        string
+		password    string
+		avatar      string
+		bio         string
+		coverBanner string
+		socials     map[string]string
 	}{
-		{"admin", "admin@blogku.com", "Admin", roleAdmin, envOr("SEED_ADMIN_PASSWORD", "admin12345")},
-		{"demo", "demo@blogku.com", "Demo Author", rolePenulis, envOr("SEED_AUTHOR_PASSWORD", "demo12345")},
-		{"subscriber", "subscriber@blogku.com", "Demo Reader", roleSubscriber, envOr("SEED_SUBSCRIBER_PASSWORD", "sub12345")},
+		{
+			username: "admin", email: "admin@blogku.com", name: "Admin", role: roleAdmin,
+			password: envOr("SEED_ADMIN_PASSWORD", "admin12345"),
+		},
+		{
+			username: "demo", email: "demo@blogku.com", name: "Jenny Wilson", role: rolePenulis,
+			password: envOr("SEED_AUTHOR_PASSWORD", "demo12345"),
+			avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80",
+			bio: "Immerse yourself in the world of literature with our curated collection of books. From bestsellers to hidden gems, our assortment caters to a variety of interests.",
+			coverBanner: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
+			socials: map[string]string{
+				"facebook": "https://www.facebook.com/", "youtube": "https://www.youtube.com/",
+				"tiktok": "https://www.tiktok.com/", "github": "https://www.github.com/",
+				"buymeacoffee": "https://www.buymeacoffee.com/",
+			},
+		},
+		{
+			username: "subscriber", email: "subscriber@blogku.com", name: "Demo Reader", role: roleSubscriber,
+			password: envOr("SEED_SUBSCRIBER_PASSWORD", "sub12345"),
+		},
 	}
 
 	for _, s := range seed {
 		existing, err := app.FindFirstRecordByFilter(collection, "email = {:email}", map[string]any{"email": s.email})
-		if err == nil && existing != nil {
-			continue
-		}
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
+			existing = nil
+		} else if err != nil {
 			return err
+		}
+
+		if existing != nil {
+			// Best-effort enrichment: only fill demo profile fields that are empty
+			// (or still carry legacy placeholder names).
+			if n := existing.GetString("name"); n == "" || n == "Demo Author" {
+				existing.Set("name", s.name)
+			}
+			if existing.GetString("avatar") == "" && s.avatar != "" {
+				existing.Set("avatar", s.avatar)
+			}
+			if existing.GetString("bio") == "" && s.bio != "" {
+				existing.Set("bio", s.bio)
+			}
+			if existing.GetString("coverBanner") == "" && s.coverBanner != "" {
+				existing.Set("coverBanner", s.coverBanner)
+			}
+			if len(s.socials) > 0 &&
+				(isEmptyMapValue(existing.Get("socials")) || isBlankJSON(existing.GetString("socials"))) {
+				existing.Set("socials", s.socials)
+			}
+			if err := app.Save(existing); err != nil {
+				return err
+			}
+			continue
 		}
 
 		record := core.NewRecord(collection)
@@ -615,8 +709,17 @@ func seedUsers(app core.App) error {
 		record.Set("email", s.email)
 		record.Set("name", s.name)
 		record.Set("role", s.role)
-		record.Set("bio", "")
+		record.Set("bio", s.bio)
 		record.Set("postCount", 0)
+		if s.avatar != "" {
+			record.Set("avatar", s.avatar)
+		}
+		if s.coverBanner != "" {
+			record.Set("coverBanner", s.coverBanner)
+		}
+		if len(s.socials) > 0 {
+			record.Set("socials", s.socials)
+		}
 		record.SetPassword(s.password)
 		if err := app.Save(record); err != nil {
 			return err
@@ -709,6 +812,34 @@ func uniqueSlug(app core.App, collection string, base string) (string, error) {
 			return "", err
 		}
 		slug = fmt.Sprintf("%s-%d", base, i)
+	}
+}
+
+// isEmptyMapValue reports whether a JSON field value is nil or an empty
+// container/string (used to detect uninitialized seed fields).
+func isEmptyMapValue(v any) bool {
+	if v == nil {
+		return true
+	}
+	rv := reflect.ValueOf(v)
+	switch rv.Kind() {
+	case reflect.Map, reflect.Slice, reflect.Array:
+		return rv.Len() == 0
+	case reflect.String:
+		return rv.String() == ""
+	default:
+		return false
+	}
+}
+
+// isBlankJSON reports whether a JSON field's raw string is empty or a trivial
+// empty/null container.
+func isBlankJSON(raw string) bool {
+	switch strings.TrimSpace(raw) {
+	case "", "{}", "[]", "null":
+		return true
+	default:
+		return false
 	}
 }
 

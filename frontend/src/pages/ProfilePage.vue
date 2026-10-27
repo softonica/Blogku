@@ -27,6 +27,7 @@ import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useRateLimit } from '@/composables/useRateLimit'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
+import AuthorSocialLinks from '@/components/ui/AuthorSocialLinks.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { useRouter } from 'vue-router'
 
@@ -42,6 +43,8 @@ useDocumentTitle(pageTitle)
 const name = ref(auth.user?.name ?? '')
 const bio = ref(auth.user?.bio ?? '')
 const avatar = ref(auth.user?.avatar ?? '/avatars/1.jpg')
+const coverBanner = ref(auth.user?.coverBanner ?? '')
+const socials = ref(auth.user?.socials)
 const saving = ref(false)
 const saved = ref(false)
 const uploadingAvatar = ref(false)
@@ -206,45 +209,76 @@ async function logout(): Promise<void> {
 <template>
   <div class="page-shell pb-20">
     <div class="mx-auto max-w-3xl">
-      <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex items-center gap-4">
-          <AppAvatar :src="avatar" :name="name || 'User'" size="lg" />
-          <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl dark:text-white">
-                {{ auth.user?.name }}
-              </h1>
-              <AppBadge :variant="roleBadgeVariant" class="capitalize">
-                {{ auth.user?.role }}
-              </AppBadge>
-            </div>
-            <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              @{{ auth.user?.username }} · {{ auth.user?.email }}
-            </p>
-          </div>
+      <section class="mt-4 overflow-hidden rounded-[2rem] ring-1 ring-neutral-200 dark:ring-neutral-800">
+        <div class="relative h-40 sm:h-52">
+          <img
+            v-if="coverBanner || avatar"
+            :src="coverBanner || avatar"
+            :alt="name || 'User'"
+            class="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+          <div
+            v-else
+            class="h-full w-full bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700"
+          ></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
         </div>
 
-        <div class="flex flex-wrap gap-2">
-          <BaseButton
-            v-if="can(auth.user?.role, 'write_post')"
-            to="/dashboard"
-            variant="outline"
-            size="sm"
-          >
-            <LayoutDashboard class="h-4 w-4" aria-hidden="true" />
-            Dashboard
-          </BaseButton>
-          <BaseButton
-            v-if="can(auth.user?.role, 'manage_settings')"
-            to="/admin/settings"
-            variant="outline"
-            size="sm"
-          >
-            <ShieldCheck class="h-4 w-4" aria-hidden="true" />
-            Admin
-          </BaseButton>
+        <div class="bg-white px-6 pb-8 sm:px-10 dark:bg-neutral-950">
+          <div class="-mt-14 flex flex-col gap-5 sm:-mt-16 sm:flex-row sm:items-end">
+            <AppAvatar
+              :src="avatar"
+              :name="name || 'User'"
+              size="xl"
+              class="ring-4 ring-white dark:ring-neutral-950"
+            />
+            <div class="min-w-0 flex-1 sm:pb-1">
+              <div class="flex flex-wrap items-center gap-3">
+                <h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl dark:text-white">
+                  {{ name || auth.user?.name }}
+                </h1>
+                <AppBadge :variant="roleBadgeVariant" class="capitalize">
+                  {{ auth.user?.role }}
+                </AppBadge>
+              </div>
+              <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                @{{ auth.user?.username }} · {{ auth.user?.email }}
+              </p>
+              <p
+                v-if="bio"
+                class="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-500 dark:text-neutral-400"
+              >
+                {{ bio }}
+              </p>
+            </div>
+            <div class="flex items-center gap-4 sm:pb-1">
+              <AuthorSocialLinks :socials="socials" />
+              <div class="flex flex-wrap gap-2">
+                <BaseButton
+                  v-if="can(auth.user?.role, 'write_post')"
+                  to="/dashboard"
+                  variant="outline"
+                  size="sm"
+                >
+                  <LayoutDashboard class="h-4 w-4" aria-hidden="true" />
+                  Dashboard
+                </BaseButton>
+                <BaseButton
+                  v-if="can(auth.user?.role, 'manage_settings')"
+                  to="/admin/settings"
+                  variant="outline"
+                  size="sm"
+                >
+                  <ShieldCheck class="h-4 w-4" aria-hidden="true" />
+                  Admin
+                </BaseButton>
+              </div>
+            </div>
+          </div>
         </div>
-      </header>
+      </section>
 
       <!-- Role summary card -->
       <div class="mt-8 rounded-3xl border border-neutral-200 bg-neutral-50/60 p-5 dark:border-neutral-800 dark:bg-neutral-900/60">

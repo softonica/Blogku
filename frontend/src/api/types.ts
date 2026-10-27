@@ -4,6 +4,14 @@ export type Role = 'admin' | 'penulis' | 'subscriber'
 export type PostType = 'standard' | 'video' | 'audio' | 'gallery'
 export type PostStyle = 'style1' | 'style2' | 'style3' | 'style4'
 
+export interface UserSocials {
+  facebook?: string
+  youtube?: string
+  tiktok?: string
+  github?: string
+  buymeacoffee?: string
+}
+
 export interface User {
   id: string
   username: string
@@ -13,6 +21,8 @@ export interface User {
   bio: string
   role: Role
   postCount?: number
+  coverBanner?: string
+  socials?: UserSocials
 }
 
 export interface Category {

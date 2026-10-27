@@ -64,12 +64,20 @@ export const users: User[] = [
   {
     id: 'user_demo',
     username: 'demo',
-    name: 'Demo Reader',
+    name: 'Jenny Wilson',
     email: 'demo@blogku.com',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=256&h=256&q=80',
-    bio: 'This is the demo author account used in phase 1. Sign in with the password “password”.',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80',
+    bio: 'Immerse yourself in the world of literature with our curated collection of books. From bestsellers to hidden gems, our assortment caters to a variety of interests.',
     role: 'penulis',
     postCount: 2,
+    coverBanner: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80',
+    socials: {
+      facebook: 'https://www.facebook.com/',
+      youtube: 'https://www.youtube.com/',
+      tiktok: 'https://www.tiktok.com/',
+      github: 'https://www.github.com/',
+      buymeacoffee: 'https://www.buymeacoffee.com/',
+    },
   },
   {
     id: 'user_subscriber',

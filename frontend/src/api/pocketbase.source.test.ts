@@ -401,4 +401,21 @@ describe('PocketBaseSource', () => {
     expect(new RateLimitError(2.4).retryAfter).toBe(3)
     expect(new RateLimitError(0).retryAfter).toBe(1)
   })
+
+  it('trackView POSTs to /track-view', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = fetchMock as typeof fetch
+    try {
+      const source = new PocketBaseSource(makePb({}).pb as never)
+      await source.trackView('p1')
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      const [url, init] = fetchMock.mock.calls[0]
+      expect(url).toBe('/track-view')
+      expect(init.method).toBe('POST')
+      expect(JSON.parse(init.body)).toEqual({ postId: 'p1' })
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
 })

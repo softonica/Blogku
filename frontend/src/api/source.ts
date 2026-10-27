@@ -74,4 +74,5 @@ export interface DataSource {
     avatar?: string
   }): Promise<User>
   uploadFile(file: File): Promise<{ url: string; name: string }>
+  trackView(postId: string): Promise<void>
 }

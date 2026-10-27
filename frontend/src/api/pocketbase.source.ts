@@ -20,6 +20,7 @@ import type {
   Tag,
   TagInput,
   User,
+  UserSocials,
 } from './types'
 
 type PbRecord = Record<string, unknown> & { id: string }
@@ -32,6 +33,8 @@ interface PbUserRecord extends PbRecord {
   bio?: string
   role?: string
   postCount?: number
+  coverBanner?: string | null
+  socials?: UserSocials
 }
 
 interface PbCategoryRecord extends PbRecord {
@@ -142,6 +145,8 @@ function mapUser(record: PbUserRecord): User {
     bio: record.bio ?? '',
     role: normalizeRole(record.role),
     postCount: typeof record.postCount === 'number' ? record.postCount : undefined,
+    coverBanner: typeof record.coverBanner === 'string' ? record.coverBanner : undefined,
+    socials: record.socials && typeof record.socials === 'object' ? record.socials : undefined,
   }
 }
 
@@ -852,5 +857,18 @@ export class PocketBaseSource implements DataSource {
         name: file.name,
       }
     })
+  }
+
+  async trackView(postId: string): Promise<void> {
+    if (!postId) return
+    try {
+      await fetch('/track-view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId }),
+      })
+    } catch {
+      // view tracking is best-effort; never break reading
+    }
   }
 }

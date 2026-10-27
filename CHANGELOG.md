@@ -5,6 +5,100 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-27] — Redesign halaman author/profile agar mirip Ncmaz Faust
+**Author** · **Role** (Dev) · **Status** (Draft)
+
+### What changed
+- **Frontend**:
+  - `AuthorPage.vue` di-redesign: hero (cover banner + avatar overlap + nama +
+    bio + ikon sosial + statistik + Follow), tabs Articles/Favorites/Bookmarks,
+    dropdown sort (Newest-to-oldest/Oldest/Most-viewed).
+  - `ProfilePage.vue`: header di-upgrade ke hero yang sama (cover + sosial).
+  - `usePagedPosts` mendukung `getSort` (getter) agar sort reaktif.
+  - komponen baru `AuthorSocialLinks.vue`.
+- **Data**: `User` + field opsional `coverBanner` & `socials`.
+- **Backend**: `users` collection + field `coverBanner` (url) & `socials`
+  (json); `seedUsers` mengisi demo author (Jenny Wilson + cover + socials).
+
+### Why
+- Menyamakan desain & data halaman author/profile dengan referensi Ncmaz Faust
+  (https://ncmaz-faust-delta.vercel.app/author/demo/).
+
+### How it was verified
+- `cd frontend && npm run typecheck` (lulus), `npm run lint` (bersih),
+  `npm run test` (105/105).
+- `cd backend && go build ./... && go vet ./... && go test ./...` (lulus).
+
+### Handover notes
+- **BELUM build / commit / deploy.** Perubahan schema (`coverBanner`,
+  `socials`) + enrichment demo author diterapkan otomatis saat binary baru
+  pertama kali dijalankan di server.
+- Ikon Tiktok memakai inline SVG (tidak ada di lucide); sisanya lucide.
+
+## [2026-10-27] — Perbaiki upload profile avatar error
+**Author** · **Role** (Dev/Backend) · **Status** (Draft)
+
+### What changed
+- **Backend** (`backend/main.go`): tambah migrasi `ensureAvatarIsURLField` di
+  `ensureUsersCollection` — field `users.avatar` dijamin menjadi `URLField`
+  (di-migrasi dari legacy `file` field kalau ada).
+
+### Why
+- `users.avatar` di database adalah **file field** (default/turunan PocketBase),
+  sedangkan frontend menyimpan **URL media** (`/api/files/...`) ke field
+  tersebut. Akibatnya setiap `PATCH` profil (name/bio/avatar) gagal dengan
+  `400 Something went wrong` (validasi file gagal), sehingga upload avatar
+  terlihat error.
+
+### How it was verified
+- Reproduksi lokal (Go test): `tests.NewTestApp()` memberi users collection dgn
+  `avatar` tipe `file`; `app.Save(user)` dengan URL avatar gagal
+  (`avatar: Invalid new files: [...]`). Setelah migrasi, field menjadi `url`
+  dan save sukses.
+- `go build ./...`, `go vet ./...`, `go test ./...` → lulus (termasuk test baru
+  `TestEnsureAvatarIsURLFieldMigratesLegacyFile`).
+
+### Handover notes
+- **BELUM build / commit / deploy.** Migrasi schema diterapkan otomatis saat
+  binary baru jalan pertama kali di server (bootstrap memanggil
+  `ensureUsersCollection`).
+- Setelah deploy, `PATCH /api/collections/users/records/{id}` dengan
+  `{name,bio,avatar}` harusnya 200.
+
+## [2026-10-27] — Perbaiki counter view post tidak berfungsi
+**Author** · **Role** (Dev/Backend) · **Status** (Draft)
+
+### What changed
+- **Backend** (`backend/main.go`): tambah endpoint `POST /track-view` yang
+  menaikkan `viewCount` post secara atomik (best-effort, publik).
+- **Frontend**:
+  - `DataSource` + `PocketBaseSource` + `MockSource` mendapat method `trackView`.
+  - composable baru `frontend/src/composables/useTrackView.ts` (dedup via
+    `sessionStorage` key `ncmaz.viewed.v1`).
+  - `PostPage.vue` memanggil `trackViewIfNew(found.id)` setelah post termuat.
+
+### Why
+- `viewCount` selama ini hanya dirender, tidak pernah bertambah karena tidak ada
+  mekanisme pencatatan kunjungan.
+
+### How it was verified
+- `cd frontend && npm run typecheck` → lulus; `npm run lint` → bersih.
+- `npm run test` → 105/105 lulus (termasuk 2 test baru `trackView`).
+- `cd backend && go build ./...`, `go vet ./...`, `go test ./...` → lulus.
+- Smoke manual setelah deploy: `curl -X POST /track-view -d '{"postId":"p1"}'`
+  → `{"ok":true,"viewCount":N}`.
+
+### Handover notes
+- **BELUM build / commit / deploy.** Perubahan hanya tersimpan di working tree
+  (belum di-commit, belum di-build binary, belum di-deploy ke server 64).
+- Endpoint `POST /track-view` akan aktif setelah binary `blogku` di-deploy ulang
+  (lihat `docs/how-to-deploy-blogku.md`); sebelum itu view counter tetap tidak
+  bertambah di production.
+- Dedup per-session: refresh halaman tidak menambah hit, navigasi ulang dalam
+  tab yang sama juga tidak.
+- **Masih ada bug lain yang belum diperbaiki** (belum diinventarisir di catatan
+  ini); baca backlog/status di `docs/HANDOVER-CONTEXT.md`.
+
 ## [2026-10-27] — Deploy v0.0.3-alpha + halaman `/admin` ke server 64
 **Author** · **Role** (DevOps) · **Status** (Done)
 

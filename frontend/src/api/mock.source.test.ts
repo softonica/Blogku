@@ -331,4 +331,17 @@ describe('MockSource', () => {
     allTags = await source.listTags()
     expect(allTags.some((t) => t.id === newTag.id)).toBe(false)
   })
+
+  it('increments the view counter when tracking a view', async () => {
+    const source = new MockSource()
+    const page = await source.listPosts({ page: 1, perPage: 1 })
+    const post = page.items[0]
+    const before = post.viewCount
+
+    await source.trackView(post.id)
+    await source.trackView(post.id)
+
+    const updated = await source.getPostById(post.id)
+    expect(updated?.viewCount).toBe(before + 2)
+  })
 })
