@@ -17,6 +17,7 @@ import type { Category, CategoryInput, Tag, TagInput } from '@/api/types'
 import { useUiStore } from '@/stores/ui'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useRateLimit } from '@/composables/useRateLimit'
+import { uploadProcessedImage } from '@/composables/useImageUpload'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import { categorySchema, firstError, tagSchema } from '@/lib/validation'
@@ -156,8 +157,8 @@ async function handleCategoryImageUpload(event: Event) {
 
   uploadingCategoryImage.value = true
   try {
-    const res = await getDataSource().uploadFile(file)
-    categoryForm.value.image = res.url
+    const res = await uploadProcessedImage(file)
+    categoryForm.value.image = res.full
     ui.notify('Category image uploaded successfully!')
   } catch (err) {
     startRateLimit(err)
@@ -345,7 +346,7 @@ async function executeDeleteTag() {
     <div class="flex border-b border-neutral-200 dark:border-neutral-800">
       <button
         type="button"
-        class="flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-semibold transition"
+        class="flex items-center gap-2 whitespace-nowrap border-b-2 px-5 py-3 text-sm font-semibold transition"
         :class="
           activeTab === 'categories'
             ? 'border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400'
@@ -364,7 +365,7 @@ async function executeDeleteTag() {
 
       <button
         type="button"
-        class="flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-semibold transition"
+        class="flex items-center gap-2 whitespace-nowrap border-b-2 px-5 py-3 text-sm font-semibold transition"
         :class="
           activeTab === 'tags'
             ? 'border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400'

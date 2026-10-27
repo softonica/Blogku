@@ -7,6 +7,27 @@ export const DEFAULT_ALLOWED_IMAGE_DOMAINS = [
 ]
 
 /**
+ * Normalizes user input into a bare lowercase hostname.
+ * Accepts "https://cdn.example.com/path" and returns "cdn.example.com".
+ * Returns null for invalid hostnames.
+ */
+export function normalizeDomain(value: string | null | undefined): string | null {
+  if (!value) return null
+  const trimmed = value
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/\/.*$/, '')
+    .replace(/:\d+$/, '')
+    .replace(/\.$/, '')
+  if (!trimmed) return null
+  const label = '[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?'
+  const pattern = new RegExp(`^(${label}\\.)+[a-z]{2,}$`)
+  if (trimmed.length > 253 || !pattern.test(trimmed)) return null
+  return trimmed
+}
+
+/**
  * Extracts and normalizes hostname from URL.
  */
 export function extractDomain(url: string | null | undefined): string | null {

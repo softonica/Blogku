@@ -1,14 +1,17 @@
+import { parseImageVariants, stripImageVariants } from './imageVariants'
+
 const DEFAULT_WIDTHS = [400, 800, 1200, 1600]
 
 export function imageUrl(src: string, width: number): string {
   if (!src) return ''
-  if (/[?&]w=\d+/.test(src)) {
-    return src.replace(/([?&])w=\d+/, `$1w=${width}`)
+  const base = stripImageVariants(src)
+  if (/[?&]w=\d+/.test(base)) {
+    return base.replace(/([?&])w=\d+/, `$1w=${width}`)
   }
-  if (src.includes('images.pexels.com')) {
-    return `${src}${src.includes('?') ? '&' : '?'}auto=compress&cs=tinysrgb&w=${width}`
+  if (base.includes('images.pexels.com')) {
+    return `${base}${base.includes('?') ? '&' : '?'}auto=compress&cs=tinysrgb&w=${width}`
   }
-  return src
+  return base
 }
 
 export function buildSrcSet(
@@ -16,9 +19,27 @@ export function buildSrcSet(
   widths: number[] = DEFAULT_WIDTHS,
 ): string | undefined {
   if (!src) return undefined
-  const canResize = /[?&]w=\d+/.test(src) || src.includes('images.pexels.com')
+
+  const variants = parseImageVariants(src)
+  if (variants) {
+    const base = stripImageVariants(src)
+    const seen = new Set<string>()
+    const entries: string[] = []
+    const add = (url: string | undefined, width: number) => {
+      if (!url || seen.has(url)) return
+      seen.add(url)
+      entries.push(`${url} ${width}w`)
+    }
+    add(variants.thumb, 320)
+    add(variants.medium, 1024)
+    add(base, variants.fullWidth ?? 2048)
+    return entries.join(', ')
+  }
+
+  const base = stripImageVariants(src)
+  const canResize = /[?&]w=\d+/.test(base) || base.includes('images.pexels.com')
   if (!canResize) return undefined
-  return widths.map((width) => `${imageUrl(src, width)} ${width}w`).join(', ')
+  return widths.map((width) => `${imageUrl(base, width)} ${width}w`).join(', ')
 }
 
 export function isExternalUrl(url: string): boolean {

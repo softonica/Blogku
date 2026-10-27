@@ -70,3 +70,12 @@ AuthorPage.vue / ProfilePage.vue
 - `cd backend && go build ./... && go vet ./... && go test ./...`.
 - Manual (setelah deploy): `GET /author/demo` menampilkan hero + socials jika
   field terisi; `PATCH /api/collections/users/records/{id}` tetap bekerja.
+## 7. Catatan Responsive & Stacking (2026-10-27)
+
+- Tab Articles/Favorites/Bookmarks memakai `whitespace-nowrap` agar label tidak
+  wrap di mobile (dulu "Favorites list" jadi 2 baris di viewport 375px).
+- Baris header (avatar overlap + nama + sosial + aksi) memakai `relative z-10`
+  dan overlay gradient cover memakai `pointer-events-none` sehingga lapisan
+  cover/overlay tidak pernah menutupi konten atau mengganggu interaksi.
+- ProfilePage ikut men-sinkronisasi `coverBanner`/`socials` dari `auth.user`
+  pada watch (hindari field ter-reset setelah save).

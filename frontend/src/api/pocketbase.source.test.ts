@@ -178,6 +178,25 @@ describe('PocketBaseSource', () => {
     expect(captured.categorySlug).toBe('tech')
   })
 
+  it('builds OR-of-equals filter for ids (bookmarks)', async () => {
+    const { pb } = makePb({
+      collections: {
+        posts: { getList: vi.fn().mockResolvedValue({ items: [], page: 1, perPage: 10, totalItems: 0, totalPages: 0 }) },
+      },
+    })
+    const source = new PocketBaseSource(pb as never)
+    await source.listPosts({
+      page: 1,
+      perPage: 10,
+      filter: { ids: ['p1', 'p2'] },
+    })
+    const filterArg = pb.collection('posts').getList!.mock.calls[0][2].filter
+    expect(filterArg).toContain('(id = {:id0} || id = {:id1})')
+    const captured = pb.filter.mock.calls[0][1]
+    expect(captured.id0).toBe('p1')
+    expect(captured.id1).toBe('p2')
+  })
+
   it('returns null on 404 for getters', async () => {
     const notFound = Object.assign(new Error('not found'), { status: 404 })
     const { pb } = makePb({

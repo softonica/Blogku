@@ -5,20 +5,17 @@ import {
   FolderTree,
   HardDrive,
   Image as ImageIcon,
-  Plus,
   Save,
-  Shield,
   Upload,
-  X,
 } from 'lucide-vue-next'
 import { getDataSource } from '@/api'
 import type { SiteSettings } from '@/api/types'
 import { useUiStore } from '@/stores/ui'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useRateLimit } from '@/composables/useRateLimit'
+import { uploadProcessedImage } from '@/composables/useImageUpload'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
-import { DEFAULT_ALLOWED_IMAGE_DOMAINS } from '@/lib/image-domains'
 
 const ui = useUiStore()
 const { retryAfter, isLimited, start: startRateLimit } = useRateLimit()
@@ -30,7 +27,6 @@ const saving = ref(false)
 const saved = ref(false)
 const uploadingLogo = ref(false)
 const uploadingFavicon = ref(false)
-const newDomain = ref('')
 
 const settings = ref<SiteSettings>({
   siteName: '',
@@ -41,19 +37,12 @@ const settings = ref<SiteSettings>({
   logo: '',
   logoDark: '',
   favicon: '/favicon.ico',
-  allowedImageDomains: [...DEFAULT_ALLOWED_IMAGE_DOMAINS],
 })
 
 onMounted(async () => {
   try {
     const data = await getDataSource().getSiteSettings()
-    settings.value = {
-      ...data,
-      allowedImageDomains:
-        data.allowedImageDomains && data.allowedImageDomains.length
-          ? [...data.allowedImageDomains]
-          : [...DEFAULT_ALLOWED_IMAGE_DOMAINS],
-    }
+    settings.value = { ...data }
   } catch (err) {
     ui.notify(err instanceof Error ? err.message : 'Failed to load settings.', 'error')
   } finally {
@@ -61,39 +50,14 @@ onMounted(async () => {
   }
 })
 
-function addDomain(): void {
-  const dom = newDomain.value
-    .trim()
-    .toLowerCase()
-    .replace(/^https?:\/\//, '')
-    .replace(/\/.*$/, '')
-  if (!dom) return
-  if (!settings.value.allowedImageDomains) {
-    settings.value.allowedImageDomains = []
-  }
-  if (!settings.value.allowedImageDomains.includes(dom)) {
-    settings.value.allowedImageDomains.push(dom)
-    ui.notify(`Domain "${dom}" added to allowed external image sources.`)
-  }
-  newDomain.value = ''
-}
-
-function removeDomain(dom: string): void {
-  if (!settings.value.allowedImageDomains) return
-  settings.value.allowedImageDomains = settings.value.allowedImageDomains.filter(
-    (d) => d !== dom,
-  )
-  ui.notify(`Domain "${dom}" removed.`)
-}
-
 async function onLogoUpload(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
   uploadingLogo.value = true
   try {
-    const result = await getDataSource().uploadFile(file)
-    settings.value.logo = result.url
+    const result = await uploadProcessedImage(file)
+    settings.value.logo = result.medium ?? result.full
     ui.notify('Logo uploaded successfully.')
   } catch (err) {
     startRateLimit(err)
@@ -110,8 +74,8 @@ async function onFaviconUpload(event: Event): Promise<void> {
   if (!file) return
   uploadingFavicon.value = true
   try {
-    const result = await getDataSource().uploadFile(file)
-    settings.value.favicon = result.url
+    const result = await uploadProcessedImage(file)
+    settings.value.favicon = result.thumb ?? result.full
     ui.notify('Favicon uploaded successfully.')
   } catch (err) {
     startRateLimit(err)
@@ -125,7 +89,9 @@ async function onFaviconUpload(event: Event): Promise<void> {
 async function save(): Promise<void> {
   saving.value = true
   try {
-    const updated = await getDataSource().updateSiteSettings(settings.value)
+    const payload = { ...settings.value }
+    delete payload.allowedImageDomains
+    const updated = await getDataSource().updateSiteSettings(payload)
     settings.value = { ...updated }
     saved.value = true
     ui.notify('Site settings saved successfully.')
@@ -172,7 +138,13 @@ async function save(): Promise<void> {
           Site Settings
         </h1>
         <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-          Global site parameters, branding, media rules, and storage targets.
+          Global site parameters, branding, and storage targets. Media rules live in
+          <RouterLink
+            to="/admin/media-settings"
+            class="font-semibold text-primary-600 hover:underline dark:text-primary-300"
+          >
+            Media Settings
+          </RouterLink>.
         </p>
       </header>
 
@@ -323,9 +295,9 @@ async function save(): Promise<void> {
               </div>
 
               <!-- Actions -->
-              <div class="mt-3 flex items-center gap-2">
+              <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <label
-                  class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl bg-neutral-200/80 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                  class="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-neutral-200/80 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                 >
                   <Upload class="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{{ uploadingLogo ? 'Uploading…' : 'Upload Logo' }}</span>
@@ -342,7 +314,7 @@ async function save(): Promise<void> {
                   v-model="settings.logo"
                   type="url"
                   placeholder="Or enter logo URL (https://…)"
-                  class="h-9 flex-1 rounded-xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+                  class="h-9 w-full min-w-0 rounded-xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:flex-1"
                 />
               </div>
             </div>
@@ -394,9 +366,9 @@ async function save(): Promise<void> {
               </div>
 
               <!-- Actions -->
-              <div class="mt-3 flex items-center gap-2">
+              <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <label
-                  class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl bg-neutral-200/80 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                  class="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-neutral-200/80 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                 >
                   <Upload class="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{{ uploadingFavicon ? 'Uploading…' : 'Upload Icon' }}</span>
@@ -413,65 +385,14 @@ async function save(): Promise<void> {
                   v-model="settings.favicon"
                   type="url"
                   placeholder="Or enter favicon URL (https://…)"
-                  class="h-9 flex-1 rounded-xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+                  class="h-9 w-full min-w-0 rounded-xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:flex-1"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Section 3: Allowed External Image Domains -->
-        <div class="border-t border-neutral-100 pt-6 dark:border-neutral-800">
-          <div class="flex items-center gap-2">
-            <Shield class="h-5 w-5 text-primary-600 dark:text-primary-400" aria-hidden="true" />
-            <h2 class="text-base font-bold text-neutral-900 dark:text-white">
-              Allowed External Image Domains (Security Whitelist)
-            </h2>
-          </div>
-          <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            Hanya URL gambar dari domain yang terdaftar di bawah ini yang diizinkan untuk digunakan sebagai cover, avatar, atau gambar artikel guna mencegah hotlinking berbahaya dan serangan pelacakan.
-          </p>
-
-          <div class="mt-4 flex flex-wrap gap-2">
-            <span
-              v-for="domain in settings.allowedImageDomains"
-              :key="domain"
-              class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
-            >
-              {{ domain }}
-              <button
-                type="button"
-                :title="`Remove ${domain}`"
-                :aria-label="`Remove ${domain}`"
-                class="flex h-4 w-4 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-300 hover:text-neutral-900 dark:hover:bg-neutral-700 dark:hover:text-white"
-                @click="removeDomain(domain)"
-              >
-                <X class="h-3 w-3" aria-hidden="true" />
-              </button>
-            </span>
-          </div>
-
-          <!-- Add new domain input -->
-          <div class="mt-4 flex max-w-md items-center gap-2">
-            <input
-              v-model="newDomain"
-              type="text"
-              placeholder="e.g. cdn.example.com"
-              class="h-10 flex-1 rounded-xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
-              @keydown.enter.prevent="addDomain"
-            />
-            <button
-              type="button"
-              class="inline-flex h-10 items-center gap-1.5 rounded-xl bg-neutral-900 px-4 text-xs font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100"
-              @click="addDomain"
-            >
-              <Plus class="h-3.5 w-3.5" aria-hidden="true" />
-              Add Domain
-            </button>
-          </div>
-        </div>
-
-        <!-- Section 4: Backend Storage Target Architecture Callout -->
+        <!-- Section 3: Backend Storage Target Architecture Callout -->
         <div class="rounded-2xl border border-primary-100 bg-primary-50/50 p-5 dark:border-primary-950 dark:bg-primary-950/20">
           <div class="flex items-center gap-2">
             <HardDrive class="h-5 w-5 text-primary-600 dark:text-primary-400" aria-hidden="true" />
@@ -499,7 +420,7 @@ async function save(): Promise<void> {
         </div>
 
         <!-- Save Button -->
-        <div class="flex items-center gap-4 border-t border-neutral-100 pt-6 dark:border-neutral-800">
+        <div class="flex flex-col gap-3 border-t border-neutral-100 pt-6 sm:flex-row sm:items-center dark:border-neutral-800">
           <BaseButton type="submit" size="md" :disabled="saving || isLimited">
             <CheckCircle2 v-if="saved" class="h-4 w-4" aria-hidden="true" />
             <Save v-else class="h-4 w-4" aria-hidden="true" />

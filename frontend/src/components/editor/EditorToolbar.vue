@@ -27,6 +27,7 @@ import {
   Upload,
 } from 'lucide-vue-next'
 import { getDataSource } from '@/api'
+import { uploadProcessedImage } from '@/composables/useImageUpload'
 import {
   DEFAULT_ALLOWED_IMAGE_DOMAINS,
   extractDomain,
@@ -137,8 +138,8 @@ async function onFileSelected(event: Event): Promise<void> {
 
   uploading.value = true
   try {
-    const result = await getDataSource().uploadFile(file)
-    props.editor.chain().focus().setImage({ src: result.url }).run()
+    const result = await uploadProcessedImage(file)
+    props.editor.chain().focus().setImage({ src: result.full }).run()
   } catch (err) {
     window.alert(err instanceof Error ? err.message : 'Failed to upload image')
   } finally {

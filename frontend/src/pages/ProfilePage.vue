@@ -26,6 +26,7 @@ import {
 import { changePasswordSchema, firstError } from '@/lib/validation'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useRateLimit } from '@/composables/useRateLimit'
+import { uploadProcessedImage } from '@/composables/useImageUpload'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
 import AuthorSocialLinks from '@/components/ui/AuthorSocialLinks.vue'
@@ -89,8 +90,8 @@ async function onAvatarUpload(event: Event): Promise<void> {
   if (!file) return
   uploadingAvatar.value = true
   try {
-    const result = await getDataSource().uploadFile(file)
-    avatar.value = result.url
+    const result = await uploadProcessedImage(file)
+    avatar.value = result.medium ?? result.full
     ui.notify('Avatar uploaded successfully.')
   } catch (err) {
     startRateLimit(err)
@@ -109,8 +110,8 @@ async function onCoverUpload(event: Event): Promise<void> {
   if (!file) return
   uploadingCover.value = true
   try {
-    const result = await getDataSource().uploadFile(file)
-    coverBanner.value = result.url
+    const result = await uploadProcessedImage(file)
+    coverBanner.value = result.full
     ui.notify('Cover banner uploaded successfully.')
   } catch (err) {
     startRateLimit(err)
@@ -128,6 +129,14 @@ watch(
       name.value = curr.name
       bio.value = curr.bio
       avatar.value = curr.avatar
+      coverBanner.value = curr.coverBanner ?? ''
+      socials.value = {
+        facebook: curr.socials?.facebook ?? '',
+        youtube: curr.socials?.youtube ?? '',
+        tiktok: curr.socials?.tiktok ?? '',
+        github: curr.socials?.github ?? '',
+        buymeacoffee: curr.socials?.buymeacoffee ?? '',
+      }
     }
   },
   { immediate: true },
@@ -262,11 +271,11 @@ async function logout(): Promise<void> {
             v-else
             class="h-full w-full bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700"
           ></div>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
+          <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
         </div>
 
         <div class="bg-white px-6 pb-8 sm:px-10 dark:bg-neutral-950">
-          <div class="-mt-14 flex flex-col gap-5 sm:-mt-16 sm:flex-row sm:items-end">
+          <div class="relative z-10 -mt-14 flex flex-col gap-5 sm:-mt-16 sm:flex-row sm:items-end">
             <AppAvatar
               :src="avatar"
               :name="name || 'User'"

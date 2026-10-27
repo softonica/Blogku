@@ -3,6 +3,7 @@ import {
   DEFAULT_ALLOWED_IMAGE_DOMAINS,
   extractDomain,
   isAllowedImageDomain,
+  normalizeDomain,
 } from './image-domains'
 
 describe('image-domains', () => {
@@ -45,5 +46,22 @@ describe('image-domains', () => {
     expect(isAllowedImageDomain('', DEFAULT_ALLOWED_IMAGE_DOMAINS)).toBe(false)
     expect(isAllowedImageDomain('not a url', DEFAULT_ALLOWED_IMAGE_DOMAINS)).toBe(false)
     expect(isAllowedImageDomain('javascript:alert(1)', DEFAULT_ALLOWED_IMAGE_DOMAINS)).toBe(false)
+  })
+})
+
+describe('normalizeDomain', () => {
+  it('normalizes pasted URLs into a hostname', () => {
+    expect(normalizeDomain('https://CDN.Example.com/path?a=1')).toBe('cdn.example.com')
+    expect(normalizeDomain('http://cdn.example.com:8080/')).toBe('cdn.example.com')
+    expect(normalizeDomain('  images.unsplash.com  ')).toBe('images.unsplash.com')
+    expect(normalizeDomain('cdn.example.com.')).toBe('cdn.example.com')
+  })
+
+  it('rejects invalid hostnames', () => {
+    expect(normalizeDomain('')).toBeNull()
+    expect(normalizeDomain('not a domain')).toBeNull()
+    expect(normalizeDomain('localhost')).toBeNull()
+    expect(normalizeDomain('https://')).toBeNull()
+    expect(normalizeDomain('-bad.example.com')).toBeNull()
   })
 })

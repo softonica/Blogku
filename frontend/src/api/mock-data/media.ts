@@ -1,0 +1,59 @@
+import type { MediaItem } from '../types'
+
+const photo = (id: string, name: string, url: string, createdAt: string): MediaItem => ({
+  id,
+  name,
+  url,
+  createdAt,
+})
+
+export const media: MediaItem[] = [
+  photo(
+    'media-seed-1',
+    'editorial-desk-cover.webp',
+    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80',
+    '2026-10-21T09:12:00',
+  ),
+  photo(
+    'media-seed-2',
+    'city-lights-feature.webp',
+    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
+    '2026-10-05T14:30:00',
+  ),
+  photo(
+    'media-seed-3',
+    'studio-portrait.webp',
+    'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80',
+    '2026-10-01T08:00:00',
+  ),
+  photo(
+    'media-seed-4',
+    'summer-travel-notes.webp',
+    'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80',
+    '2026-07-18T11:45:00',
+  ),
+  photo(
+    'media-seed-5',
+    'workspace-setup.webp',
+    'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
+    '2026-07-02T16:20:00',
+  ),
+  photo(
+    'media-seed-6',
+    'analytics-dashboard.webp',
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80',
+    '2025-12-24T10:05:00',
+  ),
+  photo(
+    'media-seed-7',
+    'team-collaboration.webp',
+    'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+    '2025-12-08T13:15:00',
+  ),
+  photo(
+    'media-seed-8',
+    'annual-cover.webp',
+    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
+    '2025-11-30T07:40:00',
+  ),
+]

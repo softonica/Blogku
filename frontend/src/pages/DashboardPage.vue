@@ -195,7 +195,7 @@ async function deletePost(id: string): Promise<void> {
             role="tab"
             :aria-selected="activeTab === 'published'"
             :class="[
-              'rounded-full px-4 py-1.5 text-xs font-semibold transition',
+              'whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-semibold transition',
               activeTab === 'published'
                 ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
@@ -209,7 +209,7 @@ async function deletePost(id: string): Promise<void> {
             role="tab"
             :aria-selected="activeTab === 'draft'"
             :class="[
-              'rounded-full px-4 py-1.5 text-xs font-semibold transition',
+              'whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-semibold transition',
               activeTab === 'draft'
                 ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',

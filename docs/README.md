@@ -38,6 +38,8 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **13** | **Admin Console Shell & Overview Dashboard** | ✅ Stable | [13-admin-console-shell-and-dashboard.md](./features/13-admin-console-shell-and-dashboard.md) |
 | **14** | **Post View Counter** | ✅ Stable | [14-post-view-counter.md](./features/14-post-view-counter.md) |
 | **15** | **Author & Profile Page Design** | Draft | [15-author-profile-page-design.md](./features/15-author-profile-page-design.md) |
+| **16** | **Client-Side Image Processing (WebP multi-variant)** | ✅ Implemented | [16-client-side-image-processing.md](./features/16-client-side-image-processing.md) |
+| **17** | **Media Library (grouped Year > Month)** | ✅ Implemented | [17-media-library-year-month.md](./features/17-media-library-year-month.md) |
 
 ---
 

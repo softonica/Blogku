@@ -232,6 +232,26 @@ const router = createRouter({
             permission: 'manage_settings',
           },
         },
+        {
+          path: 'media-settings',
+          name: 'admin-media-settings',
+          component: () => import('@/pages/admin/AdminMediaSettingsPage.vue'),
+          meta: {
+            title: 'Media Settings',
+            requiresAuth: true,
+            permission: 'manage_settings',
+          },
+        },
+        {
+          path: 'media-library',
+          name: 'admin-media-library',
+          component: () => import('@/pages/admin/AdminMediaLibraryPage.vue'),
+          meta: {
+            title: 'Media Library',
+            requiresAuth: true,
+            permission: 'manage_settings',
+          },
+        },
       ],
     },
     {

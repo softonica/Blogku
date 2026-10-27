@@ -10,7 +10,9 @@ import type {
   CategoryInput,
   Comment,
   EditorSettings,
+  ListMediaParams,
   ListPostsParams,
+  MediaItem,
   Page,
   PageContent,
   Post,
@@ -24,6 +26,12 @@ import type {
   UserSocials,
 } from './types'
 import { DEFAULT_EDITOR_SETTINGS } from '@/lib/editor-defaults'
+import { isVariantFileName } from '@/lib/media'
+import { media as seedMedia } from './mock-data/media'
+import {
+  clampImageMaxDimension,
+  clampImageQuality,
+} from '@/lib/imageMeta'
 import { comments as seedComments } from './mock-data/comments'
 import { categories as seedCategories } from './mock-data/categories'
 import { posts as seedPosts } from './mock-data/posts'
@@ -40,6 +48,7 @@ const REACTIONS_KEY = 'ncmaz.mock.reactions.v1'
 const SETTINGS_KEY = 'ncmaz.mock.settings.v1'
 const PAGES_KEY = 'ncmaz.mock.pages.v1'
 const EDITOR_SETTINGS_KEY = 'ncmaz.mock.editor-settings.v1'
+const MEDIA_KEY = 'ncmaz.mock.media.v1'
 
 interface ReactionRecord {
   postId: string
@@ -175,6 +184,7 @@ export class MockSource implements DataSource {
   private settings: SiteSettings
   private pages: Record<string, PageContent>
   private editorSettings: EditorSettings
+  private media: MediaItem[]
 
   constructor() {
     this.posts = readJson<Post[]>(POSTS_KEY, seedPosts)
@@ -185,10 +195,11 @@ export class MockSource implements DataSource {
     this.reactions = readJson<ReactionRecord[]>(REACTIONS_KEY, [])
     this.settings = readJson<SiteSettings>(SETTINGS_KEY, defaultSettings)
     this.pages = readJson<Record<string, PageContent>>(PAGES_KEY, defaultPages)
-    this.editorSettings = readJson<EditorSettings>(
-      EDITOR_SETTINGS_KEY,
-      DEFAULT_EDITOR_SETTINGS,
-    )
+    this.editorSettings = {
+      ...DEFAULT_EDITOR_SETTINGS,
+      ...readJson<Partial<EditorSettings>>(EDITOR_SETTINGS_KEY, {}),
+    }
+    this.media = readJson<MediaItem[]>(MEDIA_KEY, seedMedia)
   }
 
   async listPosts(params: ListPostsParams): Promise<Page<Post>> {
@@ -846,6 +857,12 @@ export class MockSource implements DataSource {
     if (typeof input.maxImageUploadSize === 'number') {
       sanitized.maxImageUploadSize = Math.max(0, Math.floor(input.maxImageUploadSize))
     }
+    if (input.imageMaxDimension !== undefined) {
+      sanitized.imageMaxDimension = clampImageMaxDimension(input.imageMaxDimension)
+    }
+    if (input.imageQuality !== undefined) {
+      sanitized.imageQuality = clampImageQuality(input.imageQuality)
+    }
     this.editorSettings = { ...this.editorSettings, ...sanitized }
     writeJson(EDITOR_SETTINGS_KEY, this.editorSettings)
     return { ...this.editorSettings }
@@ -901,14 +918,46 @@ export class MockSource implements DataSource {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.onload = () => {
-        resolve({
-          url: reader.result as string,
+        const url = reader.result as string
+        const record: MediaItem = {
+          id: `media-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          url,
           name: file.name,
-        })
+          ownerId: this.currentUser()?.id,
+          createdAt: new Date().toISOString(),
+        }
+        this.media = [record, ...this.media]
+        writeJson(MEDIA_KEY, this.media)
+        resolve({ url, name: file.name })
       }
       reader.onerror = () => reject(new Error('Failed to read file'))
       reader.readAsDataURL(file)
     })
+  }
+
+  async listMedia(params: ListMediaParams): Promise<Page<MediaItem>> {
+    await wait()
+    const page = Math.max(1, Math.floor(params.page ?? 1) || 1)
+    const perPage = Math.min(100, Math.max(1, Math.floor(params.perPage ?? 48) || 48))
+    const search = params.search?.trim().toLowerCase() ?? ''
+
+    const filtered = this.media
+      .filter((item) => !isVariantFileName(item.name))
+      .filter((item) => !search || item.name.toLowerCase().includes(search))
+      .slice()
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+    const totalItems = filtered.length
+    const totalPages = Math.max(1, Math.ceil(totalItems / perPage))
+    const start = (page - 1) * perPage
+
+    return {
+      items: filtered.slice(start, start + perPage),
+      page,
+      perPage,
+      totalItems,
+      totalPages,
+    }
   }
 
   async trackView(postId: string): Promise<void> {

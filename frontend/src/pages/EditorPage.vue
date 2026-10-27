@@ -29,6 +29,7 @@ import {
 import { canManagePost } from '@/lib/permissions'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useRateLimit } from '@/composables/useRateLimit'
+import { uploadProcessedImage } from '@/composables/useImageUpload'
 import { useEditorSettingsStore } from '@/stores/editor-settings'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import RichTextEditor from '@/components/editor/RichTextEditor.vue'
@@ -115,8 +116,8 @@ async function onCoverUpload(event: Event): Promise<void> {
   if (!file) return
   uploadingCover.value = true
   try {
-    const result = await getDataSource().uploadFile(file)
-    cover.value = result.url
+    const result = await uploadProcessedImage(file)
+    cover.value = result.full
     ui.notify('Cover image uploaded.')
   } catch (err) {
     startRateLimit(err)
@@ -459,11 +460,11 @@ async function publishStory(): Promise<void> {
           </div>
 
           <!-- Right: Actions -->
-          <div class="flex items-center gap-2 sm:gap-3">
+          <div class="flex items-center gap-1.5 sm:gap-3">
             <!-- Post Options Trigger (Hexagonal icon) -->
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3.5 py-2 text-xs font-semibold text-neutral-700 shadow-xs transition hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-2.5 py-2 text-xs font-semibold text-neutral-700 shadow-xs transition hover:bg-neutral-50 sm:px-3.5 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
               title="Post options"
               @click="showOptionsModal = true"
             >
@@ -482,7 +483,7 @@ async function publishStory(): Promise<void> {
               <button
                 type="button"
                 :class="[
-                  'rounded-full px-3 py-1.5 text-xs font-semibold transition',
+                  'rounded-full px-2.5 py-1.5 text-xs font-semibold transition sm:px-3',
                   tab === 'write'
                     ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-900 dark:text-white'
                     : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white',
@@ -494,7 +495,7 @@ async function publishStory(): Promise<void> {
               <button
                 type="button"
                 :class="[
-                  'rounded-full px-3 py-1.5 text-xs font-semibold transition',
+                  'rounded-full px-2.5 py-1.5 text-xs font-semibold transition sm:px-3',
                   tab === 'preview'
                     ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-900 dark:text-white'
                     : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white',
@@ -519,7 +520,7 @@ async function publishStory(): Promise<void> {
             <button
               type="button"
               :disabled="publishing || isLimited"
-              class="inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50"
+              class="inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-700 sm:px-5 disabled:opacity-50"
               @click="publishStory"
             >
               <Globe class="h-3.5 w-3.5" />

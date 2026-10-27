@@ -133,11 +133,11 @@ function selectTab(tab: AuthorTab): void {
             v-else
             class="h-full w-full bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700"
           ></div>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
+          <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
         </div>
 
         <div class="bg-white px-6 pb-8 sm:px-10 dark:bg-neutral-950">
-          <div class="-mt-14 flex flex-col gap-5 sm:-mt-16 sm:flex-row sm:items-end">
+          <div class="relative z-10 -mt-14 flex flex-col gap-5 sm:-mt-16 sm:flex-row sm:items-end">
             <AppAvatar
               :src="author.avatar"
               :name="author.name"
@@ -191,7 +191,7 @@ function selectTab(tab: AuthorTab): void {
           v-for="tab in authorTabs"
           :key="tab.key"
           type="button"
-          class="flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition"
+          class="whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition"
           :class="
             activeTab === tab.key
               ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-white'

@@ -504,7 +504,34 @@ func ensureSiteSettingsCollection(app core.App) error {
 
 func ensureEditorSettingsCollection(app core.App) error {
 	if collectionExists(app, "editor_settings") {
-		return nil
+		// Additive migration: image processing settings must persist for the
+		// client-side WebP pipeline (defaults are applied by the frontend when
+		// the fields are empty).
+		settings, err := app.FindCollectionByNameOrId("editor_settings")
+		if err != nil {
+			return err
+		}
+		changed := false
+		if settings.Fields.GetByName("imageMaxDimension") == nil {
+			settings.Fields.Add(&core.NumberField{
+				Name: "imageMaxDimension",
+				Min:  numRef(256),
+				Max:  numRef(4096),
+			})
+			changed = true
+		}
+		if settings.Fields.GetByName("imageQuality") == nil {
+			settings.Fields.Add(&core.NumberField{
+				Name: "imageQuality",
+				Min:  numRef(0.1),
+				Max:  numRef(1),
+			})
+			changed = true
+		}
+		if changed {
+			_, err = saveCollection(app, settings)
+		}
+		return err
 	}
 
 	settings := core.NewBaseCollection("editor_settings")
@@ -529,6 +556,8 @@ func ensureEditorSettingsCollection(app core.App) error {
 	settings.Fields.Add(&core.BoolField{Name: "autolink"})
 	settings.Fields.Add(&core.NumberField{Name: "maxContentLength", Min: numRef(0)})
 	settings.Fields.Add(&core.NumberField{Name: "maxImageUploadSize", Min: numRef(0)})
+	settings.Fields.Add(&core.NumberField{Name: "imageMaxDimension", Min: numRef(256), Max: numRef(4096)})
+	settings.Fields.Add(&core.NumberField{Name: "imageQuality", Min: numRef(0.1), Max: numRef(1)})
 	addTimestamps(settings)
 
 	_, err := saveCollection(app, settings)
@@ -593,6 +622,8 @@ func seedEditorSettings(app core.App) error {
 	record.Set("autolink", true)
 	record.Set("maxContentLength", 50000)
 	record.Set("maxImageUploadSize", 5*1024*1024)
+	record.Set("imageMaxDimension", 2048)
+	record.Set("imageQuality", 0.8)
 
 	return app.Save(record)
 }

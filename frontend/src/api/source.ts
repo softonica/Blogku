@@ -4,6 +4,7 @@ import type {
   Comment,
   EditorSettings,
   ListPostsParams,
+  MediaItem,
   Page,
   PageContent,
   Post,
@@ -77,5 +78,10 @@ export interface DataSource {
     socials?: UserSocials
   }): Promise<User>
   uploadFile(file: File): Promise<{ url: string; name: string }>
+  listMedia(params: {
+    page?: number
+    perPage?: number
+    search?: string
+  }): Promise<Page<MediaItem>>
   trackView(postId: string): Promise<void>
 }

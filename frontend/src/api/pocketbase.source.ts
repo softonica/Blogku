@@ -2,6 +2,7 @@ import type PocketBase from 'pocketbase'
 import { getPb } from '@/lib/pb'
 import { slugify } from '@/lib/format'
 import { sanitizeEmail, sanitizeHtml, sanitizePlainText, sanitizeUrl } from '@/lib/sanitize'
+import { clampImageMaxDimension, clampImageQuality } from '@/lib/imageMeta'
 import { getStatus, toAppError } from './errors'
 import type { DataSource } from './source'
 import type {
@@ -9,7 +10,9 @@ import type {
   CategoryInput,
   Comment,
   EditorSettings,
+  ListMediaParams,
   ListPostsParams,
+  MediaItem,
   Page,
   PageContent,
   Post,
@@ -121,6 +124,15 @@ interface PbEditorSettingsRecord extends PbRecord {
   autolink?: boolean
   maxContentLength?: number
   maxImageUploadSize?: number
+  imageMaxDimension?: number
+  imageQuality?: number
+}
+
+interface PbMediaRecord extends PbRecord {
+  file?: string
+  alt?: string
+  owner?: string
+  created?: string
 }
 
 interface PbPageRecord extends PbRecord {
@@ -286,6 +298,8 @@ function mapEditorSettings(record: PbEditorSettingsRecord): EditorSettings {
     maxContentLength: typeof record.maxContentLength === 'number' ? record.maxContentLength : 50000,
     maxImageUploadSize:
       typeof record.maxImageUploadSize === 'number' ? record.maxImageUploadSize : 5 * 1024 * 1024,
+    imageMaxDimension: clampImageMaxDimension(record.imageMaxDimension),
+    imageQuality: clampImageQuality(record.imageQuality),
   }
 }
 
@@ -393,8 +407,11 @@ export class PocketBaseSource implements DataSource {
         filterParams.authorUsername = filter.authorUsername
       }
       if (filter.ids?.length) {
-        parts.push('id ?= {:ids}')
-        filterParams.ids = filter.ids
+        const idConds = filter.ids.map((_, index) => `id = {:id${index}}`)
+        parts.push(`(${idConds.join(' || ')})`)
+        filter.ids.forEach((id, index) => {
+          filterParams[`id${index}`] = id
+        })
       }
       if (filter.search) {
         const q = filter.search.trim()
@@ -824,6 +841,12 @@ export class PocketBaseSource implements DataSource {
       if (input.placeholder !== undefined) {
         body.placeholder = sanitizePlainText(input.placeholder)
       }
+      if (input.imageMaxDimension !== undefined) {
+        body.imageMaxDimension = clampImageMaxDimension(input.imageMaxDimension)
+      }
+      if (input.imageQuality !== undefined) {
+        body.imageQuality = clampImageQuality(input.imageQuality)
+      }
       const page = await this.pb.collection('editor_settings').getList(1, 1)
       const existing = page.items[0]
       if (!existing) throw new Error('Editor settings are not initialized')
@@ -870,6 +893,47 @@ export class PocketBaseSource implements DataSource {
       return {
         url: this.pb.files.getURL(record, String(record.file)),
         name: file.name,
+      }
+    })
+  }
+
+  async listMedia(params: ListMediaParams): Promise<Page<MediaItem>> {
+    return this.wrap(async () => {
+      const page = Math.max(1, Math.floor(params.page ?? 1) || 1)
+      const perPage = Math.min(100, Math.max(1, Math.floor(params.perPage ?? 48) || 48))
+      const parts: string[] = [
+        'file != ""',
+        'file !~ "ncmaz_thumb_"',
+        'file !~ "ncmaz_medium_"',
+      ]
+      const filterParams: Record<string, unknown> = {}
+      const search = params.search?.trim()
+      if (search) {
+        parts.push('(file ~ {:q} || alt ~ {:q})')
+        filterParams.q = search
+      }
+
+      const result = await this.pb.collection('media').getList(page, perPage, {
+        filter: this.pb.filter(parts.join(' && '), filterParams),
+        sort: '-created',
+      })
+
+      return {
+        items: result.items.map((item) => {
+          const record = item as unknown as PbMediaRecord
+          const fileName = String(record.file ?? '')
+          return {
+            id: record.id,
+            url: fileName ? this.pb.files.getURL(item, fileName) : '',
+            name: fileName,
+            ownerId: record.owner ? String(record.owner) : undefined,
+            createdAt: String(record.created ?? ''),
+          }
+        }),
+        page: result.page,
+        perPage: result.perPage,
+        totalItems: result.totalItems,
+        totalPages: result.totalPages,
       }
     })
   }

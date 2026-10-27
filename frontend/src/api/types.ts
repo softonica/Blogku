@@ -84,6 +84,20 @@ export interface Page<T> {
   totalPages: number
 }
 
+export interface MediaItem {
+  id: string
+  url: string
+  name: string
+  ownerId?: string
+  createdAt: string
+}
+
+export interface ListMediaParams {
+  page?: number
+  perPage?: number
+  search?: string
+}
+
 export interface PostFilter {
   categorySlug?: string
   tagSlug?: string
@@ -155,6 +169,8 @@ export interface EditorSettings {
   autolink: boolean
   maxContentLength: number
   maxImageUploadSize: number
+  imageMaxDimension: number
+  imageQuality: number
 }
 
 export interface SiteSettings {

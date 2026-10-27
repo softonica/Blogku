@@ -6,6 +6,8 @@ import {
   ExternalLink,
   FileText,
   FolderTree,
+  Image as ImageIcon,
+  Images,
   LayoutDashboard,
   LogOut,
   MessageSquareOff,
@@ -58,6 +60,7 @@ const groups: NavGroup[] = [
     label: 'Content',
     items: [
       { name: 'Categories & Tags', to: '/admin/taxonomies', icon: FolderTree },
+      { name: 'Media Library', to: '/admin/media-library', icon: Images },
       { name: 'Pages', to: '/admin/pages', icon: FileText },
       { name: 'Comments', to: '/admin/moderation', icon: MessageSquareOff },
     ],
@@ -72,6 +75,7 @@ const groups: NavGroup[] = [
     label: 'System',
     items: [
       { name: 'Site Settings', to: '/admin/settings', icon: Settings },
+      { name: 'Media Settings', to: '/admin/media-settings', icon: ImageIcon },
       { name: 'Editor Settings', to: '/admin/editor-settings', icon: Type },
     ],
   },

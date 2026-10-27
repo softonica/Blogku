@@ -16,4 +16,6 @@ export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
   autolink: true,
   maxContentLength: 50000,
   maxImageUploadSize: 2 * 1024 * 1024,
+  imageMaxDimension: 2048,
+  imageQuality: 0.8,
 }

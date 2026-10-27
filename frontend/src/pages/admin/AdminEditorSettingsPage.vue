@@ -35,10 +35,6 @@ async function save(): Promise<void> {
     await getDataSource().updateEditorSettings({
       ...settings.value,
       maxContentLength: Math.max(0, Math.floor(Number(settings.value.maxContentLength) || 0)),
-      maxImageUploadSize: Math.max(
-        0,
-        Math.floor(Number(settings.value.maxImageUploadSize) || 0),
-      ),
     })
     ui.notify('Editor settings saved.')
   } catch (err) {
@@ -49,7 +45,7 @@ async function save(): Promise<void> {
   }
 }
 
-const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'maxContentLength' | 'maxImageUploadSize'>; label: string; hint: string }> = [
+const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'maxContentLength' | 'maxImageUploadSize' | 'imageMaxDimension' | 'imageQuality'>; label: string; hint: string }> = [
   { key: 'showHeadings', label: 'Heading', hint: 'Heading 2 & 3' },
   { key: 'showFormatting', label: 'Formatting', hint: 'Bold, Italic, Strikethrough, Inline Code' },
   { key: 'showLists', label: 'List', hint: 'Bullet & numbered list' },
@@ -105,18 +101,13 @@ const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'm
               />
               <p class="mt-1 text-xs text-neutral-400">0 = tanpa batas</p>
             </div>
-            <div>
-              <label for="editor-max-upload" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                Batas ukuran upload (bytes)
-              </label>
-              <input
-                id="editor-max-upload"
-                v-model.number="settings.maxImageUploadSize"
-                type="number"
-                min="0"
-                class="w-full rounded-2xl border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
-              />
-              <p class="mt-1 text-xs text-neutral-400">cth: 2097152 = 2MB</p>
+            <div class="flex items-end">
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                Batas ukuran upload, dimensi, dan kualitas gambar diatur di
+                <RouterLink to="/admin/media-settings" class="font-semibold text-primary-600 hover:underline dark:text-primary-300">
+                  Media Settings
+                </RouterLink>.
+              </p>
             </div>
           </div>
 

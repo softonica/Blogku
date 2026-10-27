@@ -5,6 +5,258 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-27] — Media Library: media dikelompokkan Tahun > Bulan
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/pages/admin/AdminMediaLibraryPage.vue` (baru) — halaman
+  **Admin → Content → Media Library** (`/admin/media-library`): daftar media
+  48/halaman, grouping **Tahun → Bulan** dari `created`, pencarian nama file
+  (debounce 350ms), tile thumbnail, Copy URL (clipboard + fallback), Open tab
+  baru, tombol "Muat lebih banyak".
+- `frontend/src/lib/media.ts` + `media.test.ts` (baru) — `groupMediaByMonth`,
+  `isVariantFileName`, `mediaDisplayName` (strip suffix random PocketBase),
+  `formatMediaDate`; unit test grouping/filter/penamaan.
+- `frontend/src/api/types.ts` — tipe `MediaItem`, `ListMediaParams`.
+- `frontend/src/api/source.ts` — kontrak `listMedia(params)`.
+- `frontend/src/api/pocketbase.source.ts` — `listMedia` via
+  `collection('media').getList` (sort `-created`, filter nama varian internal,
+  search `file`/`alt`).
+- `frontend/src/api/mock.source.ts` + `mock-data/media.ts` (baru) — penyimpanan
+  media mock di localStorage, seed 8 item lintas bulan/tahun, `listMedia`.
+- `frontend/src/lib/imageProcessor.ts` — nama file varian menjadi
+  `ncmaz-thumb-<base>.webp` / `ncmaz-medium-<base>.webp` agar bisa difilter
+  Media Library (setelah normalisasi PocketBase menjadi `ncmaz_thumb_*` /
+  `ncmaz_medium_*`).
+- Router `admin-media-library` + item sidebar **Media Library** (grup Content).
+- Docs: `docs/features/17-media-library-year-month.md`, indeks `docs/README.md`,
+  cross-reference di `docs/features/16-client-side-image-processing.md`.
+- Catatan: path fisik storage tetap dikelola PocketBase
+  (`pb_data/storage/<collectionId>/<recordId>/<file>`); grouping Tahun > Bulan
+  diterapkan pada UI library berbasis timestamp record.
+
+### Why
+- Permintaan: media di storage dikelompokkan per Tahun > Bulan agar user mudah
+  mencari media. Sebelumnya tidak ada halaman untuk menelusuri `media`.
+- File varian thumb/medium tidak boleh tampil sebagai duplikat di library,
+  sehingga penamaan internal diberi prefiks dan difilter di query.
+
+### How it was verified
+- `npm run typecheck` → lulus.
+- `npm run lint` → lulus.
+- `npm test` → **15 files / 134 tests passed** (termasuk 9 test baru di
+  `media.test.ts`).
+- `npm run build` → sukses.
+- Smoke test browser (Playwright + MockSource, admin session):
+  - `/admin/media-library` → tahun `2026`, `2025`; bulan `October 2026`,
+    `July 2026`, `December 2025`, `November 2025`; 8 tile; label "8 media".
+  - Pencarian `workspace` → 1 tile ("workspace setup").
+  - Sidebar memuat **Media Library**; 0 console error.
+
+### Handover notes
+- Tidak ada perubahan backend/skema: `listMedia` memakai endpoint PocketBase
+  yang sudah ada dan `ListRule` media yang sudah publik.
+- Belum ada aksi hapus di library (menghindari orphan file varian). Bila
+  ditambahkan nanti, hapus juga record `ncmaz_thumb_*`/`ncmaz_medium_*` yang
+  berpasangan.
+- Filter varian bergantung pada prefiks nama; jangan mengganti penamaan varian
+  tanpa memperbarui `isVariantFileName` + filter `listMedia`.
+
+## [2026-10-27] — Media Settings page (upload limit, dimensi, kualitas)
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/pages/admin/AdminMediaSettingsPage.vue` (baru) —
+  **Admin → System → Media Settings** (`/admin/media-settings`): input
+  batas ukuran upload (bytes) + hint MB, maks dimensi gambar (256–4096,
+  default 2048), slider kualitas WebP (10–100%), panel info pipeline &
+  batas absolut.
+- `AdminEditorSettingsPage.vue` — kontrol media dipindahkan keluar; halaman
+  editor kini hanya toolbar/placeholder/`maxContentLength` + tautan ke Media
+  Settings.
+- Router `admin-media-settings` + item sidebar **Media Settings**.
+- Nilai tetap disimpan di record `editor_settings`
+  (`maxImageUploadSize`, `imageMaxDimension`, `imageQuality`); tidak ada
+  koleksi/skema baru.
+
+### Why
+- Menjawab kebutuhan kontrol media yang sebelumnya menumpang di halaman
+  Editor Settings; admin butuh lokasi yang jelas untuk batas file, dimensi,
+  dan kualitas gambar.
+
+### How it was verified
+- `npm run typecheck`, `npm run lint` → lulus.
+- `npm test` → 15 files / 134 tests passed.
+- `npm run build` → sukses.
+- Smoke browser: `/admin/media-settings` menampilkan input
+  `#media-max-upload`, `#media-max-dimension`, `#media-quality`; heading
+  "Media Settings"; sidebar memuat item Media Settings; 0 console error.
+
+### Handover notes
+- Setelah menyimpan, cache setting prosesing di-reset sehingga upload
+  berikutnya langsung memakai nilai baru.
+- Deploy backend tetap diperlukan agar field `imageMaxDimension` /
+  `imageQuality` ada (migrasi aditif saat start).
+
+## [2026-10-27] — Implement client-side image processing (WebP, 3 varian, admin settings)
+**Author**: AI Agent (opencode) · **Role**: Dev/QA/Backend · **Status**: Done
+
+### What changed
+- `frontend/package.json` — dependency baru `@jsquash/webp@1.5.0`, `@jsquash/resize@2.1.1` (WASM libwebp + lanczos3).
+- `frontend/src/lib/imageMeta.ts` — sniffing header (PNG/JPEG/GIF/WebP/AVIF) tanpa decode, clamp setting, plan 3 varian (tanpa upscale), batas aman: sisi 10000px, 24MP, upload absolut 25MB.
+- `frontend/src/lib/imageEncoder.ts` — resize + encode WebP di OffscreenCanvas; jalur utama jsquash WASM, fallback `canvas.toBlob('image/webp')` bila WASM gagal; dedupe encode per dimensi.
+- `frontend/src/workers/imageProcessor.worker.ts` + `frontend/src/lib/imageProcessor.ts` — worker Vite module, antrean serial, worker dipertahankan (terminate saat `pagehide`) agar upload berikutnya tidak re-instantiate WASM; fallback main-thread.
+- `frontend/src/composables/useImageUpload.ts` — `uploadProcessedImage()`: baca setting editor (cache 30s), validasi, passthrough GIF animasi, upload 3 varian paralel + dedupe URL bila dimensi sama, mapping varian ditanam di fragment URL (`#imgv1&t=...&m=...&w=...`).
+- `frontend/src/lib/imageVariants.ts` + `frontend/src/lib/image.ts` — codec fragment (validasi skema http(s)/relatif, tolak whitespace/comma) dan `buildSrcSet` varian-aware (320w/1024w/full).
+- `frontend/src/api/types.ts`, `lib/editor-defaults.ts`, `api/mock.source.ts`, `api/pocketbase.source.ts` — field `imageMaxDimension` (default 2048, clamp 256–4096) & `imageQuality` (default 0.8, clamp 0.1–1) + sanitasi.
+- `frontend/src/pages/admin/AdminEditorSettingsPage.vue` — input "Maks dimensi gambar (px)" + slider kualitas WebP (%); simpan memakai clamp & reset cache setting.
+- Integrasi 7 call site: `components/editor/EditorToolbar.vue`, `pages/ProfilePage.vue` (avatar/cover), `pages/EditorPage.vue` (cover), `pages/admin/AdminTaxonomiesPage.vue` (gambar kategori), `pages/admin/AdminSettingsPage.vue` (logo/favicon).
+- `backend/main.go` — migrasi aditif `editor_settings`: tambah field `imageMaxDimension` + `imageQuality` (idempoten untuk instalasi lama) + seed default. **Ini satu-satunya perubahan backend**, diperlukan agar setting admin benar-benar tersimpan; tidak ada hook validasi upload baru.
+- Test: `frontend/src/lib/imageMeta.test.ts` (baru) + `frontend/src/lib/image.test.ts` (diperluas ke codec varian & anti-srcset-injection).
+- Docs: `docs/features/16-client-side-image-processing.md` diperbarui ke status Implemented; `docs/README.md` status #16.
+
+### Why
+- Semua gambar upload harus otomatis WebP + 3 ukuran (thumb 320 / medium 1024 / full = max dimension) tanpa server processing; admin perlu mengatur batas dimensi & kualitas.
+- Keamanan: MIME palsu & file non-gambar ditolak oleh sniffing + decode nyata (`createImageBitmap`); pixel-bomb dibatasi; re-encode membuang metadata/payload file asli; SVG tetap ditolak.
+- "Cepat, stabil, murah": worker dipertahankan antar upload, upload paralel, dedupe varian identik, dan varian disimpan di fragment URL sehingga tidak perlu registry localStorage / skema tambahan di koleksi media.
+
+### How it was verified
+- `npm run typecheck` → lulus (vue-tsc, tanpa error).
+- `npm run lint` → lulus (eslint, tanpa error).
+- `npm test` → **14 files / 125 tests passed**.
+- `npm run build` → sukses; worker + WASM ter-emit (`imageProcessor.worker-*.js`, `squoosh_resize_*.wasm`, `webp_enc*.wasm`).
+- `cd backend && go build ./... && go vet ./... && go test ./...` → `ok ncmaz.backend`.
+- Smoke test browser nyata (Playwright + Vite dev, Chromium):
+  - PNG 3000×1500 → varian `320×160`, `1024×512`, `2048×1024`, semuanya `image/webp`.
+  - JPEG 2400×1600, maxDimension 1200 → `full` 1200×800; run kedua 1.1s (run pertama 2.5s termasuk unduh/init WASM); gambar 200×100 → 60ms, 3 varian identik.
+  - File `<html>` dengan MIME `image/png` → ditolak: "Only image files ... are allowed."
+  - File 30MB dengan `maxBytes: 0` → ditolak: "File size exceeds the limit of 25 MB."
+  - `buildSrcSet` menghasilkan `thumb 320w, medium 1024w, full 2048w`; payload `javascript:` dan injeksi kandidat via koma ditolak.
+
+### Handover notes
+- Backend binary perlu di-build & deploy ulang agar field setting baru ada (migrasi otomatis saat start; tidak menghapus data). Tanpa redeploy, frontend tetap jalan dengan default 2048px/0.8 tetapi perubahan setting tidak tersimpan.
+- Varian disimpan sebagai 3 record `media` terpisah (tidak ada perubahan skema media). Untuk gambar kecil, upload di-dedupe (1 record, URL sama untuk 3 varian).
+- GIF animasi di-upload apa adanya (1 record, tanpa WebP) sesuai keputusan; risiko residual: upload langsung via API melewati pipeline (mitigasi tetap MIME allowlist + MaxSize PocketBase).
+- Perubahan setting berlaku =30s kemudian (cache) atau langsung setelah simpan di halaman admin (cache di-reset).
+
+## [2026-10-27] — Spec: Client-side image processing (WebP + multi-variant)
+**Author**: AI Agent (opencode) · **Role**: Docs · **Status**: Draft
+
+### What changed
+- `docs/features/16-client-side-image-processing.md` — spesifikasi baru:
+  pipeline client-side (tanpa backend) encode WebP + 3 varian
+  (thumb 320 / medium 1024 / full min(asli, maxDimension 2048)),
+  setting admin baru `imageMaxDimension` & `imageQuality`, arsitektur
+  Web Worker (@jsquash/resize + @jsquash/webp), kontrak data + registry
+  varian localStorage, bagian keamanan (MIME palsu, pixel-bomb, residual
+  risk tanpa hook Go), pengujian (unit vitest + Playwright e2e).
+- `docs/README.md` — baris indeks fitur #16.
+- Keputusan yang direkam: GIF animasi passthrough; tanpa perubahan backend
+  Go (validasi server tetap baseline PB: MIME allowlist + MaxSize 5MB).
+
+### Why
+- Permintaan: semua upload user → WebP + resize sesuai kebutuhan (3 varian),
+  prosesing tanpa backend; batas dimensi & kualitas dapat diatur di admin;
+  pertimbangan keamanan MIME fake / file berbahaya (transcode = sanitasi).
+
+### How it was verified
+- Spesifikasi ditulis mengikuti `docs/FEATURE-DOCUMENTATION-GUIDELINES.md`
+  (6 bagian wajib). Belum ada kode; verifikasi implementasi menyusul.
+
+### Handover notes
+- Implementasi berikutnya: `src/lib/imageProcessor.ts` + worker + composable
+  `useImageUpload`; integrasi 7 call site (EditorToolbar, ProfilePage x2,
+  EditorPage, AdminTaxonomiesPage, AdminSettingsPage x2); adaptasi
+  `lib/image.ts`/`PostImage.vue`; UI admin 2 input baru; unit + e2e.
+- `Status: Done` baru setelah implementasi + bukti test (DoD AGENTS.md).
+
+## [2026-10-27] - Fix bookmark list (PocketBase ids filter) + deploy + smoke test
+**Author** · **Role** (Dev/QA/DevOps) · **Status** (Done)
+
+### What changed
+- `pocketbase.source.ts` `listPosts` filter `ids`: ganti `id ?= {:ids}`
+  (gagal HTTP 400 di PocketBase produksi) dengan OR-of-equals
+  `(id = {:id0} || id = {:id1})` + bind param per-id.
+- `BookmarksPage.vue`: `load()` kini catch error → notifikasi toast, bukan
+  diam-diam empty state saat query gagal.
+- Tambah unit test filter ids di `pocketbase.source.test.ts` (108/108).
+- Build ulang bundle baru + binary Linux, deploy ulang ke server 64
+  (swap + restart systemd, service active).
+
+### Why
+- Smoke test bookmark (add/list/remove) di produksi menemukan `/bookmarks`
+  menampilkan "No bookmarks yet" padahal count=1: `id ?= {:ids}` error 400
+  di PocketBase server (verifikasi via curl).
+
+### How it was verified
+- `vue-tsc --noEmit`, `eslint .` lulus; `npm run test` 108/108.
+- `curl` prod: `spa:200`, `health:200`, bundle baru (`index-BLQ97LqE.js`).
+- Playwright smoke prod (14/14 PASS): login demo → add (aria-pressed=true +
+  localStorage 1 id) → persist setelah reload → list muncul di /bookmarks
+  (count "1 saved post") → remove (empty state + localStorage kosong) →
+  toggle off di post page; 0 console error.
+
+### Handover notes
+- Bookmark tetap disimpan lokal (localStorage `ncmaz.bookmarks.v1`), bukan di
+  server; id yang disimpan merujuk `posts` PocketBase.
+
+## [2026-10-27] - Deploy v0.0.3-alpha + responsive fixes ke server 64
+**Author** · **Role** (Dev/DevOps) · **Status** (Done)
+
+### What changed
+- Build release frontend (`VITE_USE_POCKETBASE=true`, `VITE_PB_URL=` kosong)
+  dan binary Linux amd64 `backend/blogku` (embedded SPA).
+- Deploy ke server 64 (`64.235.45.122`, SSH 2232): backup binary lama ke
+  `/opt/blogku/blogku.prev-*`, swap `/tmp/blogku-upload`, restart systemd,
+  service `active`.
+
+### Why
+- User mau smoke test hasil audit responsive UI (tabs nowrap, z-index cover,
+  editor topbar overflow) di produksi.
+
+### How it was verified
+- `curl` prod: `spa:200`, `health:200`, canonical & og:url ada, `index.html`
+  sudah merefer bundle baru (`index-CU44Fib4.js`).
+- Playwright smoke (375px) vs https://blog.artku.my.id: home/author/post/
+  category/tag/search/login/reset/bookmarks/dashboard(login demo)/editor(login
+  demo) semua `ox=0` & tanpa console error; tab author `h=[36,36,36]` (satu
+  baris).
+
+### Handover notes
+- Service `blogku` active (running) sejak 2026-10-27 21:49 WIB; deploy.sh &
+  upload sementara sudah dibersihkan dari /tmp.
+
+## [2026-10-27] - Audit responsive UI & perbaikan z-index/tabs/overflow
+**Author** · **Role** (Dev) · **Status** (Done)
+
+### What changed
+- `AuthorPage.vue`: tab Articles/Favorites/Bookmarks sekarang `whitespace-nowrap`
+  (sebelumnya "Favorites list" wrap 2 baris di mobile); baris header (avatar +
+  nama + aksi) diberi `relative z-10` dan overlay gradient diberi
+  `pointer-events-none` agar cover tidak pernah menutupi konten/aksi.
+- `ProfilePage.vue`: hardening stacking sama seperti AuthorPage; watch `auth.user`
+  sekarang ikut sinkronisasi `coverBanner` & `socials` (sebelumnya setelah save,
+  field tersebut bisa ter-reset).
+- `EditorPage.vue`: top action bar di mobile diperkecil (gap, padding Options /
+  Write-Preview / Publish) — sebelumnya overflow horizontal 21px.
+- `DashboardPage.vue`, `AdminTaxonomiesPage.vue`: tab diberi
+  `whitespace-nowrap`.
+
+### Why
+- Permintaan audit responsive UI: optimal di mobile & desktop. Ditemukan lewat
+  audit DOM/Playwright (viewport 375 & 1440): tab author wrap, editor topbar
+  overflow, dan potensi layer cover menutupi konten header profil.
+
+### How it was verified
+- Playwright probe: `/author/demo` tab semua `h=36` nowrap; `/editor` &
+  `/author/demo` `scrollWidth - clientWidth = 0` di 375px & 1440px.
+- `npm --workspace=frontend run typecheck` lulus; `eslint .` bersih;
+  `npm run test` 107/107 lulus.
+
+### Handover notes
+- Perubahan murni frontend (CSS/template), tidak menyentuh API/backend.
+
+
 ## [2026-10-27] — Tambah edit cover & social links di ProfilePage
 **Author** · **Role** (Dev) · **Status** (Done)
 

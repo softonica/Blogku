@@ -32,6 +32,9 @@ async function load(): Promise<void> {
     items.value = page.items
       .slice()
       .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+  } catch (err) {
+    items.value = []
+    ui.notify(err instanceof Error ? err.message : 'Failed to load bookmarks.', 'error')
   } finally {
     loading.value = false
   }
