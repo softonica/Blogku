@@ -135,6 +135,17 @@ function normalizeRole(role: unknown): Role {
   return 'subscriber'
 }
 
+function sanitizeSocials(socials: UserSocials): UserSocials {
+  const out: UserSocials = {}
+  for (const [key, value] of Object.entries(socials)) {
+    const trimmed = typeof value === 'string' ? value.trim() : ''
+    if (!trimmed) continue
+    const clean = sanitizeUrl(trimmed)
+    if (clean) out[key as keyof UserSocials] = clean
+  }
+  return out
+}
+
 function mapUser(record: PbUserRecord): User {
   return {
     id: record.id,
@@ -827,6 +838,8 @@ export class PocketBaseSource implements DataSource {
     name?: string
     bio?: string
     avatar?: string
+    coverBanner?: string
+    socials?: UserSocials
   }): Promise<User> {
     return this.wrap(async () => {
       const userId = this.currentUserId()
@@ -835,6 +848,8 @@ export class PocketBaseSource implements DataSource {
       if (input.name !== undefined) body.name = sanitizePlainText(input.name)
       if (input.bio !== undefined) body.bio = sanitizePlainText(input.bio)
       if (input.avatar !== undefined) body.avatar = sanitizeUrl(input.avatar)
+      if (input.coverBanner !== undefined) body.coverBanner = sanitizeUrl(input.coverBanner)
+      if (input.socials !== undefined) body.socials = sanitizeSocials(input.socials)
       const record = await this.pb.collection('users').update(userId, body)
       return mapUser(record as unknown as PbUserRecord)
     })

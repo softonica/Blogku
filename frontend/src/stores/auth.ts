@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { getDataSource } from '@/api'
-import type { User } from '@/api/types'
+import type { User, UserSocials } from '@/api/types'
 import { can } from '@/lib/permissions'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -53,6 +53,8 @@ export const useAuthStore = defineStore('auth', () => {
     name?: string
     bio?: string
     avatar?: string
+    coverBanner?: string
+    socials?: UserSocials
   }): void {
     if (!user.value) return
     user.value = { ...user.value, ...input }

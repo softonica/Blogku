@@ -344,4 +344,21 @@ describe('MockSource', () => {
     const updated = await source.getPostById(post.id)
     expect(updated?.viewCount).toBe(before + 2)
   })
+
+  it('updates profile cover banner and social links', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+
+    const updated = await source.updateUserProfile({
+      name: 'Jenny Wilson',
+      coverBanner: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee',
+      socials: { facebook: 'https://facebook.com/x', youtube: 'javascript:alert(1)' },
+    })
+    expect(updated.coverBanner).toBe('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee')
+    expect(updated.socials).toEqual({ facebook: 'https://facebook.com/x' })
+
+    const me = source.currentUser()
+    expect(me?.coverBanner).toBe(updated.coverBanner)
+    expect(me?.socials?.facebook).toBe('https://facebook.com/x')
+  })
 })

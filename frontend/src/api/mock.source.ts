@@ -21,6 +21,7 @@ import type {
   Tag,
   TagInput,
   User,
+  UserSocials,
 } from './types'
 import { DEFAULT_EDITOR_SETTINGS } from '@/lib/editor-defaults'
 import { comments as seedComments } from './mock-data/comments'
@@ -854,6 +855,8 @@ export class MockSource implements DataSource {
     name?: string
     bio?: string
     avatar?: string
+    coverBanner?: string
+    socials?: UserSocials
   }): Promise<User> {
     await wait()
     const current = this.currentUser()
@@ -866,6 +869,17 @@ export class MockSource implements DataSource {
     if (input.name !== undefined) sanitizedInput.name = sanitizePlainText(input.name)
     if (input.bio !== undefined) sanitizedInput.bio = sanitizePlainText(input.bio)
     if (input.avatar !== undefined) sanitizedInput.avatar = sanitizeUrl(input.avatar)
+    if (input.coverBanner !== undefined) sanitizedInput.coverBanner = sanitizeUrl(input.coverBanner)
+    if (input.socials !== undefined) {
+      const socials: UserSocials = {}
+      for (const [key, value] of Object.entries(input.socials)) {
+        const trimmed = typeof value === 'string' ? value.trim() : ''
+        if (!trimmed) continue
+        const clean = sanitizeUrl(trimmed)
+        if (clean) socials[key as keyof UserSocials] = clean
+      }
+      sanitizedInput.socials = socials
+    }
 
     const updated: User = { ...this.users[idx], ...sanitizedInput }
     this.users = this.users.map((u) => (u.id === current.id ? updated : u))

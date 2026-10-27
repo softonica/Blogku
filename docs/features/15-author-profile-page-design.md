@@ -59,7 +59,9 @@ AuthorPage.vue / ProfilePage.vue
 ## 5. Panduan Penggunaan (UI/UX)
 
 - Buka `/author/demo` → hero + tabs + grid (seperti referensi).
-- `/profile` → hero serupa + form edit (upload avatar, name, bio) tetap ada.
+- `/profile` → hero serupa + form edit: upload avatar, name, bio, **Cover
+  Banner** (upload/URL) dan **Social links** (Facebook/Youtube/Tiktok/Github/
+  By-me-a-coffee); tersimpan via `updateUserProfile`.
 
 ## 6. Pengujian & Verifikasi
 

@@ -5,6 +5,31 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-27] — Tambah edit cover & social links di ProfilePage
+**Author** · **Role** (Dev) · **Status** (Done)
+
+### What changed
+- `updateUserProfile` (DataSource, PocketBaseSource, MockSource) menerima field
+  baru `coverBanner` dan `socials` (disanitasi per-URL).
+- `ProfilePage.vue`: tambah field edit **Cover Banner** (upload / URL) dan
+  **Social links** (Facebook/Youtube/Tiktok/Github/By-me-a-coffee); ditulis ke
+  server + store auth.
+- `auth` store `updateProfile` ikut menangani `coverBanner` & `socials`.
+
+### Why
+- Redesign sebelumnya hanya menampilkan cover/socials; user belum bisa
+  mengganti/mengisi.
+
+### How it was verified
+- Unit test baru (pocketbase + mock) memastikan coverBanner & socials terkirim &
+  disanitasi; `npm run test` 107/107 lulus.
+- `vue-tsc --noEmit`, `eslint .` lulus.
+
+### Handover notes
+- Sudah di-deploy ke server 64 & diverifikasi: `PATCH users/records/{id}`
+  dengan `coverBanner`/`socials` tersimpan; UI `/profile` menampilkan Cover
+  Banner + Social links, tanpa console error; unit test 107/107.
+
 ## [2026-10-27] — Redesign halaman author/profile agar mirip Ncmaz Faust
 **Author** · **Role** (Dev) · **Status** (Draft)
 

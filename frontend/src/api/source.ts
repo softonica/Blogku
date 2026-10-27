@@ -14,6 +14,7 @@ import type {
   Tag,
   TagInput,
   User,
+  UserSocials,
 } from './types'
 
 export interface DataSource {
@@ -72,6 +73,8 @@ export interface DataSource {
     name?: string
     bio?: string
     avatar?: string
+    coverBanner?: string
+    socials?: UserSocials
   }): Promise<User>
   uploadFile(file: File): Promise<{ url: string; name: string }>
   trackView(postId: string): Promise<void>

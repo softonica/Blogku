@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useBookmarkStore } from '@/stores/bookmark'
 import { useUiStore } from '@/stores/ui'
 import { getDataSource } from '@/api'
+import type { UserSocials } from '@/api/types'
 import { can } from '@/lib/permissions'
 import { sanitizePlainText, sanitizeUrl } from '@/lib/sanitize'
 import {
@@ -44,7 +45,21 @@ const name = ref(auth.user?.name ?? '')
 const bio = ref(auth.user?.bio ?? '')
 const avatar = ref(auth.user?.avatar ?? '/avatars/1.jpg')
 const coverBanner = ref(auth.user?.coverBanner ?? '')
-const socials = ref(auth.user?.socials)
+const socials = ref<UserSocials>({
+  facebook: auth.user?.socials?.facebook ?? '',
+  youtube: auth.user?.socials?.youtube ?? '',
+  tiktok: auth.user?.socials?.tiktok ?? '',
+  github: auth.user?.socials?.github ?? '',
+  buymeacoffee: auth.user?.socials?.buymeacoffee ?? '',
+})
+
+const socialFields: { key: keyof UserSocials; label: string }[] = [
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'youtube', label: 'Youtube' },
+  { key: 'tiktok', label: 'Tiktok' },
+  { key: 'github', label: 'Github' },
+  { key: 'buymeacoffee', label: 'Buy me a coffee' },
+]
 const saving = ref(false)
 const saved = ref(false)
 const uploadingAvatar = ref(false)
@@ -82,6 +97,26 @@ async function onAvatarUpload(event: Event): Promise<void> {
     ui.notify(err instanceof Error ? err.message : 'Failed to upload avatar.', 'error')
   } finally {
     uploadingAvatar.value = false
+    input.value = ''
+  }
+}
+
+const uploadingCover = ref(false)
+
+async function onCoverUpload(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  uploadingCover.value = true
+  try {
+    const result = await getDataSource().uploadFile(file)
+    coverBanner.value = result.url
+    ui.notify('Cover banner uploaded successfully.')
+  } catch (err) {
+    startRateLimit(err)
+    ui.notify(err instanceof Error ? err.message : 'Failed to upload cover banner.', 'error')
+  } finally {
+    uploadingCover.value = false
     input.value = ''
   }
 }
@@ -147,11 +182,15 @@ async function saveProfile(): Promise<void> {
       name: cleanName,
       bio: sanitizePlainText(bio.value),
       avatar: sanitizeUrl(avatar.value),
+      coverBanner: sanitizeUrl(coverBanner.value),
+      socials: { ...socials.value },
     })
     auth.updateProfile({
       name: updated.name,
       bio: updated.bio,
       avatar: updated.avatar,
+      coverBanner: updated.coverBanner,
+      socials: updated.socials,
     })
     saved.value = true
     ui.notify('Profile updated.')
@@ -357,6 +396,35 @@ async function logout(): Promise<void> {
         </div>
 
         <div>
+          <label class="mb-2 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+            Cover Banner
+          </label>
+          <div class="flex flex-wrap items-center gap-3">
+            <label
+              class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-2xl bg-neutral-100 px-4 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+            >
+              <Upload class="h-4 w-4" aria-hidden="true" />
+              <span>{{ uploadingCover ? 'Uploading…' : 'Upload Cover' }}</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                class="sr-only"
+                :disabled="uploadingCover"
+                @change="onCoverUpload"
+              />
+            </label>
+            <div class="flex-1 min-w-[220px]">
+              <input
+                v-model="coverBanner"
+                type="url"
+                placeholder="Cover image URL (https://…)"
+                class="h-10 w-full rounded-2xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
           <label for="profile-name" class="mb-1.5 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
             Display Name
           </label>
@@ -382,6 +450,32 @@ async function logout(): Promise<void> {
             placeholder="Tell us a little bit about yourself."
             class="w-full rounded-2xl border-neutral-300 bg-white p-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
           ></textarea>
+        </div>
+
+        <div>
+          <p class="mb-3 text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+            Social links
+          </p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label
+              v-for="field in socialFields"
+              :key="field.key"
+              class="block"
+            >
+              <span class="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                {{ field.label }}
+              </span>
+              <input
+                v-model="socials[field.key]"
+                type="url"
+                placeholder="https://…"
+                class="h-10 w-full rounded-2xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+              />
+            </label>
+          </div>
+          <p class="mt-2 text-xs text-neutral-400">
+            Kosongkan untuk menyembunyikan tautan sosial.
+          </p>
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-100 pt-5 dark:border-neutral-800">

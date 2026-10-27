@@ -380,6 +380,30 @@ describe('PocketBaseSource', () => {
     })
   })
 
+  it('updateUserProfile sends coverBanner and sanitized socials', async () => {
+    const { pb } = makePb({
+      record: { id: 'u1' },
+      collections: {
+        users: { update: vi.fn().mockResolvedValue(userRecord) },
+      },
+    })
+    const source = new PocketBaseSource(pb as never)
+    await source.updateUserProfile({
+      name: ' New Name ',
+      coverBanner: ' https://blog.artku.my.id/api/files/cover.png ',
+      socials: {
+        github: 'https://github.com/x',
+        facebook: '',
+        youtube: 'javascript:alert(1)',
+      },
+    })
+    expect(pb.collection('users').update!).toHaveBeenCalledWith('u1', {
+      name: 'New Name',
+      coverBanner: 'https://blog.artku.my.id/api/files/cover.png',
+      socials: { github: 'https://github.com/x' },
+    })
+  })
+
   it('normalizes 403, 409, 5xx and network errors', () => {
     const forbidden = toAppError(Object.assign(new Error('denied'), { status: 403 }))
     expect(forbidden.message).toBe('FORBIDDEN')
