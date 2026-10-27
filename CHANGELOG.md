@@ -5,6 +5,52 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-27] — Deploy v0.0.3-alpha (media) ke server 64 + Cloudflare Pages
+**Author**: AI Agent (opencode) · **Role**: DevOps/QA · **Status**: Done
+
+### What changed
+- Build frontend same-origin (`VITE_USE_POCKETBASE=true`, `VITE_PB_URL=''`),
+  salin ke `backend/dist/`, cross-compile Linux amd64 (`blogku`, 27.9 MB).
+- Deploy binary ke server **64.235.45.122** (`/opt/blogku/blogku`), backup
+  `blogku.prev-<timestamp>`, restart `blogku.service`.
+- Push commit `695e142` ke `origin/feat/blogku-single-binary` dan `origin/main`.
+- Cloudflare Pages project **blogku** (production branch `main`) membangun
+  otomatis: deployment `961e301e-3761-45bd-bf58-9064cf7bdba8` sukses
+  (queued/initialize/clone/build/deploy = success).
+- Env Cloudflare Pages (sudah terpasang, diverifikasi): `VITE_PB_URL=https://blog.artku.my.id`,
+  `VITE_USE_POCKETBASE=true`.
+
+### Why
+- Agar frontend Cloudflare Pages (`https://blogku-7rq.pages.dev`) memakai backend
+  produksi di `https://blog.artku.my.id` (cross-origin), dan server 64 menjalankan
+  binary terbaru (pipeline gambar + Media Settings/Library + migrasi field).
+
+### How it was verified
+- `systemctl is-active blogku` → `active`; binary baru 27,893,920 byte.
+- `https://blog.artku.my.id/` → 200, bundle `index-DvVjIWAC.js`.
+- `https://blog.artku.my.id/api/health` → 200 `{"message":"API is healthy."}`.
+- `GET /api/collections/editor_settings/records` → field `imageMaxDimension`
+  dan `imageQuality` ada (migrasi aditif berjalan; nilai 0 → default frontend).
+- `GET /api/collections/media/records?perPage=3` → 12 item (ListRule publik).
+- `POST auth-with-password` (demo) → 200 + token.
+- CORS preflight dari `Origin: https://blogku-7rq.pages.dev` → 204,
+  `access-control-allow-origin: *`, `access-control-allow-headers` ter-reflect.
+- Cloudflare Pages production `https://blogku-7rq.pages.dev/` → 200, bundle
+  `index-CwTToyAG.js`.
+- Playwright di Cloudflare Pages: login `demo/demo12345` → `/dashboard`,
+  `pocketbase_auth` tersimpan, 0 console error / 0 request gagal (membuktikan
+  CORS cross-origin ke backend berfungsi).
+
+### Handover notes
+- Password seed admin produksi **bukan** default `admin12345` (login admin via
+  API 400). Smoke halaman admin media dilakukan di lokal (MockSource); untuk uji
+  produksi gunakan kredensial admin yang tersimpan.
+- Binary lama tersimpan sebagai `/opt/blogku/blogku.prev-<timestamp>`; rollback:
+  stop service, salin balik, start.
+- Cloudflare Pages membangun hanya saat ada perubahan di `frontend/**`,
+  `package.json`, `package-lock.json` (path includes). Commit docs/changelog saja
+  tidak memicu build.
+
 ## [2026-10-27] — Media Library: media dikelompokkan Tahun > Bulan
 **Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
 
