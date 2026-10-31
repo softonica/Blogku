@@ -33,6 +33,15 @@ export function isVariantFileName(name: string): boolean {
   return /\.(thumb|medium)\.[a-z0-9]+$/i.test(name)
 }
 
+/**
+ * Normalizes a stored media URL for reference comparison: trims whitespace
+ * and drops the variant fragment (#imgv1&...). The fragment is presentation
+ * metadata — the underlying file URL is what matters for orphan detection.
+ */
+export function mediaRefKey(url: string): string {
+  return url.trim().split('#')[0]
+}
+
 export function mediaDisplayName(fileName: string): string {
   const withoutExt = fileName.replace(/\.[^.]+$/, '')
   const withoutRandomSuffix = withoutExt.replace(/_[a-z0-9]{10}$/i, '')

@@ -90,12 +90,31 @@ export interface MediaItem {
   name: string
   ownerId?: string
   createdAt: string
+  refCount?: number
 }
 
 export interface ListMediaParams {
   page?: number
   perPage?: number
   search?: string
+}
+
+export interface OrphanMediaItem {
+  id: string
+  url: string
+  name: string
+  createdAt: string
+  refCount: number
+  variant: boolean
+}
+
+export interface OrphanScanResult {
+  total: number
+  items: OrphanMediaItem[]
+}
+
+export interface OrphanCleanupResult {
+  deleted: number
 }
 
 export interface PostFilter {

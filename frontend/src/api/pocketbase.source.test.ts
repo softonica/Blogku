@@ -23,7 +23,8 @@ function makePb(overrides: {
   pb: {
     collection: (name: string) => FakeCollection
     filter: ReturnType<typeof vi.fn>
-    authStore: { record: unknown; clear: ReturnType<typeof vi.fn> }
+    baseURL: string
+    authStore: { record: unknown; token: string; clear: ReturnType<typeof vi.fn> }
     files: { getURL: ReturnType<typeof vi.fn> }
   }
   collections: Record<string, FakeCollection>
@@ -35,8 +36,10 @@ function makePb(overrides: {
   const pb = {
     collection: (name: string) => collections[name] ?? (collections[name] = {}),
     filter: vi.fn((template: string) => template),
+    baseURL: 'http://127.0.0.1:8090',
     authStore: {
       record: overrides.record ?? null,
+      token: '',
       clear: vi.fn(),
     },
     files: {
@@ -457,6 +460,89 @@ describe('PocketBaseSource', () => {
       expect(url).toBe('/track-view')
       expect(init.method).toBe('POST')
       expect(JSON.parse(init.body)).toEqual({ postId: 'p1' })
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  it('deletes media via the collection API', async () => {
+    const { pb, collections } = makePb({
+      collections: {
+        media: { delete: vi.fn().mockResolvedValue(true) },
+      },
+    })
+    const source = new PocketBaseSource(pb as never)
+
+    await source.deleteMedia('m1')
+
+    expect(collections.media.delete).toHaveBeenCalledWith('m1')
+  })
+
+  it('lists orphan media via the admin scan endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        total: 2,
+        items: [
+          { id: 'm1', file: 'a.webp', created: '2026-01-01T00:00:00.000Z', refCount: 0, variant: false },
+          { id: 'm2', file: 'b.webp', created: '2026-01-02T00:00:00.000Z', refCount: 0, variant: true },
+        ],
+      }),
+    })
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = fetchMock as typeof fetch
+    try {
+      const pb = makePb({}).pb
+      pb.authStore.token = 'tok123'
+      const source = new PocketBaseSource(pb as never)
+
+      const result = await source.listOrphanMedia()
+
+      expect(result.total).toBe(2)
+      expect(result.items[0].id).toBe('m1')
+      expect(result.items[0].variant).toBe(false)
+      expect(result.items[1].variant).toBe(true)
+      const [url, init] = fetchMock.mock.calls[0]
+      expect(url).toBe('http://127.0.0.1:8090/admin/orphan-media/scan')
+      expect(init.method).toBe('POST')
+      expect(init.headers.Authorization).toBe('Bearer tok123')
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  it('cleans up orphan media via the admin cleanup endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ deleted: 3, items: [] }),
+    })
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = fetchMock as typeof fetch
+    try {
+      const source = new PocketBaseSource(makePb({}).pb as never)
+      const result = await source.cleanupOrphanMedia()
+      expect(result.deleted).toBe(3)
+      const [url, init] = fetchMock.mock.calls[0]
+      expect(url).toBe('http://127.0.0.1:8090/admin/orphan-media/cleanup')
+      expect(init.method).toBe('POST')
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  it('throws when the orphan media endpoint returns an error', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({}),
+    })
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = fetchMock as typeof fetch
+    try {
+      const source = new PocketBaseSource(makePb({}).pb as never)
+      await expect(source.listOrphanMedia()).rejects.toThrow(/403/)
     } finally {
       globalThis.fetch = originalFetch
     }

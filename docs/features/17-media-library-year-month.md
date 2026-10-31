@@ -22,7 +22,11 @@ Fitur ini menambahkan **Media Library** di admin yang:
 2. **Mengelompokkan per Tahun → Bulan** berdasarkan `created` record, sehingga
    mudah ditelusuri kronologis.
 3. Menyediakan pencarian nama file, salin URL, dan buka gambar di tab baru.
-4. Menyembunyikan file varian internal (`thumb`/`medium`) agar tidak muncul
+4. **Detail gambar & hapus**: klik tile membuka modal detail (pratinjau besar,
+   nama file, tanggal unggah, pemilik, jumlah referensi `refCount`) dengan
+   opsi salin URL, buka, dan **hapus** gambar (konfirmasi + peringatan jika
+   masih dipakai).
+5. Menyembunyikan file varian internal (`thumb`/`medium`) agar tidak muncul
    sebagai duplikat.
 
 > Catatan: PocketBase menyimpan file fisik di
@@ -41,7 +45,11 @@ Fitur ini menambahkan **Media Library** di admin yang:
    dimulai ulang dari halaman 1.
 4. Hover sebuah tile → tombol **Copy URL** (clipboard + fallback) dan **Open**
    (`target="_blank"`, `rel="noopener noreferrer"`).
-5. Jika masih ada halaman berikutnya, tombol **Muat lebih banyak** mengambil
+5. Klik area gambar → modal **Detail Gambar**: pratinjau, nama file, tanggal,
+   pemilik, badge referensi, peringatan bila masih dipakai, tombol Salin URL /
+   Buka / **Hapus** (konfirmasi; hapus via `DataSource.deleteMedia` — rule
+   PB: pemilik atau admin).
+6. Jika masih ada halaman berikutnya, tombol **Muat lebih banyak** mengambil
    halaman selanjutnya dan menambahkannya ke grup yang sudah ada.
 
 ## 3. Arsitektur & Komponen
@@ -113,8 +121,10 @@ serta bulan terbaru lebih dulu.
   Tautan keluar memakai `rel="noopener noreferrer"`.
 - Copy URL memakai Clipboard API dengan fallback `textarea` + `execCommand`
   (tidak mengeksekusi konten apa pun).
-- Tidak ada aksi hapus pada iterasi ini (menghindari orphan file varian);
-  penghapusan media tetap dilakukan lewat PocketBase admin bila diperlukan.
+- Hapus media memakai `DataSource.deleteMedia` → `DELETE` API PocketBase yang
+  ditegakkan rule `media.DeleteRule` (`owner = @request.auth.id || role =
+  "admin"`). Varian yang ditinggalkan akan tertangkap fitur orphan cleanup
+  (fitur 18).
 
 ## 6. Panduan Penggunaan (UI/UX)
 

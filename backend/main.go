@@ -77,6 +77,8 @@ func main() {
 
 		// Track a post view (best-effort). The client calls this once per
 		// browser session per post; we just bump the counter atomically.
+		registerMediaRoutes(app, se)
+
 		se.Router.POST("/track-view", func(e *core.RequestEvent) error {
 			var req struct {
 				PostID string `json:"postId"`
@@ -143,6 +145,9 @@ func bootstrap(app core.App, httpAddr string) error {
 	if _, err := ensureMediaCollection(app, users); err != nil {
 		return err
 	}
+	if err := ensureMediaRefCountField(app); err != nil {
+		return err
+	}
 	if _, err := ensurePagesCollection(app, users); err != nil {
 		return err
 	}
@@ -180,6 +185,15 @@ func bootstrap(app core.App, httpAddr string) error {
 func collectionExists(app core.App, name string) bool {
 	_, err := app.FindCollectionByNameOrId(name)
 	return err == nil
+}
+
+func collectionHasIndexOnColumn(col *core.Collection, column string) bool {
+	for _, idx := range col.Indexes {
+		if strings.Contains(idx, column) {
+			return true
+		}
+	}
+	return false
 }
 
 func saveCollection(app core.App, col *core.Collection) (*core.Collection, error) {
@@ -243,7 +257,7 @@ func ensureUsersCollection(app core.App) (*core.Collection, error) {
 	users.DeleteRule = types.Pointer(`@request.auth.role = "admin"`)
 
 	users.PasswordAuth.IdentityFields = []string{"email", "username"}
-	if added {
+	if added && !collectionHasIndexOnColumn(users, "username") {
 		users.AddIndex("idx_users_username", true, "username", "")
 	}
 
@@ -911,6 +925,7 @@ func sanitizeHTML(s string) string {
 // -------------------------------------------------------------------
 
 func registerHooks(app core.App) {
+	registerMediaHooks(app)
 	registerUserHooks(app)
 	registerPostHooks(app)
 	registerCommentHooks(app)

@@ -361,4 +361,102 @@ describe('MockSource', () => {
     expect(me?.coverBanner).toBe(updated.coverBanner)
     expect(me?.socials?.facebook).toBe('https://facebook.com/x')
   })
+
+  it('finds no orphan media when every seed image is referenced', async () => {
+    const source = new MockSource()
+    const result = await source.listOrphanMedia()
+    expect(result.total).toBe(0)
+    expect(result.items).toEqual([])
+  })
+
+  it('detects an uploaded-but-unused image as orphan and cleans it up', async () => {
+    const source = new MockSource()
+    const uploaded = await source.uploadFile(
+      new File([new Uint8Array([1, 2, 3])], 'unused.png', { type: 'image/png' }),
+    )
+    const result = await source.listOrphanMedia()
+    expect(result.total).toBe(1)
+    expect(result.items[0].url).toBe(uploaded.url)
+    expect(result.items[0].variant).toBe(false)
+
+    const cleanup = await source.cleanupOrphanMedia()
+    expect(cleanup.deleted).toBe(1)
+
+    const after = await source.listOrphanMedia()
+    expect(after.total).toBe(0)
+    const list = await source.listMedia({ page: 1, perPage: 100 })
+    expect(list.items.some((item) => item.url === uploaded.url)).toBe(false)
+  })
+
+  it('treats an image used inside post HTML as referenced', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+    const uploaded = await source.uploadFile(
+      new File([new Uint8Array([4, 5, 6])], 'inline.png', { type: 'image/png' }),
+    )
+    const post = await source.createPost({
+      title: 'Post with inline image',
+      excerpt: 'An excerpt that is long enough for the mock post.',
+      content: `<p>See <img src="${uploaded.url}" alt="inline" /></p>`,
+      status: 'published',
+    })
+    expect(post.content).toContain(uploaded.url)
+
+    const result = await source.listOrphanMedia()
+    expect(result.total).toBe(0)
+  })
+
+  it('deletes own uploaded media as penulis', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+    const uploaded = await source.uploadFile(
+      new File([new Uint8Array([11, 12, 13])], 'mine.png', { type: 'image/png' }),
+    )
+    const list = await source.listMedia({ page: 1, perPage: 100, search: 'mine.png' })
+    expect(list.items).toHaveLength(1)
+
+    await source.deleteMedia(list.items[0].id)
+
+    const after = await source.listMedia({ page: 1, perPage: 100, search: 'mine.png' })
+    expect(after.totalItems).toBe(0)
+    expect(after.items.some((item) => item.url === uploaded.url)).toBe(false)
+  })
+
+  it('forbids penulis from deleting media they do not own', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+    const list = await source.listMedia({ page: 1, perPage: 5 })
+    const seedItem = list.items[0]
+    await expect(source.deleteMedia(seedItem.id)).rejects.toThrow('FORBIDDEN')
+  })
+
+  it('allows admin to delete any media', async () => {
+    const source = new MockSource()
+    await source.login('admin', 'password')
+    const list = await source.listMedia({ page: 1, perPage: 5 })
+    const seedItem = list.items[0]
+    await source.deleteMedia(seedItem.id)
+    const after = await source.listMedia({ page: 1, perPage: 100 })
+    expect(after.items.some((item) => item.id === seedItem.id)).toBe(false)
+  })
+
+  it('reports a dangling image as orphan once its post is deleted', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+    const uploaded = await source.uploadFile(
+      new File([new Uint8Array([7, 8, 9])], 'cover.png', { type: 'image/png' }),
+    )
+    const post = await source.createPost({
+      title: 'Post with inline image',
+      excerpt: 'An excerpt that is long enough for the mock post.',
+      content: `<p>See <img src="${uploaded.url}" alt="inline" /></p>`,
+      status: 'published',
+    })
+    expect((await source.listOrphanMedia()).total).toBe(0)
+
+    await source.deletePost(post.id)
+    const result = await source.listOrphanMedia()
+    expect(result.total).toBe(1)
+    expect(result.items[0].url).toBe(uploaded.url)
+  })
 })

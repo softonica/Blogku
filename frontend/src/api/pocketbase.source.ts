@@ -13,6 +13,8 @@ import type {
   ListMediaParams,
   ListPostsParams,
   MediaItem,
+  OrphanCleanupResult,
+  OrphanScanResult,
   Page,
   PageContent,
   Post,
@@ -133,6 +135,8 @@ interface PbMediaRecord extends PbRecord {
   alt?: string
   owner?: string
   created?: string
+  refCount?: number
+  variant?: boolean
 }
 
 interface PbPageRecord extends PbRecord {
@@ -928,6 +932,7 @@ export class PocketBaseSource implements DataSource {
             name: fileName,
             ownerId: record.owner ? String(record.owner) : undefined,
             createdAt: String(record.created ?? ''),
+            refCount: typeof record.refCount === 'number' ? record.refCount : undefined,
           }
         }),
         page: result.page,
@@ -936,6 +941,56 @@ export class PocketBaseSource implements DataSource {
         totalPages: result.totalPages,
       }
     })
+  }
+
+  async deleteMedia(id: string): Promise<void> {
+    return this.wrap(async () => {
+      await this.pb.collection('media').delete(id)
+    })
+  }
+
+  async listOrphanMedia(): Promise<OrphanScanResult> {
+    return this.wrap(async () => {
+      const data = await this.adminPost<{
+        total: number
+        items: PbMediaRecord[]
+      }>('/admin/orphan-media/scan')
+      const items = (data.items ?? []).map((rec) => ({
+        id: rec.id,
+        url: rec.file ? this.pb.files.getURL(rec as unknown as Record<string, unknown>, String(rec.file)) : '',
+        name: String(rec.file ?? ''),
+        createdAt: String(rec.created ?? ''),
+        refCount: typeof rec.refCount === 'number' ? rec.refCount : 0,
+        variant: rec.variant === true,
+      }))
+      return { total: data.total ?? items.length, items }
+    })
+  }
+
+  async cleanupOrphanMedia(): Promise<OrphanCleanupResult> {
+    return this.wrap(async () => {
+      const data = await this.adminPost<{ deleted: number }>('/admin/orphan-media/cleanup')
+      return { deleted: data.deleted ?? 0 }
+    })
+  }
+
+  private adminEndpoint(path: string): string {
+    const base = this.pb.baseURL.replace(/\/+$/, '')
+    return `${base}${path}`
+  }
+
+  private async adminPost<T>(path: string): Promise<T> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    const token = this.pb.authStore.token
+    if (token) headers.Authorization = `Bearer ${token}`
+    const res = await fetch(this.adminEndpoint(path), {
+      method: 'POST',
+      headers,
+    })
+    if (!res.ok) {
+      throw new Error(`Orphan media request failed (${res.status}).`)
+    }
+    return (await res.json()) as T
   }
 
   async trackView(postId: string): Promise<void> {

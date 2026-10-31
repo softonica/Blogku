@@ -13,6 +13,9 @@ import type {
   ListMediaParams,
   ListPostsParams,
   MediaItem,
+  OrphanCleanupResult,
+  OrphanMediaItem,
+  OrphanScanResult,
   Page,
   PageContent,
   Post,
@@ -26,7 +29,7 @@ import type {
   UserSocials,
 } from './types'
 import { DEFAULT_EDITOR_SETTINGS } from '@/lib/editor-defaults'
-import { isVariantFileName } from '@/lib/media'
+import { isVariantFileName, mediaRefKey } from '@/lib/media'
 import { media as seedMedia } from './mock-data/media'
 import {
   clampImageMaxDimension,
@@ -958,6 +961,84 @@ export class MockSource implements DataSource {
       totalItems,
       totalPages,
     }
+  }
+
+  private referencedMediaRefs(): Set<string> {
+    const refs = new Set<string>()
+    const add = (value: string | undefined): void => {
+      if (value) refs.add(mediaRefKey(value))
+    }
+    const addHtml = (html: string): void => {
+      for (const m of html.matchAll(/src="([^"]+)"/gi)) add(m[1])
+    }
+
+    for (const post of this.posts) {
+      add(post.cover)
+      for (const url of post.gallery ?? []) add(url)
+      addHtml(post.content)
+    }
+    for (const user of this.users) {
+      add(user.avatar)
+      add(user.coverBanner)
+    }
+    for (const category of this.categories) add(category.image)
+    for (const page of Object.values(this.pages)) addHtml(page.body)
+    add(this.settings.logo)
+    add(this.settings.logoDark)
+    add(this.settings.favicon)
+
+    return refs
+  }
+
+  private orphanMediaItems(): OrphanMediaItem[] {
+    const refs = this.referencedMediaRefs()
+    const items: OrphanMediaItem[] = []
+    for (const media of this.media) {
+      if (refs.has(mediaRefKey(media.url))) continue
+      items.push({
+        id: media.id,
+        url: media.url,
+        name: media.name,
+        createdAt: media.createdAt,
+        refCount: 0,
+        variant: isVariantFileName(media.name),
+      })
+    }
+    return items
+  }
+
+  async deleteMedia(id: string): Promise<void> {
+    await wait()
+    const user = this.currentUser()
+    if (!user) throw new Error('LOGIN_REQUIRED')
+
+    const idx = this.media.findIndex((media) => media.id === id)
+    if (idx === -1) throw new Error('Media not found')
+
+    const target = this.media[idx]
+    const isOwner = target.ownerId !== undefined && target.ownerId === user.id
+    if (user.role !== 'admin' && !isOwner) {
+      throw new Error('FORBIDDEN')
+    }
+
+    this.media = this.media.filter((media) => media.id !== id)
+    writeJson(MEDIA_KEY, this.media)
+  }
+
+  async listOrphanMedia(): Promise<OrphanScanResult> {
+    await wait()
+    const items = this.orphanMediaItems()
+    return { total: items.length, items }
+  }
+
+  async cleanupOrphanMedia(): Promise<OrphanCleanupResult> {
+    await wait()
+    const ids = new Set(this.orphanMediaItems().map((item) => item.id))
+    if (ids.size === 0) return { deleted: 0 }
+    const before = this.media.length
+    this.media = this.media.filter((item) => !ids.has(item.id))
+    writeJson(MEDIA_KEY, this.media)
+    return { deleted: before - this.media.length }
   }
 
   async trackView(postId: string): Promise<void> {

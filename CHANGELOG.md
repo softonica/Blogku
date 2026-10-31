@@ -5,6 +5,201 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-10-31] — Media orphan detection & cleanup (refCount)
+**Author**: AI Agent (opencode) · **Role**: Backend/Dev/QA · **Status**: Done
+
+### What changed
+- `backend/media.go` (baru) - scanner media yatim + pemeliharaan `refCount`:
+  - Field `media.refCount` (NumberField, min 0) ditambahkan idempotent via
+    `ensureMediaRefCountField` di bootstrap.
+  - `collectReferencedMediaIDs` memindai semua field URL/HTML/JSON konten:
+    `posts.cover/gallery/content/content_blocks`, `users.avatar/coverBanner`,
+    `pages.body`, `categories.image`, `site_settings.logo/logoDark/favicon`; regex
+    mengenali `/api/files/media/<id>/<file>` termasuk fragment varian (`#imgv1`).
+  - `findOrphanMedia` mengembalikan media yang tidak direferensikan (termasuk
+    varian thumb/medium yatim), diurutkan terbaru.
+  - Hook `registerMediaHooks` (create/update/delete) pada
+    posts/users/pages/site_settings/categories memelihara `refCount`; delta
+    dihitung dari snapshot pre-update (OnModelValidate) vs post-save, clamp ≥ 0.
+  - Route admin-only `POST /admin/orphan-media/scan` & `/cleanup` dengan
+    `requireAdminAPI` (token superuser atau users role=admin).
+- `backend/main.go` - wire `ensureMediaRefCountField`, `registerMediaHooks`,
+  `registerMediaRoutes`; perbaikan bug laten: `idx_users_username` tidak lagi
+  ditambahkan jika koleksi users sudah punya index kolom username (mencegah
+  gagal fresh-install "index definition already exists").
+- `backend/media_test.go` (baru) - 11 test: helper murni, scan/cleanup
+  integrasi (bootstrap + record), sinkronisasi refCount hooks, clamp nol.
+- `frontend/src/api/types.ts` - `MediaItem.refCount?`, `OrphanMediaItem`,
+  `OrphanScanResult`, `OrphanCleanupResult`.
+- `frontend/src/api/source.ts` - kontrak baru `listOrphanMedia()` &
+  `cleanupOrphanMedia()`.
+- `frontend/src/api/pocketbase.source.ts` - implementasi prod via fetch ke
+  endpoint admin (Authorization Bearer dari `pb.authStore.token`, base URL dari
+  `pb.baseURL`).
+- `frontend/src/api/mock.source.ts` - implementasi mock: scan lokal dari
+  posts/users/pages/settings/categories + cleanup persisten (localStorage).
+- `frontend/src/lib/media.ts` - helper `mediaRefKey` (normalisasi URL untuk
+  pembanding).
+- `frontend/src/pages/admin/AdminMediaLibraryPage.vue` - kartu "Media tidak
+  terpakai": tombol Periksa, hasil scan (jumlah + sampel nama), Hapus semua
+  dengan konfirmasi, status kosong hijau; dark mode + aria.
+- `frontend/src/api/mock.source.test.ts` - 4 test baru (0 orphan seed, deteksi
+  & cleanup upload tak terpakai, gambar dalam HTML dipakai, post dihapus →
+  orphan).
+- `frontend/src/api/pocketbase.source.test.ts` - 3 test baru (scan mapping,
+  cleanup, error 403).
+- `docs/features/18-media-orphan-cleanup.md` (baru) + indeks `docs/README.md`.
+
+### Why
+- Media tidak memiliki relasi formal ke konten (URL di dalam field teks/JSON);
+  tanpa pembersihan, gambar yang tidak terpakai menumpuk dan membengkakkan
+  storage. Permintaan pengguna: implementasi opsi 1 (backend scanner) + 3
+  (preventif `refCount`).
+
+### How it was verified
+- `cd backend && go vet ./... && go test ./...` → lulus (12 test, termasuk
+  6 integrasi dengan bootstrap).
+- `cd frontend && npm run typecheck` → lulus (vue-tsc --noEmit).
+- `npm run lint` → bersih (eslint .).
+- `npm run test` → 15 files / 143 tests passed (sebelumnya 134).
+- `npm run build` → sukses (vite build + vue-tsc).
+
+### Handover notes
+- Belum di-deploy; deploy berikutnya wajib menyertakan binary backend baru
+  (endpoint `/admin/orphan-media/*` hanya ada setelah bump) dan frontend baru.
+- `refCount` mulai terisi untuk perubahan konten setelah versi ini; data lama
+  tetap aman karena scanner melakukan scan otoritatif penuh (tidak bergantung
+  pada refCount).
+- Jika `media.refCount` belum ada di koleksi lama, bootstrap akan menambahkannya
+  otomatis (migrasi aditif).
+- Keputusan: draft post ikut dipindai, jadi gambar yang hanya dipakai draft
+  tidak dihapus.
+
+## [2026-10-31] — Deploy media orphan cleanup (v0.0.3-alpha+1) ke server 64
+**Author**: AI Agent (opencode) · **Role**: DevOps/QA · **Status**: Done
+
+### What changed
+- Build release same-origin: `frontend` (`VITE_USE_POCKETBASE=true`,
+  `VITE_PB_URL=''`) → salin ke `backend/dist/` → cross-compile Linux amd64
+  (`blogku`, 27,926,688 byte, `CGO_ENABLED=0`, `-s -w`).
+- Deploy ke server **64.235.45.122** (`/opt/blogku/blogku`), backup
+  `/opt/blogku/blogku.prev-20261031-211441`, restart `blogku.service` (mulai
+  21:14:41 WIB).
+- Catatan proses: script deploy pertama gagal akibat CRLF Windows (`systemctl
+  stop blogku` + `\r` → "Invalid unit name"); diperbaiki dengan menulis script
+  LF murni (`[IO.File]::WriteAllText` + join `\n`).
+
+### Why
+- Menyertakan fitur baru Media Orphan Detection & Cleanup (refCount) —
+  endpoint admin `/admin/orphan-media/{scan,cleanup}` dan migrasi field
+  `media.refCount` — agar produksi ikut menerima perbaikan.
+
+### How it was verified (smoke test di server, `sh /tmp/smoke.sh`)
+- `systemctl is-active blogku` → `active`.
+- SPA `http://127.0.0.1:8090/` → 200; `/api/health` → 200.
+- Bundle frontend baru ter-embed: `assets/index-BoYr7tLe.js`.
+- `POST /admin/orphan-media/scan` tanpa auth → **401**; dengan token users
+  role `penulis` → **403** (endpoint hidup, RBAC admin terkunci).
+- Login demo → 200, `token` ada (panjang 224).
+- `GET /api/collections/media/records?perPage=1` → `"refCount":0` ada
+  (migrasi field berjalan di data produksi); `totalItems` = 20 (data lama
+  utuh).
+- Domain publik `https://blog.artku.my.id/` → 200; canonical tetap
+  `https://blog.artku.my.id/`.
+
+### Handover notes
+- Admin produksi: gunakan kredensial superuser yang tersimpan (bukan default)
+  untuk uji end-to-end cleanup via UI `/admin/media-library`.
+- Backup binary sebelumnya tersimpan di `/opt/blogku/blogku.prev-20261031-211441`;
+  rollback: stop service, salin balik, start.
+- Tidak ada perubahan pada Cloudflare Pages (frontend kini dilayani embedded
+  dari binary server 64).
+
+## [2026-10-31] — Hotfix: deteksi referensi URL media (collection id) + recovery data
+**Author**: AI Agent (opencode) · **Role**: Backend/DevOps/QA · **Status**: Done
+
+### What changed
+- **Insiden**: uji cleanup di produksi menghapus SEMUA 20 media (bukan hanya
+  yatim). Root cause: `pb.files.getURL` menyimpan URL bentuk
+  `/api/files/<collectionId>/<recordId>/<file>` (mis. `pbc_2708086759`),
+  sedangkan regex scanner hanya mengenali bentuk
+  `/api/files/media/<recordId>/<file>` → referensi tidak terdeteksi → semua
+  media dianggap yatim → terhapus.
+- Fix `backend/media.go`:
+  - `mediaFileRefRe` kini menangkap ketiga segmen
+    (`/api/files/<col>/<recordId>/<file>`) dan memakai segmen record id;
+    berlaku untuk bentuk nama maupun id koleksi, termasuk dalam fragment
+    varian `#imgv1&t=...&m=...` dan `?token=...`.
+  - Tambah `orphanCleanupGuard`: cleanup ditolak (409) bila semua record media
+    terflag yatim — pengaman terhadap kelas bug mis-deteksi.
+- Test baru di `backend/media_test.go`:
+  - `TestCollectMediaRefsFromTextCollectionID` (URL id-koleksi + fragment +
+    token), `TestOrphanCleanupGuard` (tolak saat semua yatim, izinkan saat
+    sebagian).
+- Memulihkan 6 dari 20 media (file fisik masih tersisa di
+  `/opt/blogku/data/storage/pbc_2708086759/*`) dengan meng-insert ulang row
+  media (id asli, nama file asli, timestamp dari mtime file) via python3
+  sqlite. 14 media lain hilang permanen — tidak ada backup data di server
+  (`/opt/blogku/data/backups` kosong; hanya backup binary).
+- Deploy ulang binary fix ke server 64 (backup
+  `/opt/blogku/blogku.prev-20261031-*`).
+
+### Why
+- Bug deteksi URL me-referensikan seluruh library media; harus diperbaiki dan
+  diberi pengaman agar tidak terulang.
+
+### How it was verified
+- `go vet ./... && go test ./...` → lulus (16 test).
+- Server: `systemctl is-active blogku` → active; SPA/health 200; scan tanpa
+  auth 401; dengan token penulis 403; `totalItems` media = 6; `"refCount":0`
+  ada; posts = 3.
+- Verifikasi referensi via SQL: `0xiaxz6h4lddubd` & `gbindsuy5dzid4h`
+  REFERENCED (cover post), 4 lainnya ORPHAN (upload tak terpakai).
+- Cover post hasil recovery: `https://blog.artku.my.id/api/files/pbc_2708086759/0xiaxz6h4lddubd/1788097446869_n8h95fj74z.png` → HTTP 200.
+
+### Handover notes
+- **Data loss permanen**: 14 media tidak dapat dipulihkan dari server. Jika
+  ada backup di luar server (lokal/Cloudflare cache), segarkan kembali lewat
+  Media Library; referensi lama di post akan tetap 404 sampai file di-upload
+  ulang dengan id baru (URL lama tidak bisa dipakai ulang).
+- 4 media yang dipulihkan ternyata tak terpakai (orphan asli) — aman jika
+  nanti dibersihkan lewat scan yang sudah diperbaiki.
+- Saran: aktifkan backup terjadwal `/opt/blogku/data` (mis. cron harian)
+  sebelum fitur cleanup dipakai lebih lanjut.
+- Frontend tidak berubah pada hotfix ini; UI yang sama tetap berfungsi.
+
+## [2026-10-31] — Media Library: detail gambar + opsi hapus
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/pages/admin/AdminMediaLibraryPage.vue` - klik tile gambar
+  membuka modal **Detail Gambar**: pratinjau besar, nama file, tanggal unggah,
+  pemilik (`ownerId`), badge referensi (`refCount`), peringatan kuning bila
+  masih dipakai, tombol Salin URL / Buka / **Hapus** (konfirmasi). Modal:
+  `role="dialog"`, `aria-modal`, tutup via Escape/backdrop/tombol X.
+- `frontend/src/api/source.ts` - kontrak baru `deleteMedia(id)`.
+- `frontend/src/api/pocketbase.source.ts` - `deleteMedia` via
+  `pb.collection('media').delete(id)` (rule PB: pemilik/admin); `listMedia`
+  kini memetakan `refCount`.
+- `frontend/src/api/mock.source.ts` - `deleteMedia` mock (LOGIN_REQUIRED,
+  FORBIDDEN non-owner, persisten localStorage).
+- Test: `mock.source.test.ts` (3: hapus milik sendiri, larang non-owner, admin
+  bebas), `pocketbase.source.test.ts` (1: panggil delete id).
+
+### Why
+- Permintaan pengguna: klik gambar → detail + opsi hapus.
+
+### How it was verified
+- `npm run typecheck` → lulus; `npm run lint` → bersih.
+- `npm run test` → 15 files / 147 tests passed (sebelumnya 143).
+- `npm run build` → sukses.
+
+### Handover notes
+- Belum di-deploy; deploy berikutnya menyertakan frontend baru (backend tidak
+  berubah untuk fitur ini).
+- Hapus media dengan referensi aktif diperbolehkan dengan peringatan (keputusan
+  admin); varian yang tertinggal bisa dibersihkan lewat fitur orphan (18).
+
 ## [2026-10-27] — Deploy v0.0.3-alpha (media) ke server 64 + Cloudflare Pages
 **Author**: AI Agent (opencode) · **Role**: DevOps/QA · **Status**: Done
 

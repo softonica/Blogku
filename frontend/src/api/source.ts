@@ -5,6 +5,8 @@ import type {
   EditorSettings,
   ListPostsParams,
   MediaItem,
+  OrphanCleanupResult,
+  OrphanScanResult,
   Page,
   PageContent,
   Post,
@@ -83,5 +85,8 @@ export interface DataSource {
     perPage?: number
     search?: string
   }): Promise<Page<MediaItem>>
+  deleteMedia(id: string): Promise<void>
+  listOrphanMedia(): Promise<OrphanScanResult>
+  cleanupOrphanMedia(): Promise<OrphanCleanupResult>
   trackView(postId: string): Promise<void>
 }
