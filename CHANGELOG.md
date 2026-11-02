@@ -5,6 +5,88 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-02] — Deploy: table popover mobile, 3 table styles, status spec
+**Author**: AI Agent (opencode) · **Role**: DevOps/Docs · **Status**: Done
+
+### What changed
+- Rebuild single-binary Linux amd64 dari working tree yang berisi: popover tabel terpusat di mobile, 3 style tabel (Classic/Striped/Minimal), dan spec status post (spec saja, belum diimplementasi).
+- Upload binary ke `/tmp/blogku-upload`, backup `/opt/blogku/blogku.prev-<timestamp>`, swap, lalu restart `blogku.service`.
+
+### Why
+- Menjalankan permintaan pengguna untuk deploy perubahan terakhir sekaligus meng-commit-nya.
+
+### How it was verified
+- Frontend build: `VITE_USE_POCKETBASE=true VITE_PB_URL="" npm run build` → sukses.
+- Binary: `GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o blogku .` → `backend/blogku` 28.143.776 bytes.
+- Server: `systemctl is-active blogku` → `active`; binary baru terpasang di `/opt/blogku/blogku`.
+- Produksi: `https://blog.artku.my.id/` → `spa:200`; `/api/health` → `health:200`; chunk editor baru `EditorPage-DnOU73Gg.js` → `200`; canonical tetap `https://blog.artku.my.id/`.
+- Quality gate kode (sebelum deploy): `npm run typecheck`, `npm run lint`, `npm run test` (155/155), `npm run build`, `go test ./...` → lulus.
+
+### Handover notes
+- Status Draft/Private **belum diimplementasi**; hanya spec di `docs/features/21-post-status-draft-private.md` yang menunggu approval.
+- Rollback: kembalikan `/opt/blogku/blogku.prev-<timestamp>` lalu `systemctl restart blogku`.
+
+## [2026-11-02] — Spec: Post status Publish / Draft / Private
+**Author**: AI Agent (opencode) · **Role**: Docs/Dev · **Status**: In Review
+
+### What changed
+- Menambahkan `docs/features/21-post-status-draft-private.md`: spec lengkap untuk status post `published`/`draft`/`private` (motivasi, definisi, audit kode saat ini, tujuan/non-goal/anti-goal, opsi pendekatan, kontrak data, matriks RBAC, rules PocketBase, UI/UX, edge case, testing, rollout, dan keputusan yang butuh approval).
+- Menambahkan baris 21 pada indeks `docs/README.md` dengan status `Spec (review)`.
+
+### Why
+- Permintaan pengguna: tambahkan pilihan Draft & Private di editor. Perubahan menyentuh core (schema PocketBase, RBAC, `DataSource`, dashboard), sehingga spec perlu disetujui sebelum implementasi.
+
+### How it was verified
+- Belum ada perubahan kode; verifikasi yang dilakukan adalah audit kode pada `frontend/src/api/types.ts`, `frontend/src/api/pocketbase.source.ts`, `frontend/src/pages/EditorPage.vue`, `frontend/src/pages/DashboardPage.vue`, dan `backend/main.go` untuk memastikan isi spec sesuai kondisi nyata.
+- Dokumen menunggu review/approval pada tabel keputusan §13.
+
+### Handover notes
+- Implementasi belum dimulai. Jangan merge/deploy apa pun dari spec ini sampai keputusan §13 disetujui.
+- Dua keputusan paling berdampak: (4) `postCount` hanya published, dan (7) draft/private tetap wajib validasi lengkap.
+
+## [2026-11-02] — Three selectable table styles (Classic / Striped / Minimal)
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/components/editor/RichTextEditor.vue` — `StyledTable` (turunan `Table`) menambahkan atribut `tableStyle` dengan default `classic`; `parseHTML` membaca class `table-style-*` dan `renderHTML` menulisnya kembali ke `<table>`.
+- `frontend/src/components/editor/EditorToolbar.vue` — section **Style** di menu tabel (saat kursor di dalam tabel) dengan tombol Classic / Striped / Minimal dan state aktif; `setTableStyle()` memanggil `updateAttributes('table', { tableStyle })`.
+- `frontend/src/styles/main.css` — 3 varian visual: `table-style-classic` (grid netral + zebra), `table-style-striped` (header primary + zebra aksen + border primary), `table-style-minimal` (garis horizontal saja, header transparan kapital).
+- `docs/features/20-editor-table-controls-and-rendering.md` — dokumentasi gaya tabel & alur pemilihan.
+
+### Why
+- Permintaan pengguna: penulis perlu memilih model/style tabel, bukan hanya satu tampilan default.
+
+### How it was verified
+- `npm run typecheck` → lulus.
+- `npm run lint` → bersih.
+- `npm run test` → 17 file, 155/155 passed.
+- `npm run build` → vite build sukses.
+
+### Handover notes
+- Style disimpan sebagai class pada `<table>`; `class` sudah lolos sanitizer frontend (DOMPurify) dan backend (bluemonday), jadi bertahan saat publish.
+- Tabel lama tanpa class otomatis tampil sebagai Classic.
+- Perubahan belum di-deploy; binary produksi masih versi sebelumnya.
+
+## [2026-11-02] — Table picker popover centered on mobile
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/components/editor/EditorToolbar.vue` — popover tabel di layar <640px kini dirender lewat `<Teleport to="body">` sebagai modal overlay `fixed inset-0` dengan panel `max-w-sm` di tengah viewport, backdrop gelap, dan scroll internal (`max-h-[calc(100dvh-2rem)]`). Di desktop tetap dropdown `absolute end-0` di bawah tombol.
+- `onClickOutside` memakai opsi `ignore` untuk panel yang di-teleport agar klik di dalam popover tidak menutupnya.
+- Grid ukuran tabel dibuat `mx-auto w-fit` agar tetap rapi di panel mobile.
+
+### Why
+- Popover sebelumnya ter-anchor ke tombol tabel dan terpotong/keluar layar di device mobile (lihat screenshot produksi).
+
+### How it was verified
+- `npm run typecheck` → lulus.
+- `npm run lint` → bersih.
+- `npm run test` → 17 file, 155/155 passed.
+- `npm run build` → vite build sukses.
+
+### Handover notes
+- Perubahan belum di-deploy; binary produksi masih versi sebelumnya sampai rebuild + deploy dijalankan.
+
 ## [2026-11-02] — Editor table row/column controls & consistent table rendering
 **Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
 

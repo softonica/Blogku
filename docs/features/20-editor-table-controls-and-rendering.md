@@ -24,16 +24,24 @@ Fitur ini menyelesaikan dua masalah tersebut:
 ## 2. Alur Pengguna (User Flow)
 
 1. Penulis membuka `/editor` lalu menekan ikon **Table** di toolbar.
-2. Muncul popover berisi grid 8 × 8. Mengarahkan kursor/`focus` ke sel menampilkan label `baris × kolom`.
+2. Popover berisi grid 8 × 8 muncul sebagai dropdown di desktop, dan sebagai modal overlay yang **terpusat di viewport** (dengan backdrop) pada layar <640px. Mengarahkan kursor/`focus` ke sel menampilkan label `baris × kolom`.
 3. Klik salah satu sel untuk menyisipkan tabel dengan ukuran tersebut (baris pertama menjadi header).
 4. Saat kursor berada di dalam tabel, buka kembali menu yang sama untuk:
+   - memilih **Style** tabel: **Classic**, **Striped**, atau **Minimal**,
    - menambah baris di atas/bawah,
    - menghapus baris,
    - mengaktifkan/menonaktifkan baris header,
    - menambah kolom kiri/kanan,
    - menghapus kolom,
    - menghapus seluruh tabel.
-5. Tab **Preview** dan halaman `/post/:slug` menampilkan tabel dengan border, header berwarna, dan scroll horizontal pada layar sempit.
+5. Tab **Preview** dan halaman `/post/:slug` menampilkan tabel dengan style yang dipilih, border, header berwarna, dan scroll horizontal pada layar sempit.
+
+### 3 gaya tabel
+| Style | Ciri visual |
+| :--- | :--- |
+| **Classic** (default) | Grid penuh, header netral, baris genap berwarna zebra. |
+| **Striped** | Header berwarna primary, baris ganjil beraksen primary, border bernuansa primary. |
+| **Minimal** | Hanya garis horizontal, tanpa garis vertikal, header transparan dengan huruf kapital dan garis bawah tebal. |
 
 ---
 
@@ -45,7 +53,8 @@ Fitur ini menyelesaikan dua masalah tersebut:
   - `tableCommand()` membungkus `addRowBefore`, `addRowAfter`, `deleteRow`, `toggleHeaderRow`, `addColumnBefore`, `addColumnAfter`, `deleteColumn`, dan `deleteTable`.
   - `onClickOutside` menutup popover saat klik di luar toolbar.
 - `frontend/src/components/editor/RichTextEditor.vue`
-  - Ekstensi `Table` + `TableRow`, `TableHeader`, `TableCell` dengan `resizable: true`.
+  - Ekstensi `StyledTable` (turunan `Table`) dengan atribut `tableStyle` (`classic`/`striped`/`minimal`) yang dirender menjadi class `table-style-*`.
+  - Ekstensi `TableRow`, `TableHeader`, `TableCell` dengan `resizable: true`.
   - Style editor untuk `.tableWrapper` (scroll horizontal), `.selectedCell`, dan `.column-resize-handle`.
 - `frontend/src/lib/sanitize.ts`
   - Allowlist tag tabel dan atribut `style`, `colspan`, `rowspan`, `colwidth`, `scope`, `align`.
@@ -66,7 +75,7 @@ Fitur ini menyelesaikan dua masalah tersebut:
 Tabel disimpan sebagai HTML Tiptap di field `content` (string) dan tidak menambah tipe domain baru. Contoh HTML yang dihasilkan:
 
 ```html
-<table style="min-width: 300px">
+<table class="border-collapse table-fixed w-full my-3 table-style-striped" style="min-width: 300px">
   <colgroup><col style="width: 120px"></colgroup>
   <tbody>
     <tr><th colspan="2" style="text-align: center">Header</th></tr>
@@ -94,6 +103,7 @@ const ALLOWED_STYLE: Record<string, RegExp> = {
 - **RBAC**: Hanya route editor yang bisa diakses penulis/admin; tidak ada perubahan aturan akses.
 - **Sanitasi / Anti-XSS**: `sanitizeHtml()` tetap menjadi satu-satunya jalur render HTML. Semua tag/atribut di luar allowlist dibuang. `style` tidak lolos mentah: hanya properti di `ALLOWED_STYLE` dengan nilai regex-safe yang dipertahankan, sehingga `url()`, `expression()`, `position`, dan properti berbahaya lain tidak bisa masuk.
 - **Backend**: `newSanitizer()` memakai `bluemonday.UGCPolicy()` dan hanya mengizinkan properti style tabel yang sama (`text-align`, `vertical-align`, `width`, `min-width`, `max-width`) dengan regex nilai yang ketat, sehingga konten yang disimpan tetap aman sekaligus mempertahankan layout tabel.
+- **Class style tabel**: `class` sudah termasuk allowlist; hanya class `table-style-classic`/`table-style-striped`/`table-style-minimal` yang dipakai untuk tampilan, sehingga tidak ada CSS eksekutabel yang disimpan.
 - `script`, `iframe`, event handler (`on*`), dan `javascript:` URL tetap diblokir baik di frontend maupun backend.
 
 ---
@@ -109,6 +119,7 @@ const ALLOWED_STYLE: Record<string, RegExp> = {
 - Verifikasi manual:
   1. Buka `/editor`, klik ikon Table, pilih misalnya 4 × 5.
   2. Tambah/hapus baris dan kolom dari menu tabel.
-  3. Buka tab **Preview** dan pastikan tabel tampil rapi.
-  4. Simpan/terbitkan, buka `/post/:slug`, cek tabel di light & dark mode serta layar mobile (scroll horizontal).
+  3. Pilih tiap style (Classic, Striped, Minimal) dan pastikan tampilan tabel berubah.
+  4. Buka tab **Preview** dan pastikan style yang dipilih ikut tampil.
+  5. Simpan/terbitkan, buka `/post/:slug`, cek style tabel di light & dark mode serta layar mobile (scroll horizontal).
 - Quality gate: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`, dan `go test ./...` (backend).

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { onClickOutside } from '@vueuse/core'
+import { onClickOutside, useMediaQuery } from '@vueuse/core'
 import type { Editor } from '@tiptap/vue-3'
 import { useEditorSettingsStore } from '@/stores/editor-settings'
 import {
@@ -51,14 +51,37 @@ const emojiOpen = ref(false)
 
 const TABLE_MAX = 8
 const tableMenuRef = ref<HTMLElement | null>(null)
+const tablePanelRef = ref<HTMLElement | null>(null)
 const tableMenuOpen = ref(false)
 const hoveredRows = ref(3)
 const hoveredCols = ref(3)
 const tableCells = Array.from({ length: TABLE_MAX * TABLE_MAX }, (_, index) => index)
+const isMobileTableMenu = useMediaQuery('(max-width: 639px)')
 
-onClickOutside(tableMenuRef, () => {
-  tableMenuOpen.value = false
-})
+const tableStyles = [
+  { value: 'classic', label: 'Classic' },
+  { value: 'striped', label: 'Striped' },
+  { value: 'minimal', label: 'Minimal' },
+] as const
+
+type TableStyle = (typeof tableStyles)[number]['value']
+
+function isTableStyle(style: TableStyle): boolean {
+  return (props.editor?.getAttributes('table').tableStyle ?? 'classic') === style
+}
+
+function setTableStyle(style: TableStyle): void {
+  if (!props.editor) return
+  props.editor.chain().focus().updateAttributes('table', { tableStyle: style }).run()
+}
+
+onClickOutside(
+  tableMenuRef,
+  () => {
+    tableMenuOpen.value = false
+  },
+  { ignore: [tablePanelRef] },
+)
 
 function tableRowFor(index: number): number {
   return Math.floor(index / TABLE_MAX) + 1
@@ -484,11 +507,26 @@ async function onFileSelected(event: Event): Promise<void> {
           <Table class="h-4 w-4" aria-hidden="true" />
         </button>
 
-        <div
-          v-if="tableMenuOpen"
-          class="absolute end-0 top-full z-20 mt-2 w-64 rounded-lg sm:rounded-2xl border border-neutral-200 bg-white p-3 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
-          role="menu"
-        >
+        <Teleport to="body" :disabled="!isMobileTableMenu">
+          <div
+            v-if="tableMenuOpen"
+            :class="
+              isMobileTableMenu
+                ? 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4'
+                : 'absolute end-0 top-full z-20 mt-2'
+            "
+            @click.self="tableMenuOpen = false"
+          >
+            <div
+              ref="tablePanelRef"
+              :class="[
+                'rounded-lg sm:rounded-2xl border border-neutral-200 bg-white shadow-float dark:border-neutral-800 dark:bg-neutral-900',
+                isMobileTableMenu
+                  ? 'max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto p-4'
+                  : 'w-64 p-3',
+              ]"
+              role="menu"
+            >
           <div class="mb-2 flex items-center justify-between gap-2">
             <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-200">Insert table</span>
             <span class="text-xs font-medium text-primary-600 dark:text-primary-400">
@@ -497,7 +535,7 @@ async function onFileSelected(event: Event): Promise<void> {
           </div>
 
           <div
-            class="grid grid-cols-8 gap-1"
+            class="mx-auto grid w-fit grid-cols-8 gap-1"
             @mouseleave="resetTableHover"
           >
             <button
@@ -520,6 +558,22 @@ async function onFileSelected(event: Event): Promise<void> {
 
           <div v-if="editor.isActive('table')" class="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-800">
             <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+              Style
+            </p>
+            <div class="grid grid-cols-3 gap-1">
+              <button
+                v-for="style in tableStyles"
+                :key="style.value"
+                type="button"
+                class="table-menu-btn text-center"
+                :class="{ 'is-active': isTableStyle(style.value) }"
+                @click="setTableStyle(style.value)"
+              >
+                {{ style.label }}
+              </button>
+            </div>
+
+            <p class="mb-1 mt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
               Rows
             </p>
             <div class="grid grid-cols-2 gap-1">
@@ -560,7 +614,9 @@ async function onFileSelected(event: Event): Promise<void> {
               </button>
             </div>
           </div>
-        </div>
+            </div>
+          </div>
+        </Teleport>
       </div>
     </template>
   </div>
@@ -583,5 +639,9 @@ async function onFileSelected(event: Event): Promise<void> {
 
 .table-menu-btn {
   @apply rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800;
+}
+
+.table-menu-btn.is-active {
+  @apply bg-primary-100 text-primary-700 ring-1 ring-primary-400 dark:bg-primary-900/60 dark:text-primary-300 dark:ring-primary-600;
 }
 </style>

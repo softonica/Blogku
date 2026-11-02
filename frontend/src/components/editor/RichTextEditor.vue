@@ -13,6 +13,33 @@ import { TableCell } from '@tiptap/extension-table-cell'
 import { useEditorSettingsStore } from '@/stores/editor-settings'
 import EditorToolbar from './EditorToolbar.vue'
 
+const TABLE_STYLE_CLASSES: Record<string, string> = {
+  classic: 'table-style-classic',
+  striped: 'table-style-striped',
+  minimal: 'table-style-minimal',
+}
+
+const StyledTable = Table.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      tableStyle: {
+        default: 'classic',
+        parseHTML: (element: HTMLElement) => {
+          for (const [style, className] of Object.entries(TABLE_STYLE_CLASSES)) {
+            if (element.classList.contains(className)) return style
+          }
+          return 'classic'
+        },
+        renderHTML: (attributes: Record<string, unknown>) => {
+          const style = String(attributes.tableStyle || 'classic')
+          return { class: TABLE_STYLE_CLASSES[style] ?? TABLE_STYLE_CLASSES.classic }
+        },
+      },
+    }
+  },
+})
+
 const props = withDefaults(
   defineProps<{
     modelValue?: string
@@ -67,7 +94,7 @@ const editor = useEditor({
     TextAlign.configure({
       types: ['heading', 'paragraph'],
     }),
-    Table.configure({
+    StyledTable.configure({
       resizable: true,
       HTMLAttributes: {
         class: 'border-collapse table-fixed w-full my-3 sm:my-4',

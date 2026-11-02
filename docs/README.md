@@ -43,6 +43,7 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **18** | **Media Orphan Detection & Cleanup (refCount)** | ✅ Implemented | [18-media-orphan-cleanup.md](./features/18-media-orphan-cleanup.md) |
 | **19** | **Mobile Compact Layout (Spacing & Dedup)** | ✅ Implemented | [19-mobile-compact-layout.md](./features/19-mobile-compact-layout.md) |
 | **20** | **Editor Table Controls & Rendering** | ✅ Stable | [20-editor-table-controls-and-rendering.md](./features/20-editor-table-controls-and-rendering.md) |
+| **21** | **Post Status: Publish, Draft & Private** | 📝 Spec (review) | [21-post-status-draft-private.md](./features/21-post-status-draft-private.md) |
 
 ---
 

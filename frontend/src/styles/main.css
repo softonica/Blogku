@@ -194,6 +194,53 @@
   .prose-ncmaz :where(table p):not(:where([class~='not-prose'] *)) {
     @apply my-0;
   }
+
+  /* Table style: classic (default) — neutral grid + zebra rows. */
+  .prose-ncmaz table.table-style-classic :where(thead) {
+    @apply bg-neutral-100 dark:bg-neutral-800;
+  }
+
+  .prose-ncmaz table.table-style-classic :where(tbody tr:nth-child(even)) {
+    @apply bg-neutral-50/70 dark:bg-neutral-900/40;
+  }
+
+  /* Table style: striped — primary header + accent zebra rows. */
+  .prose-ncmaz table.table-style-striped :where(thead) {
+    @apply bg-primary-600 dark:bg-primary-700;
+  }
+
+  .prose-ncmaz table.table-style-striped :where(th) {
+    @apply text-white;
+  }
+
+  .prose-ncmaz table.table-style-striped :where(th, td) {
+    @apply border-primary-200 dark:border-primary-800;
+  }
+
+  .prose-ncmaz table.table-style-striped :where(tbody tr:nth-child(odd)) {
+    @apply bg-primary-50/80 dark:bg-primary-950/40;
+  }
+
+  .prose-ncmaz table.table-style-striped :where(tbody tr:nth-child(even)) {
+    @apply bg-white dark:bg-neutral-900;
+  }
+
+  /* Table style: minimal — horizontal rules only, no header fill. */
+  .prose-ncmaz table.table-style-minimal :where(th, td) {
+    @apply border-x-0 border-t-0 border-neutral-200 px-2 dark:border-neutral-700;
+  }
+
+  .prose-ncmaz table.table-style-minimal :where(thead) {
+    @apply bg-transparent dark:bg-transparent;
+  }
+
+  .prose-ncmaz table.table-style-minimal :where(th) {
+    @apply border-b-2 border-neutral-900 uppercase tracking-wide dark:border-neutral-200;
+  }
+
+  .prose-ncmaz table.table-style-minimal :where(tbody tr:nth-child(even)) {
+    @apply bg-transparent dark:bg-transparent;
+  }
 }
 
 @layer utilities {
