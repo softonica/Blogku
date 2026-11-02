@@ -180,7 +180,8 @@ async function save(): Promise<void> {
               class="w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
             />
             <p class="mt-1 text-xs text-neutral-400">
-              {{ maxUploadMb }} · 0 = tanpa batas (tetap dibatasi
+              {{ maxUploadMb }} · batas file varian WebP yang di-upload (dan GIF animasi).
+              0 = tanpa batas (tetap dibatasi
               {{ ABSOLUTE_MAX_UPLOAD_BYTES / 1024 / 1024 }} MB absolut). cth: 2097152 =
               2MB
             </p>

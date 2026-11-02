@@ -43,6 +43,12 @@ Menyediakan sistem penanganan media dan gambar yang aman dan fleksibel:
 | **Post Feature Image** | **1200 × 675 px** | 16:9 | WebP / JPEG / PNG | &lt; 2 MB |
 | **User Avatar** | **256 × 256 px** | 1:1 | WebP / JPEG / PNG | &lt; 1 MB |
 
+> Catatan: tabel di atas adalah rekomendasi ukuran tampilan, bukan batas file
+> sumber. Foto kamera besar (hingga 25 MB absolut) diterima lalu dikompres ke
+> WebP oleh pipeline klien (fitur #16). `maxImageUploadSize` berlaku untuk
+> file varian hasil kompresi yang benar-benar di-upload, dan untuk GIF animasi
+> yang di-passthrough tanpa diproses.
+
 ---
 
 ## 4. Keamanan & Pembatasan Domain (Image Whitelisting)

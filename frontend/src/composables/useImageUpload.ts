@@ -1,8 +1,10 @@
 import { getDataSource } from '@/api'
 import { DEFAULT_EDITOR_SETTINGS } from '@/lib/editor-defaults'
 import {
+  ABSOLUTE_MAX_UPLOAD_BYTES,
   DEFAULT_IMAGE_MAX_DIMENSION,
   DEFAULT_IMAGE_QUALITY,
+  ImageValidationError,
   isAnimatedImage,
 } from '@/lib/imageMeta'
 import { inspectImage, processImageFile } from '@/lib/imageProcessor'
@@ -68,15 +70,27 @@ export function resetImageSettingsCache(): void {
   settingsRequest = null
 }
 
+function limitLabel(maxBytes: number): number {
+  return Math.max(1, Math.round(maxBytes / 1024 / 1024))
+}
+
 export async function uploadProcessedImage(
   file: File,
   options: { maxBytes?: number } = {},
 ): Promise<UploadedImage> {
   const settings = await loadImageSettings()
   const maxBytes = options.maxBytes ?? settings.maxImageUploadSize
-  const inspected = await inspectImage(file, { maxBytes })
+  // The configured limit applies to the files we eventually upload. Sources
+  // are allowed up to the absolute guard because they are re-encoded to WebP
+  // (usually far smaller) by the pipeline below.
+  const inspected = await inspectImage(file, { maxBytes: ABSOLUTE_MAX_UPLOAD_BYTES })
 
   if (isAnimatedImage(inspected.info)) {
+    if (file.size > maxBytes) {
+      throw new ImageValidationError(
+        `File size exceeds the limit of ${limitLabel(maxBytes)} MB.`,
+      )
+    }
     const original = await getDataSource().uploadFile(file)
     return { full: original.url, passthrough: true }
   }
@@ -90,8 +104,25 @@ export async function uploadProcessedImage(
   const widthOf = (key: 'thumb' | 'medium' | 'full'): number =>
     processed.plan.find((item) => item.key === key)?.width ?? 0
 
+  const checkedWidths = new Set<number>()
+  for (const [key, variant] of [
+    ['thumb', processed.thumb],
+    ['medium', processed.medium],
+    ['full', processed.full],
+  ] as const) {
+    const width = widthOf(key)
+    if (checkedWidths.has(width)) continue
+    checkedWidths.add(width)
+    if (variant.size > maxBytes) {
+      throw new ImageValidationError(
+        `The processed image still exceeds the ${limitLabel(maxBytes)} MB upload limit. Try a smaller image or lower the image quality setting.`,
+      )
+    }
+  }
+
   // Reuse a single upload when variants resolve to the same width (small
   // source images) so we never store byte-identical copies.
+
   const pending = new Map<number, Promise<string>>()
   const upload = (file: File, width: number): Promise<string> => {
     const existing = pending.get(width)

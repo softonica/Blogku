@@ -1118,3 +1118,51 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ### Handover notes
 - Smoke slug/upload test perlu perbaikan ekspektasi + Add-Type sebelum dipakai sebagai gate CI.
+
+## [2026-11-01] — Deploy mobile compact layout (spacing & dedup) ke server 64
+**Author**: AI Agent (opencode) · **Role**: Dev/QA/DevOps · **Status**: Done
+
+### What changed
+- Build ulang frontend produksi (VITE_USE_POCKETBASE=true, VITE_PB_URL='') + binary Go Linux amd64 (26,6 MB).
+- Deploy ke server **64.235.45.122** (/opt/blogku/blogku), backup binary lama logku.prev-20261101, service systemd restart.
+
+### Why
+- Meluncurkan fitur mobile compact layout (T1-T4) ke produksi.
+
+### How it was verified
+- md5sum upload vs terpasang identik: c8c401f48cc46d5aa18e48ba6532f61d.
+- systemctl is-active blogku → active.
+- spa:200, health:200 (https://blog.artku.my.id).
+- Aset SPA yang diserve = hash bundle baru (pi-DRzhCBiD.js, index-BG-kQl7V.js).
+
+### Handover notes
+- Binary lama tersedia: /opt/blogku/blogku.prev-20261101 (rollback: stop → mv → start).
+- Data /opt/blogku/data tidak tersentuh.
+- Commit d0108c + PR #1 (belum di-merge ke main).
+
+
+## [2026-11-01] — Perbaiki upload avatar/cover gagal untuk foto kamera besar
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/composables/useImageUpload.ts` — validasi ukuran sumber memakai batas absolut 25MB (bukan `maxImageUploadSize`); `maxImageUploadSize` sekarang diperiksa pada tiap file varian WebP hasil kompresi (dan GIF animasi passthrough) sebelum upload, dengan pesan error yang jelas.
+- `frontend/src/composables/useImageUpload.test.ts` (baru) — 3 test: foto 6MB tetap diproses & diupload; GIF animasi 3MB tetap ditolak; varian hasil proses > batas ditolak sebelum upload.
+- `docs/features/16-client-side-image-processing.md`, `docs/features/05-media-upload-and-storage.md` — klarifikasi semantik batas ukuran.
+
+### Why
+- Foto kamera/HP hampir selalu >2MB (mock) atau >5MB (produksi). Pipeline sebelumnya menolak file sumber lebih dulu, sehingga semua upload avatar, cover profil, dan cover post gagal dengan "File size exceeds the limit of X MB" meski hasil kompresi WebP jauh di bawah batas.
+
+### How it was verified
+- RED: `npx vitest run src/composables/useImageUpload.test.ts` gagal dengan `File size exceeds the limit of 2 MB` (reproduksi akar masalah).
+- GREEN: test yang sama lulus 3/3; `npm --workspace=frontend run test` = 17 file / 153 test lulus.
+- `npm --workspace=frontend run typecheck` dan `npm --workspace=frontend run lint` bersih.
+- Playwright Chrome (mock dev, limit 2MB): upload JPEG 6MB sukses untuk avatar, cover profil, dan cover post (`Cover image uploaded.`), tanpa console error.
+- Playwright Chrome (produksi lama): upload JPEG 21KB avatar+cover 200 OK, memastikan regresi bukan di API/PocketBase.
+- Produksi setelah deploy (https://blog.artku.my.id, sesi penulis demo): 3 alur x JPEG 6MB (avatar, cover profil, cover post) = 9 POST media 200, 3 toast sukses, 0 console error.
+- Hash binary terpasang = sha256 `9145822991f57fd0e3aadfa8c589eee86f9060e664945ea5b22f931ceea0fe7d`; bundle `useImageUpload-y1lqED0B.js` live dan memuat pesan validasi baru.
+
+### Handover notes
+- Sudah di-deploy ke server 64: `/opt/blogku/blogku` (backup lama `/opt/blogku/blogku.prev-20261102-131352`), service `active`, health/SPA 200.
+- Uji produksi membuat 9 record media uji (owner kosong karena `uploadFile` belum mengisi owner). Record ini tidak bisa dihapus sesi penulis; bersihkan lewat scan orphan admin setelah 24 jam atau hapus sebagai admin.
+- Semantik `maxImageUploadSize` berubah: dari batas file sumber menjadi batas file varian hasil kompresi (GIF passthrough tetap dihitung sebagai file final). Setting admin yang ada tidak perlu dimigrasi.
+- Batas absolut sumber tetap 25MB / 10000px / 24MP; PocketBase FileField tetap `MaxSize` 5MB per file.
