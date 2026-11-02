@@ -1,22 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { Facebook, Instagram, Linkedin, Twitter, Youtube } from 'lucide-vue-next'
-import type { Category, Tag } from '@/api/types'
+import type { Category } from '@/api/types'
 import { getDataSource } from '@/api'
 import Brand from './Brand.vue'
 import NewsletterForm from '@/components/widgets/NewsletterForm.vue'
 
 const categories = ref<Category[]>([])
-const tags = ref<Tag[]>([])
 
 onMounted(async () => {
   const source = getDataSource()
-  const [categoryList, tagList] = await Promise.all([
-    source.listCategories(),
-    source.listTags(),
-  ])
-  categories.value = categoryList.slice(0, 6)
-  tags.value = tagList.slice(0, 6)
+  categories.value = (await source.listCategories()).slice(0, 6)
 })
 
 const year = new Date().getFullYear()
@@ -92,24 +86,14 @@ const socials = [
           <p class="mt-4 sm:mt-5 max-w-xs text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
             Get the latest blogku posts delivered to your inbox. No spam, ever.
           </p>
-          <div class="mt-2 max-w-xs">
+          <div class="mt-2 w-full">
             <NewsletterForm compact />
           </div>
         </div>
       </div>
 
-      <div class="mt-14 flex flex-col items-start justify-between gap-3 sm:gap-4 border-t border-neutral-200 pt-4 sm:pt-6 text-sm text-neutral-500 sm:flex-row sm:items-center dark:border-neutral-800 dark:text-neutral-400">
+      <div class="mt-14 flex flex-col gap-3 sm:gap-4 border-t border-neutral-200 pt-4 sm:pt-6 text-sm text-neutral-500 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800 dark:text-neutral-400">
         <p>© {{ year }} Blogku. Safe · Fast · Simple digital editorial platform.</p>
-        <div class="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-2">
-          <RouterLink
-            v-for="tag in tags"
-            :key="tag.id"
-            :to="`/tag/${tag.slug}`"
-            class="rounded-full border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-500 hover:border-primary-300 hover:text-primary-700 dark:border-neutral-800 dark:text-neutral-400 dark:hover:border-primary-700 dark:hover:text-primary-300"
-          >
-            #{{ tag.name }}
-          </RouterLink>
-        </div>
       </div>
     </div>
   </footer>

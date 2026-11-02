@@ -1,4 +1,9 @@
 import { z } from 'zod'
+
+// Disable Zod's eval-based JIT so strict CSP (no 'unsafe-eval') does not
+// report avoidable securitypolicyviolation events. Validation still works
+// through Zod's interpreted path.
+z.config({ jitless: true })
 import { sanitizeEmail, sanitizeHtml, sanitizePlainText, sanitizeUrl } from './sanitize'
 
 export const loginSchema = z.object({

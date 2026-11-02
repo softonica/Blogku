@@ -33,8 +33,8 @@ function submit(): void {
 <template>
   <form class="w-full" novalidate @submit.prevent="submit">
     <div
-      class="flex flex-col gap-2 sm:flex-row"
-      :class="compact ? '' : 'sm:gap-2'"
+      class="flex flex-col gap-2"
+      :class="compact ? 'xl:flex-row' : 'sm:flex-row sm:gap-2'"
     >
       <label class="sr-only" :for="`newsletter-${compact ? 'compact' : 'full'}`">
         Email address

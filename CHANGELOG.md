@@ -5,6 +5,78 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-02] — Deploy: site-name titles + SPA CSP (with pending UI fixes)
+**Author**: AI Agent (opencode) · **Role**: DevOps · **Status**: Done
+
+### What changed
+- Rebuild single-binary Linux amd64 dari working tree yang mencakup: title branding dari `site_settings.siteName`, CSP untuk SPA HTML, Zod `jitless`, serta perubahan UI yang sebelumnya sudah di-deploy (footer/newsletter responsive, header kategori, kontrol & style tabel).
+- Deploy ke server 64: upload `/tmp/blogku-upload`, backup `blogku.prev-<timestamp>`, swap, restart.
+
+### Why
+- Menjalankan permintaan pengguna untuk deploy + commit perbaikan hasil smoke test.
+
+### How it was verified
+- Quality gate: `npm run typecheck`, `npm run lint`, `npm run test` (17 file / 155 test), `npm run build`, `go test ./...` → lulus.
+- Binary: 28.143.776 bytes, SHA256 `93189687f3c712fc37617453b98f42d7996f5ec5d87f3912f1a375711e3771b2`.
+- Server: `systemctl is-active blogku` → `active`; SHA256 binary server sama dengan build lokal.
+- Smoke produksi (Chrome headless): 33/33 check fungsional lulus, 0 request gagal, 0 console error, 0 API ≥400.
+- Verifikasi CSP/branding: header CSP ada, tidak mengandung `'unsafe-eval'`, mengandung `'wasm-unsafe-eval'`; title `Home — Blogku` dan `Sign in — Blogku`; JSON-LD `NewsMediaOrganization` valid; Google Font Poppins termuat; editor + menu tabel berfungsi; **0 CSP violation**.
+
+### Handover notes
+- Rollback: kembalikan `/opt/blogku/blogku.prev-<timestamp>` lalu restart service.
+- CSP ketat: jika ke depan menambah script/style/iframe dari domain baru, update `contentSecurityPolicy` di `backend/spa_handler.go`.
+
+## [2026-11-02] — Fix: title branding from site settings + CSP header for SPA
+**Author**: AI Agent (opencode) · **Role**: Dev/Security · **Status**: Done
+
+### What changed
+- `frontend/src/composables/useSiteName.ts` (baru): memuat `site_settings.siteName` sekali (fallback `Blogku`) dan membagikannya ke seluruh app.
+- `frontend/src/composables/useDocumentTitle.ts`: title memakai `siteName` dari settings, bukan hardcode `Ncmaz`.
+- `frontend/src/router/index.ts`: fallback title route memakai `siteName`; memicu pemuatan settings setelah navigasi.
+- `frontend/src/components/layout/AuthShell.vue`: teks "Ncmaz" → "Blogku".
+- `frontend/src/lib/validation.ts`: `z.config({ jitless: true })` agar Zod tidak memicu `securitypolicyviolation` `script-src eval` di bawah CSP ketat.
+- `backend/spa_handler.go`: header `Content-Security-Policy` hanya untuk respons SPA HTML (bukan API/static/PocketBase admin).
+- `backend/spa_handler_test.go`: test header CSP pada `/` dan history-route fallback.
+
+### Why
+- Smoke test produksi menemukan title `Home — Ncmaz` (branding salah) dan CSP belum ada.
+
+### How it was verified
+- `npm run typecheck`, `npm run lint`, `npm run test` → 17 file / 155 test lulus.
+- `npm run build` → sukses.
+- `backend: go test ./...` → `ok ncmaz.backend`.
+- Local production-mode smoke (binary + Chrome headless): header CSP ada, title `Home — Blogku`, `/login` & `/search` memakai suffix `Blogku`, editor ProseMirror tampil, **0 CSP violation**, 0 console error.
+- CSP yang dipakai: `script-src 'self' 'wasm-unsafe-eval'`, `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`, font Google, img `https:`, frame YouTube/Vimeo, `object-src 'none'`, `frame-ancestors 'self'`.
+
+### Handover notes
+- Perubahan belum di-deploy; produksi masih memakai binary/asset sebelumnya.
+- Saat deploy, verifikasi ulang: structured data JSON-LD tetap terbaca, upload gambar (WASM) tetap jalan, Google Fonts termuat.
+
+## [2026-11-02] — Deploy: footer/newsletter, category header, table controls & styles
+**Author**: AI Agent (opencode) · **Role**: DevOps · **Status**: Done
+
+### What changed
+- Rebuild single-binary Linux amd64 dari working tree yang berisi perubahan frontend yang belum terdeploy:
+  - kontrol Style/Rows/Columns popup tabel selalu tampil + disabled state & hint,
+  - fix selector style header tabel (`th` di `tbody`),
+  - form subscribe footer responsive + hapus list tag footer,
+  - header CategoryPage center seperti TagPage,
+  - `vite.config.ts` allowedHosts trycloudflare (dev-only) dan `playwright-core` devDependency.
+- Deploy ke server 64: upload `/tmp/blogku-upload`, backup `blogku.prev-<timestamp>`, swap, restart.
+
+### Why
+- Permintaan pengguna untuk menjalankan rebuild + deploy perubahan yang belum live.
+
+### How it was verified
+- Quality gate: `npm run typecheck`, `npm run lint`, `npm run test` (17 file / 155 test), `npm run build` → lulus.
+- Binary baru: 28.143.776 bytes, SHA256 `8eb329c1461403c956e324f19ca5234d777dcca168819c55083319a2e99dc3a3`.
+- Server: `systemctl is-active blogku` → `active`; SHA256 binary server sama dengan build lokal.
+- Produksi: `spa:200`, `health:200`, `EditorPage-D40eLN4A.js:200`, `EditorPage-CfAM5Om3.css:200`, canonical benar.
+
+### Handover notes
+- Perubahan frontend tersebut masih **belum di-commit** (working tree).
+- Rollback: kembalikan `/opt/blogku/blogku.prev-<timestamp>` lalu restart service.
+
 ## [2026-11-02] — Deploy: table popover mobile, 3 table styles, status spec
 **Author**: AI Agent (opencode) · **Role**: DevOps/Docs · **Status**: Done
 
@@ -1281,3 +1353,69 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 - Uji produksi membuat 9 record media uji (owner kosong karena `uploadFile` belum mengisi owner). Record ini tidak bisa dihapus sesi penulis; bersihkan lewat scan orphan admin setelah 24 jam atau hapus sebagai admin.
 - Semantik `maxImageUploadSize` berubah: dari batas file sumber menjadi batas file varian hasil kompresi (GIF passthrough tetap dihitung sebagai file final). Setting admin yang ada tidak perlu dimigrasi.
 - Batas absolut sumber tetap 25MB / 10000px / 24MP; PocketBase FileField tetap `MaxSize` 5MB per file.
+
+## [2026-11-02] - Fix: responsive subscribe form di footer, hapus list tag footer
+**Author**: AI Agent (opencode) ** Role**: Dev/Frontend ** **Status**: Done
+
+### What changed
+- `frontend/src/components/widgets/NewsletterForm.vue`: varian `compact` kini menumpuk (flex-col) sampai breakpoint `xl`, baru flex-row di atasnya. Sebelumnya flex-row mulai `sm` sehingga di kolom footer yang sempit (md/xl, +/-213-274px) input + tombol meluap keluar kolom.
+- `frontend/src/components/layout/AppFooter.vue`: wrapper form subscribe diubah dari `max-w-xs` (320px tetap, meluap saat kolom md hanya +/-213px) menjadi `w-full` agar menyesuaikan lebar kolom.
+- `frontend/src/components/layout/AppFooter.vue`: hapus list tag (chip `#tag`) di bottom bar beserta state `tags`, pemanggilan `source.listTags()`, dan import `Tag`.
+
+### Why
+- Permintaan pengguna: perbaiki responsive form subscribe di footer dan hapus list tag di footer.
+
+### How it was verified
+- `npm run typecheck` (vue-tsc --noEmit) → sukses tanpa error.
+- `npm run lint` (eslint .) → bersih tanpa error.
+- `npm run test` (vitest run) → 17 files / 155 tests lulus.
+
+### Handover notes
+- Perubahan hanya menyentuh frontend; tidak ada perubahan kontrak data atau backend.
+
+## [2026-11-02] - Dev: izinkan host trycloudflare.com di vite config
+**Author**: AI Agent (opencode) ** Role**: Dev/Frontend ** **Status**: Done
+### What changed
+- `frontend/vite.config.ts`: tambah `server.allowedHosts: ['.trycloudflare.com']` agar tunnel Cloudflare (trycloudflare.com) tidak diblokir host check Vite (403).
+### Why
+- Perlu expose `npm run dev` ke publik sementara via cloudflared quick tunnel.
+### How it was verified
+- `https://concrete-associate-polyester-discounted.trycloudflare.com` -> HTTP 200.
+### Handover notes
+- Quick tunnel bersifat sementara; URL berubah tiap restart cloudflared.
+
+## [2026-11-02] - UI: header CategoryPage jadi center identik dengan TagPage
+**Author**: AI Agent (opencode) ** Role**: Dev/Frontend ** **Status**: Done
+### What changed
+- `frontend/src/pages/CategoryPage.vue`: hero header kini memakai layout yang sama dengan TagPage (gradient `from-primary-900/50 via-neutral-950 to-secondary-900/40`, semua teks `text-center`, deskripsi `mx-auto max-w-2xl`). Gambar kategori di hero dihapus, import `PostImage` dibersihkan.
+### Why
+- Permintaan pengguna: konsistensi visual antara halaman kategori dan tag.
+### How it was verified
+- `npm run typecheck` (vue-tsc --noEmit) → sukses tanpa error.
+- `npm run lint` (eslint .) → bersih tanpa error.
+### Handover notes
+- Catatan: kategori tetap terlihat di deskripsi; tidak ada perubahan kontrak data.
+
+## [2026-11-02] - Fix: kontrol Style/Rows/Columns popup tabel selalu tampil
+**Author**: AI Agent (opencode) ** Role**: Dev/Frontend ** **Status**: Done
+### What changed
+- `frontend/src/components/editor/EditorToolbar.vue`: bagian Style/Rows/Columns di popup tabel sebelumnya memakai `v-if="editor.isActive('table')"` sehingga tidak muncul saat belum ada tabel aktif (form post baru). Sekarang selalu dirender, dengan tombol `disabled` bila belum ada tabel + hint teks, plus style `:disabled` di `.table-menu-btn`.
+### Why
+- Permintaan pengguna: popup setting table style/row/columns tidak tampil di form post. Root cause ditemukan via reproduksi Playwright (headless Chrome): menu hanya menampilkan grid \"Insert table\" saat tidak ada tabel aktif.
+### How it was verified
+- Reproduksi ulang: pada halaman editor baru, `[role=menu]` kini memuat \"Style\" (2 match label), \"Rows\", \"Columns\", 11 tombol disabled, dan hint terlihat. Setelah insert tabel & buka ulang, tombol aktif (probe sebelumnya).
+- `npm run typecheck` (vue-tsc --noEmit) → sukses; `npm run lint` → bersih; `npm run test` → 17 files / 155 tests lulus.
+### Handover notes
+- Tidak ada perubahan backend/kontrak data. Halaman editor menggunakan mock login (demo/demo gagal validasi min 6 karakter — pakai admin/password).
+
+## [2026-11-02] - Fix: header style tabel classic/striped/minimal kini render di semua struktur
+**Author**: AI Agent (opencode) ** Role**: Dev/Frontend ** **Status**: Done
+### What changed
+- `frontend/src/styles/main.css`: selektor style tabel (classic/striped/minimal) yang tadinya hanya `:where(thead)` diperluas ke `:where(thead th, tbody tr:first-child th)` karena TipTap merender baris header sebagai `th` di dalam `tbody` (tanpa `thead`). Zebra/teks header tetap.
+### Why
+- Permintaan pengguna: pastikan style tabel responsive. Verifikasi Playwright menemukan header row tidak dapat gaya (background transparan) karena tak ada `thead`; selain itu konfirmasi : di mobile 390px tidak ada overflow halaman, tabel men-scroll horizontal di dalam container (`overflow-x:auto` + `display:block`), dan class `table-style-*` lolos sanitize.
+### How it was verified
+- Playwright (headless Chrome, viewport 390): `docScrollWidth` = 390 (tanpa overflow halaman); tabel preview `table-style-striped` → header bg rgb(67,56,202) (primary-600), teks putih, zebra baris ganjil/genap aktif.
+- `npm run typecheck` → sukses; `npm run lint` → bersih.
+### Handover notes
+- Tidak ada perubahan backend. Style berlaku di editor preview & halaman post publik (sanitize mempertahankan class).

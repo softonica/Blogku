@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { can } from '@/lib/permissions'
+import { getSiteName, loadSiteName } from '@/composables/useSiteName'
 import HomePage from '@/pages/HomePage.vue'
 
 const router = createRouter({
@@ -307,9 +308,11 @@ router.beforeEach((to) => {
 })
 
 router.afterEach((to) => {
+  const siteName = getSiteName()
   document.title = to.meta.title
-    ? `${to.meta.title} — Ncmaz`
-    : 'Ncmaz — Magazine & Blog'
+    ? `${to.meta.title} — ${siteName}`
+    : `${siteName} — Magazine & Blog`
+  void loadSiteName()
 })
 
 export default router

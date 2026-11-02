@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { onClickOutside, useMediaQuery } from '@vueuse/core'
 import type { Editor } from '@tiptap/vue-3'
 import { useEditorSettingsStore } from '@/stores/editor-settings'
@@ -57,6 +57,8 @@ const hoveredRows = ref(3)
 const hoveredCols = ref(3)
 const tableCells = Array.from({ length: TABLE_MAX * TABLE_MAX }, (_, index) => index)
 const isMobileTableMenu = useMediaQuery('(max-width: 639px)')
+
+const hasTable = computed(() => props.editor?.isActive('table') ?? false)
 
 const tableStyles = [
   { value: 'classic', label: 'Classic' },
@@ -556,7 +558,7 @@ async function onFileSelected(event: Event): Promise<void> {
             />
           </div>
 
-          <div v-if="editor.isActive('table')" class="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-800">
+          <div class="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-800">
             <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
               Style
             </p>
@@ -567,6 +569,7 @@ async function onFileSelected(event: Event): Promise<void> {
                 type="button"
                 class="table-menu-btn text-center"
                 :class="{ 'is-active': isTableStyle(style.value) }"
+                :disabled="!hasTable"
                 @click="setTableStyle(style.value)"
               >
                 {{ style.label }}
@@ -577,16 +580,16 @@ async function onFileSelected(event: Event): Promise<void> {
               Rows
             </p>
             <div class="grid grid-cols-2 gap-1">
-              <button type="button" class="table-menu-btn" @click="tableCommand('addRowBefore')">
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('addRowBefore')">
                 + Row above
               </button>
-              <button type="button" class="table-menu-btn" @click="tableCommand('addRowAfter')">
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('addRowAfter')">
                 + Row below
               </button>
-              <button type="button" class="table-menu-btn" @click="tableCommand('deleteRow')">
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('deleteRow')">
                 − Delete row
               </button>
-              <button type="button" class="table-menu-btn" @click="tableCommand('toggleHeaderRow')">
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('toggleHeaderRow')">
                 Toggle header
               </button>
             </div>
@@ -595,24 +598,29 @@ async function onFileSelected(event: Event): Promise<void> {
               Columns
             </p>
             <div class="grid grid-cols-2 gap-1">
-              <button type="button" class="table-menu-btn" @click="tableCommand('addColumnBefore')">
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('addColumnBefore')">
                 + Column left
               </button>
-              <button type="button" class="table-menu-btn" @click="tableCommand('addColumnAfter')">
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('addColumnAfter')">
                 + Column right
               </button>
-              <button type="button" class="table-menu-btn" @click="tableCommand('deleteColumn')">
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('deleteColumn')">
                 − Delete column
               </button>
               <button
                 type="button"
                 class="table-menu-btn flex items-center justify-center gap-1 text-rose-600 dark:text-rose-400"
+                :disabled="!hasTable"
                 @click="tableCommand('deleteTable')"
               >
                 <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />
                 Delete table
               </button>
             </div>
+
+            <p v-if="!hasTable" class="mt-2 text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500">
+              Masukkan tabel dulu untuk mengubah style, baris, dan kolomnya.
+            </p>
           </div>
             </div>
           </div>
@@ -639,6 +647,10 @@ async function onFileSelected(event: Event): Promise<void> {
 
 .table-menu-btn {
   @apply rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800;
+}
+
+.table-menu-btn:disabled {
+  @apply cursor-not-allowed opacity-40 hover:bg-transparent dark:hover:bg-transparent;
 }
 
 .table-menu-btn.is-active {

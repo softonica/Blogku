@@ -27,7 +27,7 @@ defineProps<{
             A calm place to read, write and keep what matters.
           </p>
           <p class="mt-3 sm:mt-4 max-w-sm text-sm leading-relaxed text-neutral-400">
-            Ncmaz is built on Vue 3 with a PocketBase-ready data layer, so
+            Blogku is built on Vue 3 with a PocketBase-ready data layer, so
             your stories and account stay in sync.
           </p>
         </div>
@@ -37,7 +37,7 @@ defineProps<{
             without asking for attention.”
           </p>
           <p class="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-            Ncmaz editorial
+            Blogku editorial
           </p>
         </div>
       </aside>

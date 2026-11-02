@@ -6,6 +6,22 @@ import (
 	"strings"
 )
 
+// contentSecurityPolicy is applied to the SPA shell only. Static assets and
+// PocketBase's own API/admin routes keep their existing headers/policies.
+const contentSecurityPolicy = "default-src 'self'; " +
+	"script-src 'self' 'wasm-unsafe-eval'; " +
+	"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+	"img-src 'self' data: blob: https:; " +
+	"font-src 'self' data: https://fonts.gstatic.com; " +
+	"connect-src 'self'; " +
+	"media-src 'self' https: blob:; " +
+	"frame-src https://www.youtube-nocookie.com https://player.vimeo.com; " +
+	"worker-src 'self' blob:; " +
+	"object-src 'none'; " +
+	"base-uri 'self'; " +
+	"form-action 'self'; " +
+	"frame-ancestors 'self'"
+
 // spaVars resolves template placeholders in the SPA shell (index.html).
 // Currently injects the canonical site URL (used by canonical/og:url/JSON-LD)
 // so these are never hardcoded in the frontend.
@@ -32,6 +48,7 @@ func newSPAHandler(fsys fs.FS, vars spaVars) http.Handler {
 			http.NotFound(w, r)
 			return
 		}
+		w.Header().Set("Content-Security-Policy", contentSecurityPolicy)
 		if vars.siteURL != "" {
 			body := strings.ReplaceAll(string(data), "{{SITE_URL}}", vars.siteURL)
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")

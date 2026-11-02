@@ -195,8 +195,10 @@
     @apply my-0;
   }
 
-  /* Table style: classic (default) — neutral grid + zebra rows. */
-  .prose-ncmaz table.table-style-classic :where(thead) {
+  /* Table style: classic (default) — neutral grid + zebra rows.
+     Header cells (th) may live in thead or in the first tbody row
+     (TipTap renders them as tbody th), so match both. */
+  .prose-ncmaz table.table-style-classic :where(thead th, tbody tr:first-child th) {
     @apply bg-neutral-100 dark:bg-neutral-800;
   }
 
@@ -205,12 +207,8 @@
   }
 
   /* Table style: striped — primary header + accent zebra rows. */
-  .prose-ncmaz table.table-style-striped :where(thead) {
-    @apply bg-primary-600 dark:bg-primary-700;
-  }
-
-  .prose-ncmaz table.table-style-striped :where(th) {
-    @apply text-white;
+  .prose-ncmaz table.table-style-striped :where(thead th, tbody tr:first-child th) {
+    @apply bg-primary-600 text-white dark:bg-primary-700;
   }
 
   .prose-ncmaz table.table-style-striped :where(th, td) {
@@ -230,7 +228,7 @@
     @apply border-x-0 border-t-0 border-neutral-200 px-2 dark:border-neutral-700;
   }
 
-  .prose-ncmaz table.table-style-minimal :where(thead) {
+  .prose-ncmaz table.table-style-minimal :where(thead, tbody tr:first-child) {
     @apply bg-transparent dark:bg-transparent;
   }
 

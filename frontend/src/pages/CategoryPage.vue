@@ -9,7 +9,6 @@ import PostCard from '@/components/post/PostCard.vue'
 import PaginationBar from '@/components/ui/PaginationBar.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
-import PostImage from '@/components/ui/PostImage.vue'
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
@@ -56,26 +55,18 @@ watch(slug, init, { immediate: true })
 <template>
   <div>
     <div v-if="ready && category" class="relative overflow-hidden bg-neutral-950">
-      <div class="absolute inset-0 opacity-40">
-        <PostImage
-          :src="category.image"
-          :alt="category.name"
-          aspect="h-full"
-          sizes="100vw"
-        />
-      </div>
-      <div class="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-neutral-950/30"></div>
+      <div class="absolute inset-0 bg-gradient-to-br from-primary-900/50 via-neutral-950 to-secondary-900/40"></div>
       <div class="container relative py-14 sm:py-20">
-        <p class="text-xs font-bold uppercase tracking-[0.2em] text-primary-300">
+        <p class="text-center text-xs font-bold uppercase tracking-[0.2em] text-primary-300">
           Category
         </p>
-        <h1 class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-5xl">
+        <h1 class="mt-3 text-center text-3xl font-bold tracking-tight text-white sm:text-5xl">
           {{ category.name }}
         </h1>
-        <p class="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-300 sm:text-base">
+        <p class="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-neutral-300 sm:text-base">
           {{ category.description }}
         </p>
-        <p class="mt-4 sm:mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
+        <p class="mt-4 sm:mt-5 text-center text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
           {{ totalItems }} posts
         </p>
       </div>
