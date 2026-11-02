@@ -41,9 +41,9 @@ const variants: Record<Variant, string> = {
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-9 px-4 text-sm',
-  md: 'h-11 px-5 text-sm',
-  lg: 'h-12 px-6 text-base',
+  sm: 'h-9 px-3 sm:px-4 text-sm',
+  md: 'h-11 px-4 sm:px-5 text-sm',
+  lg: 'h-12 px-4 sm:px-6 text-base',
 }
 
 const classes = computed(() => [

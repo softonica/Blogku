@@ -32,7 +32,7 @@ const linkClass =
 <template>
   <header class="sticky top-0 z-30 w-full">
     <div class="relative z-10 border-b border-neutral-200/70 bg-white dark:border-transparent dark:bg-neutral-900">
-      <div class="px-4 xl:container">
+      <div class="px-3 sm:px-4 xl:container">
         <div class="flex h-16 justify-between sm:h-20">
           <!-- Left (mobile): menu toggle -->
           <div class="flex flex-1 items-center gap-2 lg:hidden">
@@ -56,7 +56,7 @@ const linkClass =
             <div class="hidden w-64 max-w-xs sm:block xl:w-80">
               <button
                 type="button"
-                class="group relative flex h-[42px] w-full items-center justify-between rounded-full border border-neutral-200 bg-white px-4 py-3 text-left text-sm font-normal text-neutral-400 transition hover:border-neutral-300 hover:ring-3 hover:ring-primary-200/50 focus:border-primary-300 focus:ring-3 focus:ring-primary-200/50 dark:border-neutral-600 dark:bg-transparent dark:placeholder:text-neutral-400 dark:hover:border-neutral-400 dark:hover:ring-primary-500/30 dark:focus:ring-primary-500/30"
+                class="group relative flex h-[42px] w-full items-center justify-between rounded-full border border-neutral-200 bg-white px-3 sm:px-4 py-3 text-left text-sm font-normal text-neutral-400 transition hover:border-neutral-300 hover:ring-3 hover:ring-primary-200/50 focus:border-primary-300 focus:ring-3 focus:ring-primary-200/50 dark:border-neutral-600 dark:bg-transparent dark:placeholder:text-neutral-400 dark:hover:border-neutral-400 dark:hover:ring-primary-500/30 dark:focus:ring-primary-500/30"
                 @click="ui.openSearch()"
               >
                 <span class="truncate">Type to search...</span>
@@ -86,14 +86,14 @@ const linkClass =
                 </button>
                 <div
                   v-if="categoriesOpen"
-                  class="absolute start-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
+                  class="absolute start-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg sm:rounded-2xl border border-neutral-200 bg-white p-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
                   role="menu"
                 >
                   <RouterLink
                     v-for="category in categories"
                     :key="category.id"
                     :to="`/category/${category.slug}`"
-                    class="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:hover:text-primary-300"
+                    class="flex items-center justify-between rounded-lg sm:rounded-xl px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:hover:text-primary-300"
                     role="menuitem"
                     @click="categoriesOpen = false"
                   >
@@ -115,7 +115,7 @@ const linkClass =
 
             <RouterLink
               to="/submission"
-              class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+              class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-3 sm:px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
             >
               <PenSquare class="h-3.5 w-3.5" aria-hidden="true" />
               Write

@@ -75,7 +75,7 @@ watch(slug, init, { immediate: true })
         <p class="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-300 sm:text-base">
           {{ category.description }}
         </p>
-        <p class="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
+        <p class="mt-4 sm:mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
           {{ totalItems }} posts
         </p>
       </div>
@@ -95,7 +95,7 @@ watch(slug, init, { immediate: true })
           v-for="item in categories.slice(0, 3)"
           :key="item.id"
           :to="`/category/${item.slug}`"
-          class="inline-flex h-10 items-center rounded-full border border-neutral-200 px-4 text-sm font-semibold text-neutral-700 dark:border-neutral-800 dark:text-neutral-200"
+          class="inline-flex h-10 items-center rounded-full border border-neutral-200 px-3 sm:px-4 text-sm font-semibold text-neutral-700 dark:border-neutral-800 dark:text-neutral-200"
         >
           {{ item.name }}
         </RouterLink>
@@ -104,7 +104,7 @@ watch(slug, init, { immediate: true })
       <template v-else>
         <div
           v-if="error"
-          class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
+          class="rounded-lg sm:rounded-2xl border border-rose-200 bg-rose-50 p-3 sm:p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
         >
           {{ error }}
         </div>
@@ -120,10 +120,10 @@ watch(slug, init, { immediate: true })
         />
 
         <template v-else>
-          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <PostCard v-for="post in items" :key="post.id" :post="post" show-excerpt />
           </div>
-          <div class="mt-10">
+          <div class="mt-8 sm:mt-10">
             <PaginationBar :page="page" :total-pages="totalPages" @change="goTo" />
           </div>
         </template>

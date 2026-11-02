@@ -22,7 +22,7 @@ function selectVideo(index: number): void {
 </script>
 
 <template>
-  <div v-if="posts.length" class="nc-SectionSliderPosts relative space-y-6">
+  <div v-if="posts.length" class="nc-SectionSliderPosts relative space-y-4 sm:space-y-6">
     <div class="flex items-end justify-between">
       <div>
         <h2 class="text-2xl font-bold tracking-tight sm:text-3xl text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
@@ -34,7 +34,7 @@ function selectVideo(index: number): void {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
       <!-- Main Active Video Player -->
       <div class="lg:col-span-2 flex flex-col">
         <div class="relative aspect-video w-full overflow-hidden rounded-[32px] bg-neutral-950 shadow-lg">
@@ -67,7 +67,7 @@ function selectVideo(index: number): void {
           </div>
         </div>
 
-        <div class="mt-4 flex flex-col gap-2">
+        <div class="mt-3 sm:mt-4 flex flex-col gap-2">
           <div class="flex items-center justify-between">
             <CategoryBadgeList :categories="activePost.categories" :limit="2" />
             <div class="flex items-center gap-2">
@@ -103,14 +103,14 @@ function selectVideo(index: number): void {
             :key="post.id"
             type="button"
             :class="[
-              'group flex items-center gap-3 rounded-2xl p-2.5 text-left transition duration-200',
+              'group flex items-center gap-3 rounded-lg sm:rounded-2xl p-2.5 text-left transition duration-200',
               activeIndex === index
                 ? 'bg-primary-50 ring-2 ring-primary-500 dark:bg-primary-950/40 dark:ring-primary-400'
                 : 'hover:bg-neutral-100 dark:hover:bg-neutral-800/60',
             ]"
             @click="selectVideo(index)"
           >
-            <div class="relative aspect-video w-24 shrink-0 overflow-hidden rounded-xl bg-neutral-900">
+            <div class="relative aspect-video w-24 shrink-0 overflow-hidden rounded-lg sm:rounded-xl bg-neutral-900">
               <PostImage :src="post.cover" :alt="post.title" aspect="h-full w-full object-cover" />
               <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
                 <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-xs">

@@ -39,7 +39,7 @@ onMounted(async () => {
     />
 
     <article v-else class="mx-auto max-w-3xl">
-      <div class="flex items-start justify-between gap-4">
+      <div class="flex items-start justify-between gap-3 sm:gap-4">
         <h1 class="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl dark:text-white">
           {{ page.title }}
         </h1>
@@ -55,7 +55,7 @@ onMounted(async () => {
         </BaseButton>
       </div>
       <div
-        class="prose prose-neutral mt-8 max-w-none dark:prose-invert"
+        class="prose prose-neutral mt-6 sm:mt-8 max-w-none dark:prose-invert"
         v-html="renderedBody"
       />
     </article>

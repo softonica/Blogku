@@ -11,7 +11,7 @@ const sidebarOpen = ref(false)
     <AdminSidebar :open="sidebarOpen" @close="sidebarOpen = false" />
     <div class="flex min-h-screen flex-col lg:pl-72">
       <AdminTopbar @toggle-sidebar="sidebarOpen = true" />
-      <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+      <main class="flex-1 px-4 py-4 sm:py-6 sm:px-6 lg:px-8">
         <RouterView />
       </main>
     </div>

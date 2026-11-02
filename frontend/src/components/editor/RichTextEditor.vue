@@ -61,7 +61,7 @@ const editor = useEditor({
     Image.configure({
       inline: false,
       HTMLAttributes: {
-        class: 'rounded-2xl max-h-[500px] object-cover mx-auto my-4 shadow-sm',
+        class: 'rounded-lg sm:rounded-2xl max-h-[500px] object-cover mx-auto my-3 sm:my-4 shadow-sm',
       },
     }),
     TextAlign.configure({
@@ -70,7 +70,7 @@ const editor = useEditor({
     Table.configure({
       resizable: true,
       HTMLAttributes: {
-        class: 'border-collapse table-auto w-full my-4',
+        class: 'border-collapse table-auto w-full my-3 sm:my-4',
       },
     }),
     TableRow,
@@ -80,7 +80,7 @@ const editor = useEditor({
   editorProps: {
     attributes: {
       class:
-        'prose-ncmaz max-w-none focus:outline-none min-h-[360px] p-5 text-neutral-900 dark:text-white',
+        'prose-ncmaz max-w-none focus:outline-none min-h-[360px] p-4 sm:p-5 text-neutral-900 dark:text-white',
     },
   },
   onUpdate: ({ editor: ed }) => {
@@ -113,7 +113,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="overflow-hidden rounded-2xl border border-neutral-300 bg-white transition focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-900 dark:focus-within:border-primary-500 dark:focus-within:ring-primary-900"
+    class="overflow-hidden rounded-lg sm:rounded-2xl border border-neutral-300 bg-white transition focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-900 dark:focus-within:border-primary-500 dark:focus-within:ring-primary-900"
   >
     <EditorToolbar :editor="editor" />
     <EditorContent :editor="editor" />

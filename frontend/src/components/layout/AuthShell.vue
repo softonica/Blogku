@@ -10,10 +10,10 @@ defineProps<{
 <template>
   <div class="page-shell">
     <div
-      class="mx-auto grid max-w-5xl overflow-hidden rounded-[2rem] border border-neutral-200 shadow-card lg:grid-cols-2 dark:border-neutral-800"
+      class="mx-auto grid max-w-5xl overflow-hidden rounded-xl sm:rounded-[2rem] border border-neutral-200 shadow-card lg:grid-cols-2 dark:border-neutral-800"
     >
       <aside
-        class="relative hidden overflow-hidden bg-neutral-950 p-10 text-white lg:flex lg:flex-col lg:justify-between"
+        class="relative hidden overflow-hidden bg-neutral-950 p-8 sm:p-10 text-white lg:flex lg:flex-col lg:justify-between"
       >
         <div
           class="pointer-events-none absolute -end-20 -top-20 h-64 w-64 rounded-full bg-primary-500/25 blur-3xl"
@@ -23,15 +23,15 @@ defineProps<{
         ></div>
         <div class="relative">
           <Brand inverted />
-          <p class="mt-10 text-3xl font-bold leading-tight">
+          <p class="mt-8 sm:mt-10 text-3xl font-bold leading-tight">
             A calm place to read, write and keep what matters.
           </p>
-          <p class="mt-4 max-w-sm text-sm leading-relaxed text-neutral-400">
+          <p class="mt-3 sm:mt-4 max-w-sm text-sm leading-relaxed text-neutral-400">
             Ncmaz is built on Vue 3 with a PocketBase-ready data layer, so
             your stories and account stay in sync.
           </p>
         </div>
-        <div class="relative rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div class="relative rounded-lg sm:rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
           <p class="text-sm leading-relaxed text-neutral-300">
             “The best interfaces are the ones that make the next step obvious
             without asking for attention.”
@@ -42,11 +42,11 @@ defineProps<{
         </div>
       </aside>
 
-      <div class="bg-white p-6 sm:p-10 dark:bg-neutral-900">
+      <div class="bg-white p-4 sm:p-10 dark:bg-neutral-900">
         <div class="lg:hidden">
           <Brand />
         </div>
-        <div class="mt-8 lg:mt-2">
+        <div class="mt-6 sm:mt-8 lg:mt-2">
           <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
             {{ title }}
           </h1>
@@ -54,10 +54,10 @@ defineProps<{
             {{ subtitle }}
           </p>
         </div>
-        <div class="mt-7">
+        <div class="mt-5 sm:mt-7">
           <slot />
         </div>
-        <div v-if="$slots.footer" class="mt-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
+        <div v-if="$slots.footer" class="mt-4 sm:mt-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
           <slot name="footer" />
         </div>
       </div>

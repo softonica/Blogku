@@ -39,7 +39,7 @@ function onKeydown(event: KeyboardEvent): void {
   <Teleport to="body">
     <div
       v-if="ui.searchOpen"
-      class="fixed inset-0 z-50 flex items-start justify-center bg-neutral-950/60 px-4 pt-24 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-start justify-center bg-neutral-950/60 px-3 sm:px-4 pt-24 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label="Search posts"
@@ -47,9 +47,9 @@ function onKeydown(event: KeyboardEvent): void {
       @keydown="onKeydown"
     >
       <div
-        class="w-full max-w-2xl overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-float dark:border-neutral-800 dark:bg-neutral-900"
+        class="w-full max-w-2xl overflow-hidden rounded-xl sm:rounded-3xl border border-neutral-200 bg-white shadow-float dark:border-neutral-800 dark:bg-neutral-900"
       >
-        <form class="flex items-center gap-3 px-5 py-4" @submit.prevent="submit">
+        <form class="flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-4" @submit.prevent="submit">
           <Search class="h-5 w-5 text-neutral-400" aria-hidden="true" />
           <input
             ref="input"
@@ -69,7 +69,7 @@ function onKeydown(event: KeyboardEvent): void {
           </button>
         </form>
         <div
-          class="flex items-center justify-between border-t border-neutral-100 px-5 py-3 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400"
+          class="flex items-center justify-between border-t border-neutral-100 px-4 sm:px-5 py-3 text-xs text-neutral-500 dark:border-neutral-800 dark:text-neutral-400"
         >
           <span>Press Enter to search</span>
           <button

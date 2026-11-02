@@ -131,10 +131,10 @@ onMounted(async () => {
     :class="open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     aria-label="Admin sidebar"
   >
-    <div class="flex h-20 shrink-0 items-center justify-between px-5">
+    <div class="flex h-20 shrink-0 items-center justify-between px-4 sm:px-5">
       <RouterLink to="/admin" class="flex min-w-0 items-center gap-2.5" @click="emit('close')">
         <span
-          class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 via-indigo-500 to-sky-500 text-white shadow-lg shadow-indigo-500/30"
+          class="grid h-9 w-9 shrink-0 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-500 via-indigo-500 to-sky-500 text-white shadow-lg shadow-indigo-500/30"
         >
           <Sparkles class="h-5 w-5" aria-hidden="true" />
         </span>
@@ -152,7 +152,7 @@ onMounted(async () => {
       </button>
     </div>
 
-    <nav class="flex-1 space-y-5 overflow-y-auto px-3 pb-4" aria-label="Admin navigation">
+    <nav class="flex-1 space-y-4 sm:space-y-5 overflow-y-auto px-3 pb-3 sm:pb-4" aria-label="Admin navigation">
       <div v-for="group in groups" :key="group.id">
         <button
           type="button"
@@ -171,7 +171,7 @@ onMounted(async () => {
           <li v-for="item in group.items" :key="item.to">
             <RouterLink
               :to="item.to"
-              class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
+              class="flex items-center gap-3 rounded-lg sm:rounded-xl px-3 py-2.5 text-sm transition"
               :class="
                 isActive(item)
                   ? 'bg-violet-50 font-semibold text-violet-700 dark:bg-violet-500/10 dark:text-violet-200'
@@ -196,13 +196,13 @@ onMounted(async () => {
     <div class="shrink-0 space-y-1 border-t border-neutral-200/80 p-3 dark:border-neutral-800">
       <RouterLink
         to="/"
-        class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800/70 dark:hover:text-white"
+        class="flex items-center gap-3 rounded-lg sm:rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800/70 dark:hover:text-white"
         @click="emit('close')"
       >
         <ExternalLink class="h-[18px] w-[18px]" aria-hidden="true" />
         Back to site
       </RouterLink>
-      <div class="flex items-center gap-2 rounded-xl px-2 py-2">
+      <div class="flex items-center gap-2 rounded-lg sm:rounded-xl px-2 py-2">
         <RouterLink
           to="/profile"
           class="flex min-w-0 flex-1 items-center gap-3 rounded-lg"

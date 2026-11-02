@@ -30,7 +30,7 @@ const colorClasses = [
 
 <template>
   <div class="nc-SectionSliderNewCategories relative">
-    <div class="mb-6 flex items-end justify-between">
+    <div class="mb-4 sm:mb-6 flex items-end justify-between">
       <div>
         <h2 class="text-2xl font-bold tracking-tight sm:text-3xl text-neutral-900 dark:text-neutral-100">
           Top trending topics
@@ -61,7 +61,7 @@ const colorClasses = [
 
     <div
       ref="sliderRef"
-      class="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 py-2 sm:gap-6"
+      class="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-3 sm:px-4 py-2 sm:gap-6"
     >
       <div
         v-for="(category, index) in categories"
@@ -73,7 +73,7 @@ const colorClasses = [
           class="nc-CardCategory4 group flex flex-col"
         >
           <div
-            class="relative aspect-[7/5] w-full shrink-0 overflow-hidden rounded-3xl ring-2 ring-white shadow-sm dark:ring-neutral-900"
+            class="relative aspect-[7/5] w-full shrink-0 overflow-hidden rounded-xl sm:rounded-3xl ring-2 ring-white shadow-sm dark:ring-neutral-900"
           >
             <PostImage
               :src="category.image"

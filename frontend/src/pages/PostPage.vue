@@ -139,6 +139,10 @@ async function deleteComment(commentId: string): Promise<void> {
   }
 }
 
+function scrollToComments(): void {
+  document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })
+}
+
 function openShare(): void {
   shareOpen.value = true
 }
@@ -166,7 +170,7 @@ async function copyLink(): Promise<void> {
 
     <p
       v-else-if="error"
-      class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
+      class="rounded-lg sm:rounded-2xl border border-rose-200 bg-rose-50 p-3 sm:p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
     >
       {{ error }}
     </p>
@@ -178,14 +182,14 @@ async function copyLink(): Promise<void> {
     >
       <RouterLink
         to="/"
-        class="inline-flex h-11 items-center rounded-full bg-primary-600 px-5 text-sm font-semibold text-white"
+        class="inline-flex h-11 items-center rounded-full bg-primary-600 px-4 sm:px-5 text-sm font-semibold text-white"
       >
         Back home
       </RouterLink>
     </EmptyState>
 
     <template v-else>
-      <nav class="mb-6 flex flex-wrap items-center gap-2 text-xs font-medium text-neutral-400">
+      <nav class="mb-4 sm:mb-6 flex flex-wrap items-center gap-2 text-xs font-medium text-neutral-400">
         <RouterLink to="/" class="hover:text-primary-600 dark:hover:text-primary-300">Home</RouterLink>
         <span>/</span>
         <RouterLink
@@ -202,19 +206,19 @@ async function copyLink(): Promise<void> {
       <!-- Style 4: full-bleed hero with overlay title -->
       <div
         v-if="isHeroStyle && post.cover"
-        class="relative mt-2 overflow-hidden rounded-[2rem] ring-1 ring-neutral-200 dark:ring-neutral-800"
+        class="relative mt-2 overflow-hidden rounded-xl sm:rounded-[2rem] ring-1 ring-neutral-200 dark:ring-neutral-800"
       >
         <img :src="post.cover" :alt="post.title" class="h-[360px] w-full object-cover sm:h-[480px]" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
-        <div class="absolute inset-x-0 bottom-0 p-6 sm:p-10">
+        <div class="absolute inset-x-0 bottom-0 p-4 sm:p-10">
           <CategoryBadgeList :categories="post.categories" />
-          <h1 class="mt-4 max-w-4xl text-balance text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+          <h1 class="mt-3 sm:mt-4 max-w-4xl text-balance text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
             {{ post.title }}
           </h1>
           <p class="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
             {{ post.excerpt }}
           </p>
-          <div class="mt-5 flex flex-wrap items-center gap-4 text-xs font-medium text-white/80">
+          <div class="mt-4 sm:mt-5 flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-medium text-white/80">
             <RouterLink :to="`/author/${post.author.username}`" class="font-semibold text-white hover:underline">
               {{ post.author.name }}
             </RouterLink>
@@ -234,20 +238,20 @@ async function copyLink(): Promise<void> {
           <CategoryBadgeList :categories="post.categories" />
         </div>
         <h1
-          class="mt-5 text-balance text-3xl font-bold leading-tight tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl dark:text-white"
+          class="mt-4 sm:mt-5 text-balance text-3xl font-bold leading-tight tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl dark:text-white"
         >
           {{ post.title }}
         </h1>
         <p
           :class="[
-            'mt-5 text-base leading-relaxed text-neutral-500 sm:text-lg dark:text-neutral-400',
+            'mt-4 sm:mt-5 text-base leading-relaxed text-neutral-500 sm:text-lg dark:text-neutral-400',
             isCenteredStyle ? 'mx-auto max-w-3xl' : 'max-w-3xl',
           ]"
         >
           {{ post.excerpt }}
         </p>
 
-        <div :class="['mt-7 flex flex-wrap items-center gap-5', isCenteredStyle ? 'justify-center' : 'justify-start']">
+        <div :class="['mt-5 sm:mt-7 flex flex-wrap items-center gap-4 sm:gap-5', isCenteredStyle ? 'justify-center' : 'justify-start']">
           <div class="flex items-center gap-3">
             <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
             <div class="text-start text-sm">
@@ -276,14 +280,14 @@ async function copyLink(): Promise<void> {
 
       <div
         :class="[
-          'mt-7 flex flex-wrap items-center gap-2',
+          'mt-5 sm:mt-7 flex flex-wrap items-center gap-2',
           isCenteredStyle || isHeroStyle ? 'justify-center' : 'justify-start',
         ]"
       >
         <RouterLink
           v-if="canManagePost(auth.user?.role, auth.user?.id, post.author.id)"
           :to="`/editor/${post.id}`"
-          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 sm:px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
         >
           <PenLine class="h-4 w-4" aria-hidden="true" />
           Edit post
@@ -292,7 +296,16 @@ async function copyLink(): Promise<void> {
         <SaveButton :post-id="post.id" :post-title="post.title" show-label />
         <button
           type="button"
-          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 px-4 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 px-3 sm:px-4 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          :aria-label="`Comments (${post.commentCount})`"
+          @click="scrollToComments"
+        >
+          <MessageCircle class="h-4 w-4" aria-hidden="true" />
+          <span>{{ formatNumber(post.commentCount) }}</span>
+        </button>
+        <button
+          type="button"
+          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 px-3 sm:px-4 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
           aria-label="Share post"
           @click="openShare"
         >
@@ -304,7 +317,7 @@ async function copyLink(): Promise<void> {
       <!-- Styles 2 & 3 show the cover as a wide banner -->
       <div
         v-if="(isWideStyle || isMagazineStyle) && post.cover"
-        :class="['mt-8 overflow-hidden rounded-[2rem] ring-1 ring-neutral-200 dark:ring-neutral-800', isWideStyle ? 'mx-auto max-w-5xl' : '']"
+        :class="['mt-6 sm:mt-8 overflow-hidden rounded-xl sm:rounded-[2rem] ring-1 ring-neutral-200 dark:ring-neutral-800', isWideStyle ? 'mx-auto max-w-5xl' : '']"
       >
         <img
           :src="post.cover"
@@ -313,7 +326,7 @@ async function copyLink(): Promise<void> {
         />
       </div>
 
-      <div v-if="post.postType === 'video' && videoEmbedUrl" class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
+      <div v-if="post.postType === 'video' && videoEmbedUrl" class="mx-auto mt-8 sm:mt-10 max-w-5xl overflow-hidden rounded-xl sm:rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
         <div class="aspect-[16/9] w-full bg-black">
           <iframe
             :src="videoEmbedUrl"
@@ -325,19 +338,19 @@ async function copyLink(): Promise<void> {
         </div>
       </div>
 
-      <div v-else-if="post.postType === 'video' && post.videoUrl" class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
+      <div v-else-if="post.postType === 'video' && post.videoUrl" class="mx-auto mt-8 sm:mt-10 max-w-5xl overflow-hidden rounded-xl sm:rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
         <div class="aspect-[16/9] w-full bg-black">
           <video :src="post.videoUrl" controls class="h-full w-full object-cover"></video>
         </div>
       </div>
 
       <!-- Style 3: content + sticky sidebar -->
-      <div :class="isMagazineStyle ? 'mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px]' : ''">
+      <div :class="isMagazineStyle ? 'mt-8 sm:mt-10 grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_300px]' : ''">
         <div>
           <article
             :class="[
               'prose prose-neutral dark:prose-invert',
-              isMagazineStyle ? 'mt-0 max-w-none' : ['mt-10 mx-auto', contentWidthClass],
+              isMagazineStyle ? 'mt-0 max-w-none' : ['mt-8 sm:mt-10 mx-auto', contentWidthClass],
             ]"
             :data-post-style="postStyle"
             v-html="cleanContent"
@@ -345,14 +358,14 @@ async function copyLink(): Promise<void> {
 
           <div
             v-if="post.tags?.length"
-            :class="['mt-8 flex flex-wrap gap-2', isMagazineStyle ? '' : ['mx-auto', contentWidthClass]]"
+            :class="['mt-6 sm:mt-8 flex flex-wrap gap-2', isMagazineStyle ? '' : ['mx-auto', contentWidthClass]]"
           >
             <TagBadge v-for="tag in post.tags" :key="tag.id" :tag="tag" />
           </div>
         </div>
 
-        <aside v-if="isMagazineStyle" class="space-y-5 lg:sticky lg:top-24 lg:self-start">
-          <div class="rounded-3xl border border-neutral-200 p-5 dark:border-neutral-800">
+        <aside v-if="isMagazineStyle" class="hidden space-y-4 sm:space-y-5 lg:block lg:sticky lg:top-24 lg:self-start">
+          <div class="rounded-xl sm:rounded-3xl border border-neutral-200 p-4 sm:p-5 dark:border-neutral-800">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
               Written by
             </p>
@@ -370,7 +383,7 @@ async function copyLink(): Promise<void> {
                 </p>
               </div>
             </div>
-            <div class="mt-4 flex flex-wrap items-center gap-2">
+            <div class="mt-3 sm:mt-4 flex flex-wrap items-center gap-2">
               <LikeButton :post="post" />
               <SaveButton :post-id="post.id" :post-title="post.title" show-label />
             </div>
@@ -384,15 +397,12 @@ async function copyLink(): Promise<void> {
             </button>
           </div>
 
-          <div class="rounded-3xl border border-neutral-200 p-5 dark:border-neutral-800">
+          <div class="rounded-xl sm:rounded-3xl border border-neutral-200 p-4 sm:p-5 dark:border-neutral-800">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
               Post details
             </p>
             <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
               {{ post.readingTime }} min read · {{ formatNumber(post.viewCount) }} views
-            </p>
-            <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-              {{ formatNumber(post.commentCount) }} comments
             </p>
           </div>
         </aside>
@@ -400,7 +410,7 @@ async function copyLink(): Promise<void> {
 
       <div
         v-if="!isMagazineStyle"
-        class="mt-10 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-neutral-200 p-5 dark:border-neutral-800"
+        class="mt-8 sm:mt-10 hidden sm:flex flex-wrap items-center justify-between gap-3 rounded-xl sm:rounded-3xl border border-neutral-200 p-4 sm:p-5 dark:border-neutral-800"
       >
         <div class="flex items-center gap-3">
           <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
@@ -424,14 +434,14 @@ async function copyLink(): Promise<void> {
 
       <div class="mt-12">
         <CommentList :comments="comments" @delete="deleteComment" />
-        <div class="mt-8">
+        <div class="mt-6 sm:mt-8">
           <CommentForm :post-id="post.id" @created="addComment" />
         </div>
       </div>
     </template>
 
     <section v-if="related.length" class="mt-16">
-      <div class="mb-6 flex items-end justify-between">
+      <div class="mb-4 sm:mb-6 flex items-end justify-between">
         <h2 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
           Keep reading
         </h2>
@@ -443,7 +453,7 @@ async function copyLink(): Promise<void> {
           More in {{ post.categories[0].name }}
         </RouterLink>
       </div>
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <PostCard v-for="item in related" :key="item.id" :post="item" />
       </div>
     </section>
@@ -452,14 +462,14 @@ async function copyLink(): Promise<void> {
   <Teleport to="body">
     <div
       v-if="shareOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/60 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/60 p-3 sm:p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label="Share post"
       @click.self="closeShare"
       @keydown.esc="closeShare"
     >
-      <div class="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-float dark:border-neutral-800 dark:bg-neutral-950">
+      <div class="w-full max-w-md rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-float dark:border-neutral-800 dark:bg-neutral-950">
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-lg font-bold text-neutral-900 dark:text-white">Share this post</h2>
           <button
@@ -472,12 +482,12 @@ async function copyLink(): Promise<void> {
           </button>
         </div>
 
-        <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div class="mt-4 sm:mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <a
             :href="twitterShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
           >
             <Twitter class="h-4 w-4" aria-hidden="true" />
             X
@@ -486,7 +496,7 @@ async function copyLink(): Promise<void> {
             :href="facebookShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
           >
             <Facebook class="h-4 w-4" aria-hidden="true" />
             Facebook
@@ -495,7 +505,7 @@ async function copyLink(): Promise<void> {
             :href="linkedinShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
           >
             <Linkedin class="h-4 w-4" aria-hidden="true" />
             LinkedIn
@@ -504,7 +514,7 @@ async function copyLink(): Promise<void> {
             :href="whatsappShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
           >
             <MessageCircle class="h-4 w-4" aria-hidden="true" />
             WhatsApp
@@ -513,14 +523,14 @@ async function copyLink(): Promise<void> {
             :href="telegramShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
           >
             <Send class="h-4 w-4" aria-hidden="true" />
             Telegram
           </a>
           <button
             type="button"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-primary-600 px-4 text-sm font-semibold text-white transition hover:bg-primary-700"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl bg-primary-600 px-3 sm:px-4 text-sm font-semibold text-white transition hover:bg-primary-700"
             @click="copyLink"
           >
             <Link2 class="h-4 w-4" aria-hidden="true" />

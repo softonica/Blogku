@@ -37,7 +37,7 @@ const subPosts = computed(() => (props.posts && props.posts.length > 1 ? props.p
       ></span>
 
       <!-- Content over banner -->
-      <div class="absolute inset-0 flex flex-col justify-end p-6 sm:p-10 md:p-14 lg:p-16 xl:p-20">
+      <div class="absolute inset-0 flex flex-col justify-end p-4 sm:p-10 md:p-14 lg:p-16 xl:p-20">
         <div class="max-w-3xl">
           <div class="mb-3 flex flex-wrap gap-2">
             <RouterLink
@@ -62,10 +62,10 @@ const subPosts = computed(() => (props.posts && props.posts.length > 1 ? props.p
             {{ heroPost.excerpt }}
           </p>
 
-          <div class="mt-5 sm:mt-8 flex flex-wrap items-center gap-4">
+          <div class="mt-4 sm:mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
             <RouterLink
               :to="`/post/${heroPost.slug}`"
-              class="nc-Button inline-flex items-center justify-center rounded-2xl bg-primary-600 hover:bg-primary-500 text-white text-sm sm:text-base font-semibold py-3 px-5 sm:py-3.5 sm:px-6 transition shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+              class="nc-Button inline-flex items-center justify-center rounded-lg sm:rounded-2xl bg-primary-600 hover:bg-primary-500 text-white text-sm sm:text-base font-semibold py-3 px-4 sm:py-3.5 sm:px-6 transition shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
               :aria-label="`Read post: ${heroPost.title}`"
             >
               <span>Read post</span>
@@ -84,7 +84,7 @@ const subPosts = computed(() => (props.posts && props.posts.length > 1 ? props.p
     <h2 class="sr-only">Featured posts</h2>
     <div
       v-if="subPosts.length"
-      class="mt-6 grid transform gap-4 sm:grid-cols-2 md:-mt-20 md:grid-cols-3 lg:gap-8 lg:px-12 xl:px-16 2xl:px-24 relative z-10"
+      class="mt-4 sm:mt-6 grid transform gap-3 sm:gap-4 sm:grid-cols-2 md:-mt-20 md:grid-cols-3 lg:gap-8 lg:px-12 xl:px-16 2xl:px-24 relative z-10"
     >
       <PostCard
         v-for="sub in subPosts"

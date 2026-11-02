@@ -4,7 +4,7 @@
 
 <template>
   <div
-    class="nc-BgGlassmorphism pointer-events-none absolute inset-x-0 -top-10 z-0 flex min-h-0 overflow-hidden py-16 pl-10 md:top-0 md:pl-20 xl:top-10"
+    class="nc-BgGlassmorphism pointer-events-none absolute inset-x-0 -top-10 z-0 flex min-h-0 overflow-hidden py-16 pl-8 sm:pl-10 md:top-0 md:pl-20 xl:top-10"
     aria-hidden="true"
   >
     <span

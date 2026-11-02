@@ -62,9 +62,9 @@ async function removeComment(comment: Comment): Promise<void> {
 </script>
 
 <template>
-  <div class="pb-10">
+  <div class="pb-8 sm:pb-10">
     <div class="mx-auto max-w-5xl">
-      <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl dark:text-white">
             Comment Moderation
@@ -82,7 +82,7 @@ async function removeComment(comment: Comment): Promise<void> {
             v-model="searchQuery"
             type="text"
             placeholder="Search comments…"
-            class="h-10 w-full rounded-2xl border-neutral-300 bg-white ps-9 pe-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+            class="h-10 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white ps-7 sm:ps-9 pe-3 sm:pe-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
           />
         </div>
       </header>
@@ -93,18 +93,18 @@ async function removeComment(comment: Comment): Promise<void> {
 
       <EmptyState
         v-else-if="!filteredComments.length"
-        class="mt-8"
+        class="mt-6 sm:mt-8"
         title="No comments found"
         description="No comments match your search criteria."
       />
 
-      <div v-else class="mt-8 space-y-4">
+      <div v-else class="mt-6 sm:mt-8 space-y-3 sm:space-y-4">
         <div
           v-for="comment in filteredComments"
           :key="comment.id"
-          class="flex flex-col gap-4 rounded-3xl border border-neutral-200 bg-white p-5 sm:flex-row sm:items-start sm:justify-between dark:border-neutral-800 dark:bg-neutral-900"
+          class="flex flex-col gap-3 sm:gap-4 rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-5 sm:flex-row sm:items-start sm:justify-between dark:border-neutral-800 dark:bg-neutral-900"
         >
-          <div class="flex gap-4">
+          <div class="flex gap-3 sm:gap-4">
             <AppAvatar :src="comment.author.avatar" :name="comment.author.name" size="md" />
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">

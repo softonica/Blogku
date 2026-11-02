@@ -78,7 +78,7 @@ const title = computed(() =>
   <AuthShell :title="title" :subtitle="subtitle">
     <div
       v-if="sent"
-      class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"
+      class="rounded-lg sm:rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:p-5 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"
     >
       <MailCheck v-if="!isConfirm" class="h-6 w-6" aria-hidden="true" />
       <KeyRound v-else class="h-6 w-6" aria-hidden="true" />
@@ -97,7 +97,7 @@ const title = computed(() =>
 
     <form
       v-else
-      class="space-y-4"
+      class="space-y-3 sm:space-y-4"
       novalidate
       @submit.prevent="isConfirm ? confirmReset() : requestReset()"
     >
@@ -111,7 +111,7 @@ const title = computed(() =>
             v-model="password"
             type="password"
             autocomplete="new-password"
-            class="h-11 w-full rounded-2xl border-neutral-300 bg-white text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+            class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
           />
         </div>
         <div>
@@ -123,7 +123,7 @@ const title = computed(() =>
             v-model="confirm"
             type="password"
             autocomplete="new-password"
-            class="h-11 w-full rounded-2xl border-neutral-300 bg-white text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+            class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
           />
         </div>
       </template>
@@ -137,7 +137,7 @@ const title = computed(() =>
           v-model="email"
           type="email"
           autocomplete="email"
-          class="h-11 w-full rounded-2xl border-neutral-300 bg-white text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+          class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
         />
       </div>
 

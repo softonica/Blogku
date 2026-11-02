@@ -39,7 +39,7 @@ function go(page: number): void {
   >
     <button
       type="button"
-      class="inline-flex h-10 items-center gap-1 rounded-full border border-neutral-200 px-4 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-800 dark:text-neutral-300 dark:hover:text-white"
+      class="inline-flex h-10 items-center gap-1 rounded-full border border-neutral-200 px-3 sm:px-4 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-800 dark:text-neutral-300 dark:hover:text-white"
       :disabled="page <= 1"
       @click="go(page - 1)"
     >
@@ -70,7 +70,7 @@ function go(page: number): void {
     </template>
     <button
       type="button"
-      class="inline-flex h-10 items-center gap-1 rounded-full border border-neutral-200 px-4 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-800 dark:text-neutral-300 dark:hover:text-white"
+      class="inline-flex h-10 items-center gap-1 rounded-full border border-neutral-200 px-3 sm:px-4 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-800 dark:text-neutral-300 dark:hover:text-white"
       :disabled="page >= totalPages"
       @click="go(page + 1)"
     >

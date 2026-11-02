@@ -68,10 +68,10 @@ async function logout(): Promise<void> {
     </button>
     <div
       v-if="open"
-      class="absolute end-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-neutral-200 bg-white py-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
+      class="absolute end-0 z-50 mt-2 w-64 overflow-hidden rounded-lg sm:rounded-2xl border border-neutral-200 bg-white py-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
       role="menu"
     >
-      <div class="border-b border-neutral-100 px-4 pb-3 pt-1 dark:border-neutral-800">
+      <div class="border-b border-neutral-100 px-3 sm:px-4 pb-3 pt-1 dark:border-neutral-800">
         <div class="flex items-center justify-between gap-2">
           <p class="truncate text-sm font-semibold text-neutral-900 dark:text-white">
             {{ auth.user?.name }}
@@ -92,7 +92,7 @@ async function logout(): Promise<void> {
       <template v-if="can(auth.user?.role, 'write_post')">
         <RouterLink
           to="/dashboard"
-          class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
           @click="open = false"
         >
@@ -101,7 +101,7 @@ async function logout(): Promise<void> {
         </RouterLink>
         <RouterLink
           to="/editor"
-          class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
           @click="open = false"
         >
@@ -113,7 +113,7 @@ async function logout(): Promise<void> {
       <!-- Subscriber+ actions -->
       <RouterLink
         to="/profile"
-        class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
         role="menuitem"
         @click="open = false"
       >
@@ -122,7 +122,7 @@ async function logout(): Promise<void> {
       </RouterLink>
       <RouterLink
         to="/bookmarks"
-        class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
         role="menuitem"
         @click="open = false"
       >
@@ -132,12 +132,12 @@ async function logout(): Promise<void> {
 
       <!-- Admin section (admin only) -->
       <template v-if="can(auth.user?.role, 'manage_settings')">
-        <div class="my-1 border-t border-neutral-100 px-4 pt-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:border-neutral-800">
+        <div class="my-1 border-t border-neutral-100 px-3 sm:px-4 pt-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:border-neutral-800">
           Admin Portal
         </div>
         <RouterLink
           to="/admin/settings"
-          class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
           @click="open = false"
         >
@@ -146,7 +146,7 @@ async function logout(): Promise<void> {
         </RouterLink>
         <RouterLink
           to="/admin/users"
-          class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
           @click="open = false"
         >
@@ -155,7 +155,7 @@ async function logout(): Promise<void> {
         </RouterLink>
         <RouterLink
           to="/admin/moderation"
-          class="flex items-center gap-3 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
           @click="open = false"
         >
@@ -166,7 +166,7 @@ async function logout(): Promise<void> {
 
       <button
         type="button"
-        class="flex w-full items-center gap-3 border-t border-neutral-100 px-4 py-2.5 text-start text-sm font-medium text-rose-600 hover:bg-rose-50 dark:border-neutral-800 dark:text-rose-300 dark:hover:bg-rose-950/40"
+        class="flex w-full items-center gap-3 border-t border-neutral-100 px-3 sm:px-4 py-2.5 text-start text-sm font-medium text-rose-600 hover:bg-rose-50 dark:border-neutral-800 dark:text-rose-300 dark:hover:bg-rose-950/40"
         role="menuitem"
         @click="logout"
       >

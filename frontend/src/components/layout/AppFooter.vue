@@ -33,9 +33,9 @@ const socials = [
 <template>
   <footer class="nc-Footer relative border-t border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
     <div class="container px-4 py-14 sm:px-6 lg:py-20 lg:px-8">
-      <div class="grid grid-cols-2 gap-10 md:grid-cols-3 xl:grid-cols-4">
+      <div class="grid grid-cols-2 gap-8 sm:gap-10 md:grid-cols-3 xl:grid-cols-4">
         <!-- Brand -->
-        <div class="col-span-2 space-y-6 md:col-span-1">
+        <div class="col-span-2 space-y-4 sm:space-y-6 md:col-span-1">
           <Brand />
           <p class="max-w-sm text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
             A calm magazine about technology, design, travel and culture.
@@ -59,7 +59,7 @@ const socials = [
         <!-- Explore -->
         <div>
           <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Explore</h3>
-          <ul class="mt-5 space-y-3 text-sm">
+          <ul class="mt-4 sm:mt-5 space-y-3 text-sm">
             <li><RouterLink to="/" class="text-neutral-600 hover:text-primary-600 dark:text-neutral-300 dark:hover:text-primary-300">Home</RouterLink></li>
             <li><RouterLink to="/search" class="text-neutral-600 hover:text-primary-600 dark:text-neutral-300 dark:hover:text-primary-300">Search</RouterLink></li>
             <li><RouterLink to="/bookmarks" class="text-neutral-600 hover:text-primary-600 dark:text-neutral-300 dark:hover:text-primary-300">Bookmarks</RouterLink></li>
@@ -74,7 +74,7 @@ const socials = [
         <!-- Categories -->
         <div>
           <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Categories</h3>
-          <ul class="mt-5 space-y-3 text-sm">
+          <ul class="mt-4 sm:mt-5 space-y-3 text-sm">
             <li v-for="category in categories" :key="category.id">
               <RouterLink
                 :to="`/category/${category.slug}`"
@@ -89,7 +89,7 @@ const socials = [
         <!-- Subscribe -->
         <div class="col-span-2 md:col-span-1">
           <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Subscribe</h3>
-          <p class="mt-5 max-w-xs text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
+          <p class="mt-4 sm:mt-5 max-w-xs text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
             Get the latest blogku posts delivered to your inbox. No spam, ever.
           </p>
           <div class="mt-2 max-w-xs">
@@ -98,9 +98,9 @@ const socials = [
         </div>
       </div>
 
-      <div class="mt-14 flex flex-col items-start justify-between gap-4 border-t border-neutral-200 pt-6 text-sm text-neutral-500 sm:flex-row sm:items-center dark:border-neutral-800 dark:text-neutral-400">
+      <div class="mt-14 flex flex-col items-start justify-between gap-3 sm:gap-4 border-t border-neutral-200 pt-4 sm:pt-6 text-sm text-neutral-500 sm:flex-row sm:items-center dark:border-neutral-800 dark:text-neutral-400">
         <p>© {{ year }} Blogku. Safe · Fast · Simple digital editorial platform.</p>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div class="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-2">
           <RouterLink
             v-for="tag in tags"
             :key="tag.id"

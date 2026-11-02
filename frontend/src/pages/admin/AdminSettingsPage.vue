@@ -108,11 +108,11 @@ async function save(): Promise<void> {
 </script>
 
 <template>
-  <div class="pb-10">
-    <div class="mx-auto max-w-4xl space-y-8">
+  <div class="pb-8 sm:pb-10">
+    <div class="mx-auto max-w-4xl space-y-6 sm:space-y-8">
       <!-- Quick Link Banner to Taxonomies -->
       <div
-        class="flex flex-col gap-3 rounded-2xl border border-neutral-200/80 bg-neutral-50/70 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800 dark:bg-neutral-900/60"
+        class="flex flex-col gap-3 rounded-lg sm:rounded-2xl border border-neutral-200/80 bg-neutral-50/70 p-3 sm:p-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800 dark:bg-neutral-900/60"
       >
         <div class="flex items-center gap-3">
           <FolderTree class="h-5 w-5 text-primary-600 dark:text-primary-400 shrink-0" />
@@ -127,13 +127,13 @@ async function save(): Promise<void> {
         </div>
         <RouterLink
           to="/admin/taxonomies"
-          class="inline-flex shrink-0 items-center justify-center gap-1 rounded-xl bg-primary-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-primary-500 dark:bg-primary-500 dark:text-neutral-950 dark:hover:bg-primary-400"
+          class="inline-flex shrink-0 items-center justify-center gap-1 rounded-lg sm:rounded-xl bg-primary-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-primary-500 dark:bg-primary-500 dark:text-neutral-950 dark:hover:bg-primary-400"
         >
           Manage Taxonomies →
         </RouterLink>
       </div>
 
-      <header class="mb-8">
+      <header class="mb-6 sm:mb-8">
         <h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl dark:text-white">
           Site Settings
         </h1>
@@ -154,7 +154,7 @@ async function save(): Promise<void> {
 
       <form
         v-else
-        class="space-y-8 rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
+        class="space-y-6 sm:space-y-8 rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
         @submit.prevent="save"
       >
         <!-- Section 1: General Info -->
@@ -162,7 +162,7 @@ async function save(): Promise<void> {
           <h2 class="text-base font-bold text-neutral-900 dark:text-white">
             General Information
           </h2>
-          <div class="mt-4 space-y-5">
+          <div class="mt-3 sm:mt-4 space-y-4 sm:space-y-5">
             <div>
               <label
                 for="settings-name"
@@ -175,7 +175,7 @@ async function save(): Promise<void> {
                 v-model="settings.siteName"
                 type="text"
                 required
-                class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+                class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
               />
             </div>
 
@@ -190,11 +190,11 @@ async function save(): Promise<void> {
                 id="settings-desc"
                 v-model="settings.siteDescription"
                 rows="3"
-                class="w-full rounded-2xl border-neutral-300 bg-white p-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+                class="w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white p-3 sm:p-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
               ></textarea>
             </div>
 
-            <div class="grid gap-5 sm:grid-cols-2">
+            <div class="grid gap-4 sm:gap-5 sm:grid-cols-2">
               <div>
                 <label
                   for="settings-email"
@@ -207,7 +207,7 @@ async function save(): Promise<void> {
                   v-model="settings.contactEmail"
                   type="email"
                   required
-                  class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+                  class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
                 />
               </div>
 
@@ -222,7 +222,7 @@ async function save(): Promise<void> {
                   id="settings-footer"
                   v-model="settings.footerText"
                   type="text"
-                  class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+                  class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
                 />
               </div>
             </div>
@@ -245,7 +245,7 @@ async function save(): Promise<void> {
         </div>
 
         <!-- Section 2: Logo & Favicon Branding -->
-        <div class="border-t border-neutral-100 pt-6 dark:border-neutral-800">
+        <div class="border-t border-neutral-100 pt-4 sm:pt-6 dark:border-neutral-800">
           <h2 class="text-base font-bold text-neutral-900 dark:text-white">
             Brand Assets (Logo & Favicon)
           </h2>
@@ -253,10 +253,10 @@ async function save(): Promise<void> {
             Customize header logo and browser tab favicon.
           </p>
 
-          <div class="mt-5 grid gap-6 sm:grid-cols-2">
+          <div class="mt-4 sm:mt-5 grid gap-4 sm:gap-6 sm:grid-cols-2">
             <!-- Logo Setting -->
             <div
-              class="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-5 dark:border-neutral-800 dark:bg-neutral-950/40"
+              class="rounded-lg sm:rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4 sm:p-5 dark:border-neutral-800 dark:bg-neutral-950/40"
             >
               <div class="flex items-center justify-between">
                 <label
@@ -280,7 +280,7 @@ async function save(): Promise<void> {
 
               <!-- Logo Preview -->
               <div
-                class="mt-3 flex h-20 w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-white p-2 dark:border-neutral-700 dark:bg-neutral-900"
+                class="mt-3 flex h-20 w-full items-center justify-center rounded-lg sm:rounded-xl border border-dashed border-neutral-300 bg-white p-2 dark:border-neutral-700 dark:bg-neutral-900"
               >
                 <img
                   v-if="settings.logo"
@@ -297,7 +297,7 @@ async function save(): Promise<void> {
               <!-- Actions -->
               <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <label
-                  class="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-neutral-200/80 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                  class="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg sm:rounded-xl bg-neutral-200/80 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                 >
                   <Upload class="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{{ uploadingLogo ? 'Uploading…' : 'Upload Logo' }}</span>
@@ -314,14 +314,14 @@ async function save(): Promise<void> {
                   v-model="settings.logo"
                   type="url"
                   placeholder="Or enter logo URL (https://…)"
-                  class="h-9 w-full min-w-0 rounded-xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:flex-1"
+                  class="h-9 w-full min-w-0 rounded-lg sm:rounded-xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:flex-1"
                 />
               </div>
             </div>
 
             <!-- Favicon Setting -->
             <div
-              class="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-5 dark:border-neutral-800 dark:bg-neutral-950/40"
+              class="rounded-lg sm:rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4 sm:p-5 dark:border-neutral-800 dark:bg-neutral-950/40"
             >
               <div class="flex items-center justify-between">
                 <label
@@ -345,7 +345,7 @@ async function save(): Promise<void> {
 
               <!-- Favicon Preview -->
               <div
-                class="mt-3 flex h-20 w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-white p-2 dark:border-neutral-700 dark:bg-neutral-900"
+                class="mt-3 flex h-20 w-full items-center justify-center rounded-lg sm:rounded-xl border border-dashed border-neutral-300 bg-white p-2 dark:border-neutral-700 dark:bg-neutral-900"
               >
                 <div class="flex items-center gap-3">
                   <div
@@ -368,7 +368,7 @@ async function save(): Promise<void> {
               <!-- Actions -->
               <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <label
-                  class="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-neutral-200/80 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                  class="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg sm:rounded-xl bg-neutral-200/80 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                 >
                   <Upload class="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{{ uploadingFavicon ? 'Uploading…' : 'Upload Icon' }}</span>
@@ -385,7 +385,7 @@ async function save(): Promise<void> {
                   v-model="settings.favicon"
                   type="url"
                   placeholder="Or enter favicon URL (https://…)"
-                  class="h-9 w-full min-w-0 rounded-xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:flex-1"
+                  class="h-9 w-full min-w-0 rounded-lg sm:rounded-xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:flex-1"
                 />
               </div>
             </div>
@@ -393,7 +393,7 @@ async function save(): Promise<void> {
         </div>
 
         <!-- Section 3: Backend Storage Target Architecture Callout -->
-        <div class="rounded-2xl border border-primary-100 bg-primary-50/50 p-5 dark:border-primary-950 dark:bg-primary-950/20">
+        <div class="rounded-lg sm:rounded-2xl border border-primary-100 bg-primary-50/50 p-4 sm:p-5 dark:border-primary-950 dark:bg-primary-950/20">
           <div class="flex items-center gap-2">
             <HardDrive class="h-5 w-5 text-primary-600 dark:text-primary-400" aria-hidden="true" />
             <h3 class="text-sm font-bold text-neutral-900 dark:text-white">
@@ -404,13 +404,13 @@ async function save(): Promise<void> {
             Saat PocketBase digunakan, storage dapat dikonfigurasi melalui dua pilihan:
           </p>
           <div class="mt-3 grid gap-3 sm:grid-cols-2 text-xs">
-            <div class="rounded-xl border border-white/60 bg-white/80 p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/80">
+            <div class="rounded-lg sm:rounded-xl border border-white/60 bg-white/80 p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/80">
               <p class="font-bold text-neutral-900 dark:text-white">1. Local Filesystem Storage</p>
               <p class="mt-1 text-neutral-500 dark:text-neutral-400">
                 Disimpan di direktori lokal <code>pb_data/storage</code>. Ringan, cepat, cocok untuk server tunggal (VPS).
               </p>
             </div>
-            <div class="rounded-xl border border-white/60 bg-white/80 p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/80">
+            <div class="rounded-lg sm:rounded-xl border border-white/60 bg-white/80 p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/80">
               <p class="font-bold text-neutral-900 dark:text-white">2. S3-Compatible Object Storage</p>
               <p class="mt-1 text-neutral-500 dark:text-neutral-400">
                 Mendukung Cloudflare R2, MinIO, AWS S3, Wasabi. Skalabel, bebas beban disk server lokal, dan CDN siap pakai.
@@ -420,7 +420,7 @@ async function save(): Promise<void> {
         </div>
 
         <!-- Save Button -->
-        <div class="flex flex-col gap-3 border-t border-neutral-100 pt-6 sm:flex-row sm:items-center dark:border-neutral-800">
+        <div class="flex flex-col gap-3 border-t border-neutral-100 pt-4 sm:pt-6 sm:flex-row sm:items-center dark:border-neutral-800">
           <BaseButton type="submit" size="md" :disabled="saving || isLimited">
             <CheckCircle2 v-if="saved" class="h-4 w-4" aria-hidden="true" />
             <Save v-else class="h-4 w-4" aria-hidden="true" />

@@ -31,7 +31,7 @@ const base =
 const variantClass = computed(() =>
   props.variant === 'icon'
     ? 'h-10 w-10 border border-neutral-200 dark:border-neutral-800'
-    : 'h-10 px-4 text-sm',
+    : 'h-10 px-3 sm:px-4 text-sm',
 )
 
 async function toggle(): Promise<void> {

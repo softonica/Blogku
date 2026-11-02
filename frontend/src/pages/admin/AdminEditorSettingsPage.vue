@@ -62,19 +62,19 @@ const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'm
 </script>
 
 <template>
-  <div class="pb-10">
+  <div class="pb-8 sm:pb-10">
     <div v-if="loading" class="flex justify-center py-20">
       <LoadingSpinner />
     </div>
 
-    <div v-else class="mx-auto max-w-3xl space-y-6">
-      <div class="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900">
+    <div v-else class="mx-auto max-w-3xl space-y-4 sm:space-y-6">
+      <div class="rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900">
         <h2 class="text-xl font-bold text-neutral-900 dark:text-white">Text Editor Settings</h2>
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
           Atur perilaku editor rich text dan toolbar-nya.
         </p>
 
-        <div class="mt-6 space-y-5">
+        <div class="mt-4 sm:mt-6 space-y-4 sm:space-y-5">
           <div>
             <label for="editor-placeholder" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
               Placeholder default
@@ -83,11 +83,11 @@ const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'm
               id="editor-placeholder"
               v-model="settings.placeholder"
               type="text"
-              class="w-full rounded-2xl border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+              class="w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
             />
           </div>
 
-          <div class="grid gap-5 sm:grid-cols-2">
+          <div class="grid gap-4 sm:gap-5 sm:grid-cols-2">
             <div>
               <label for="editor-max-length" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                 Batas panjang konten (chars)
@@ -97,7 +97,7 @@ const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'm
                 v-model.number="settings.maxContentLength"
                 type="number"
                 min="0"
-                class="w-full rounded-2xl border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+                class="w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
               />
               <p class="mt-1 text-xs text-neutral-400">0 = tanpa batas</p>
             </div>
@@ -111,11 +111,11 @@ const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'm
             </div>
           </div>
 
-          <div class="space-y-3 border-t border-neutral-100 pt-5 dark:border-neutral-800">
+          <div class="space-y-3 border-t border-neutral-100 pt-4 sm:pt-5 dark:border-neutral-800">
             <label
               v-for="item in toggleItems"
               :key="item.key"
-              class="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-neutral-200 px-4 py-3 transition hover:border-neutral-300 dark:border-neutral-800 dark:hover:border-neutral-700"
+              class="flex cursor-pointer items-center justify-between gap-3 sm:gap-4 rounded-lg sm:rounded-2xl border border-neutral-200 px-3 sm:px-4 py-3 transition hover:border-neutral-300 dark:border-neutral-800 dark:hover:border-neutral-700"
             >
               <span>
                 <span class="block text-sm font-semibold text-neutral-800 dark:text-neutral-100">{{ item.label }}</span>
@@ -130,7 +130,7 @@ const toggleItems: Array<{ key: Exclude<keyof EditorSettings, 'placeholder' | 'm
           </div>
         </div>
 
-        <div class="mt-6 flex justify-end">
+        <div class="mt-4 sm:mt-6 flex justify-end">
           <BaseButton type="button" :disabled="saving || isLimited" @click="save">
             <Save class="h-4 w-4" aria-hidden="true" />
             {{

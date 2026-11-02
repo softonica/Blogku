@@ -53,7 +53,7 @@ function toggle(): void {
     class="group/save inline-flex items-center justify-center font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
     :class="[
       isPill
-        ? 'h-10 px-4 text-sm gap-2 rounded-full border'
+        ? 'h-10 px-3 sm:px-4 text-sm gap-2 rounded-full border'
         : 'h-9 w-9 sm:h-10 sm:w-10 rounded-full border shadow-sm backdrop-blur-md',
       saved
         ? 'border-primary-300 bg-primary-50 text-primary-600 hover:bg-primary-100 hover:border-primary-400 dark:border-primary-700 dark:bg-primary-950/80 dark:text-primary-300 dark:hover:bg-primary-900'

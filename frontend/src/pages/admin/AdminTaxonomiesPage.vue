@@ -306,9 +306,9 @@ async function executeDeleteTag() {
 </script>
 
 <template>
-  <div class="space-y-8 pb-10">
+  <div class="space-y-6 sm:space-y-8 pb-8 sm:pb-10">
     <!-- Top Headline & Action Bar -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl dark:text-neutral-100">
           Taxonomies & Classification 🏷️
@@ -346,7 +346,7 @@ async function executeDeleteTag() {
     <div class="flex border-b border-neutral-200 dark:border-neutral-800">
       <button
         type="button"
-        class="flex items-center gap-2 whitespace-nowrap border-b-2 px-5 py-3 text-sm font-semibold transition"
+        class="flex items-center gap-2 whitespace-nowrap border-b-2 px-4 sm:px-5 py-3 text-sm font-semibold transition"
         :class="
           activeTab === 'categories'
             ? 'border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400'
@@ -365,7 +365,7 @@ async function executeDeleteTag() {
 
       <button
         type="button"
-        class="flex items-center gap-2 whitespace-nowrap border-b-2 px-5 py-3 text-sm font-semibold transition"
+        class="flex items-center gap-2 whitespace-nowrap border-b-2 px-4 sm:px-5 py-3 text-sm font-semibold transition"
         :class="
           activeTab === 'tags'
             ? 'border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400'
@@ -389,16 +389,16 @@ async function executeDeleteTag() {
     </div>
 
     <!-- TAB 1: CATEGORIES -->
-    <section v-else-if="activeTab === 'categories'" class="space-y-6">
+    <section v-else-if="activeTab === 'categories'" class="space-y-4 sm:space-y-6">
       <!-- Search Input Bar -->
-      <div class="flex items-center justify-between gap-4">
+      <div class="flex items-center justify-between gap-3 sm:gap-4">
         <div class="relative w-full max-w-md">
           <Search class="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
           <input
             v-model="categorySearch"
             type="search"
             placeholder="Search categories by name, slug or description..."
-            class="h-10 w-full rounded-2xl border border-neutral-200 bg-white ps-10 pe-4 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:ring-primary-900/40"
+            class="h-10 w-full rounded-lg sm:rounded-2xl border border-neutral-200 bg-white ps-8 sm:ps-10 pe-3 sm:pe-4 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:ring-primary-900/40"
           />
         </div>
         <p class="text-xs text-neutral-500 dark:text-neutral-400">
@@ -408,17 +408,17 @@ async function executeDeleteTag() {
 
       <!-- Categories Table -->
       <div
-        class="overflow-hidden rounded-3xl border border-neutral-200/80 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900"
+        class="overflow-hidden rounded-xl sm:rounded-3xl border border-neutral-200/80 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="overflow-x-auto">
           <table class="w-full text-start text-sm">
             <thead class="border-b border-neutral-200 bg-neutral-50/70 text-xs uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950/50 dark:text-neutral-400">
               <tr>
-                <th scope="col" class="px-6 py-4 font-semibold">Category</th>
-                <th scope="col" class="px-6 py-4 font-semibold">Slug</th>
-                <th scope="col" class="px-6 py-4 font-semibold">Description</th>
-                <th scope="col" class="px-6 py-4 font-semibold text-center">Posts</th>
-                <th scope="col" class="px-6 py-4 font-semibold text-end">Actions</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4 font-semibold">Category</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4 font-semibold">Slug</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4 font-semibold">Description</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-center">Posts</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4 font-semibold text-end">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -428,10 +428,10 @@ async function executeDeleteTag() {
                 class="transition hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40"
               >
                 <!-- Category Info + Image Preview -->
-                <td class="px-6 py-4">
+                <td class="px-4 sm:px-6 py-3 sm:py-4">
                   <div class="flex items-center gap-3">
                     <div
-                      class="relative h-11 w-11 shrink-0 overflow-hidden rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/70 dark:border-neutral-700/60"
+                      class="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg sm:rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/70 dark:border-neutral-700/60"
                     >
                       <img
                         v-if="cat.image"
@@ -465,28 +465,28 @@ async function executeDeleteTag() {
                 </td>
 
                 <!-- Slug -->
-                <td class="px-6 py-4 font-mono text-xs text-neutral-500 dark:text-neutral-400">
+                <td class="px-4 sm:px-6 py-3 sm:py-4 font-mono text-xs text-neutral-500 dark:text-neutral-400">
                   /category/{{ cat.slug }}
                 </td>
 
                 <!-- Description -->
-                <td class="px-6 py-4 max-w-xs truncate text-neutral-500 dark:text-neutral-400">
+                <td class="px-4 sm:px-6 py-3 sm:py-4 max-w-xs truncate text-neutral-500 dark:text-neutral-400">
                   {{ cat.description || '—' }}
                 </td>
 
                 <!-- Post Count -->
-                <td class="px-6 py-4 text-center font-medium text-neutral-700 dark:text-neutral-300">
+                <td class="px-4 sm:px-6 py-3 sm:py-4 text-center font-medium text-neutral-700 dark:text-neutral-300">
                   <span class="inline-flex rounded-full bg-neutral-100 px-2.5 py-1 text-xs dark:bg-neutral-800">
                     {{ cat.postCount ?? 0 }}
                   </span>
                 </td>
 
                 <!-- Actions -->
-                <td class="px-6 py-4 text-end">
+                <td class="px-4 sm:px-6 py-3 sm:py-4 text-end">
                   <div class="flex items-center justify-end gap-2">
                     <button
                       type="button"
-                      class="flex h-8 w-8 items-center justify-center rounded-xl border border-neutral-200 text-neutral-600 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-primary-600 dark:hover:bg-primary-950/60 dark:hover:text-primary-300"
+                      class="flex h-8 w-8 items-center justify-center rounded-lg sm:rounded-xl border border-neutral-200 text-neutral-600 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-primary-600 dark:hover:bg-primary-950/60 dark:hover:text-primary-300"
                       title="Edit Category"
                       @click="openEditCategoryModal(cat)"
                     >
@@ -494,7 +494,7 @@ async function executeDeleteTag() {
                     </button>
                     <button
                       type="button"
-                      class="flex h-8 w-8 items-center justify-center rounded-xl border border-neutral-200 text-neutral-600 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-rose-800 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
+                      class="flex h-8 w-8 items-center justify-center rounded-lg sm:rounded-xl border border-neutral-200 text-neutral-600 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-rose-800 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
                       title="Delete Category"
                       @click="confirmDeleteCategory(cat)"
                     >
@@ -516,16 +516,16 @@ async function executeDeleteTag() {
     </section>
 
     <!-- TAB 2: TAGS -->
-    <section v-else class="space-y-6">
+    <section v-else class="space-y-4 sm:space-y-6">
       <!-- Search Input Bar -->
-      <div class="flex items-center justify-between gap-4">
+      <div class="flex items-center justify-between gap-3 sm:gap-4">
         <div class="relative w-full max-w-md">
           <Search class="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
           <input
             v-model="tagSearch"
             type="search"
             placeholder="Search tags by name or slug..."
-            class="h-10 w-full rounded-2xl border border-neutral-200 bg-white ps-10 pe-4 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:ring-primary-900/40"
+            class="h-10 w-full rounded-lg sm:rounded-2xl border border-neutral-200 bg-white ps-8 sm:ps-10 pe-3 sm:pe-4 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100 dark:focus:ring-primary-900/40"
           />
         </div>
         <p class="text-xs text-neutral-500 dark:text-neutral-400">
@@ -534,11 +534,11 @@ async function executeDeleteTag() {
       </div>
 
       <!-- Tags Grid Cards -->
-      <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div class="grid gap-3 sm:gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         <div
           v-for="tag in filteredTags"
           :key="tag.id"
-          class="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-xs transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+          class="flex items-center justify-between gap-3 rounded-lg sm:rounded-2xl border border-neutral-200/80 bg-white p-3 sm:p-4 shadow-xs transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
         >
           <div class="min-w-0 flex-1">
             <RouterLink
@@ -584,14 +584,14 @@ async function executeDeleteTag() {
     <!-- MODAL: CATEGORY CREATE / EDIT -->
     <div
       v-if="categoryModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
     >
       <div
-        class="w-full max-w-lg rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900 max-h-[90vh] overflow-y-auto"
+        class="w-full max-w-lg rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900 max-h-[90vh] overflow-y-auto"
       >
-        <div class="flex items-center justify-between pb-4 border-b border-neutral-100 dark:border-neutral-800">
+        <div class="flex items-center justify-between pb-3 sm:pb-4 border-b border-neutral-100 dark:border-neutral-800">
           <h2 class="text-lg font-bold text-neutral-900 dark:text-neutral-100">
             {{ editingCategoryId ? 'Edit Category' : 'Create New Category' }}
           </h2>
@@ -604,7 +604,7 @@ async function executeDeleteTag() {
           </button>
         </div>
 
-        <form class="mt-5 space-y-4" @submit.prevent="saveCategorySubmit">
+        <form class="mt-4 sm:mt-5 space-y-3 sm:space-y-4" @submit.prevent="saveCategorySubmit">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
               Name *
@@ -614,7 +614,7 @@ async function executeDeleteTag() {
               type="text"
               required
               placeholder="e.g. Technology, Travel, Modern Art"
-              class="mt-1 h-10 w-full rounded-2xl border border-neutral-200 bg-white px-3.5 text-sm text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
+              class="mt-1 h-10 w-full rounded-lg sm:rounded-2xl border border-neutral-200 bg-white px-3.5 text-sm text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
               @input="onCategoryNameInput"
             />
           </div>
@@ -627,7 +627,7 @@ async function executeDeleteTag() {
               v-model="categoryForm.slug"
               type="text"
               placeholder="e.g. technology"
-              class="mt-1 h-10 w-full rounded-2xl border border-neutral-200 bg-white px-3.5 font-mono text-xs text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
+              class="mt-1 h-10 w-full rounded-lg sm:rounded-2xl border border-neutral-200 bg-white px-3.5 font-mono text-xs text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
             />
             <p class="mt-1 text-[11px] text-neutral-400">
               URL path: /category/{{ categoryForm.slug || 'category-name' }}
@@ -642,7 +642,7 @@ async function executeDeleteTag() {
               v-model="categoryForm.description"
               rows="3"
               placeholder="Short editorial summary of what this category covers..."
-              class="mt-1 w-full rounded-2xl border border-neutral-200 bg-white p-3 text-sm text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
+              class="mt-1 w-full rounded-lg sm:rounded-2xl border border-neutral-200 bg-white p-3 text-sm text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
             ></textarea>
           </div>
 
@@ -651,9 +651,9 @@ async function executeDeleteTag() {
             <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
               Cover Image
             </label>
-            <div class="mt-2 flex items-center gap-4">
+            <div class="mt-2 flex items-center gap-3 sm:gap-4">
               <div
-                class="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800"
+                class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg sm:rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800"
               >
                 <img
                   v-if="categoryForm.image"
@@ -674,11 +674,11 @@ async function executeDeleteTag() {
                   v-model="categoryForm.image"
                   type="url"
                   placeholder="https://images.unsplash.com/..."
-                  class="h-9 w-full rounded-xl border border-neutral-200 bg-white px-3 text-xs text-neutral-900 outline-none focus:border-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+                  class="h-9 w-full rounded-lg sm:rounded-xl border border-neutral-200 bg-white px-3 text-xs text-neutral-900 outline-none focus:border-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                 />
                 <div>
                   <label
-                    class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                    class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg sm:rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                   >
                     <Upload class="h-3.5 w-3.5" />
                     <span>{{ uploadingCategoryImage ? 'Uploading...' : 'Upload Image' }}</span>
@@ -702,7 +702,7 @@ async function executeDeleteTag() {
             </label>
             <select
               v-model="categoryForm.parentId"
-              class="mt-1 h-10 w-full rounded-2xl border border-neutral-200 bg-white px-3 text-sm text-neutral-900 outline-none focus:border-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+              class="mt-1 h-10 w-full rounded-lg sm:rounded-2xl border border-neutral-200 bg-white px-3 text-sm text-neutral-900 outline-none focus:border-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
             >
               <option :value="null">None (Top Level)</option>
               <option
@@ -716,7 +716,7 @@ async function executeDeleteTag() {
           </div>
 
           <!-- Submit Buttons -->
-          <div class="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+          <div class="mt-4 sm:mt-6 flex items-center justify-end gap-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
             <BaseButton
               type="button"
               variant="outline"
@@ -747,12 +747,12 @@ async function executeDeleteTag() {
     <!-- MODAL: DELETE CATEGORY CONFIRMATION -->
     <div
       v-if="deleteCategoryModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
     >
       <div
-        class="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
+        class="w-full max-w-md rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="flex items-center gap-3 text-rose-600 dark:text-rose-400">
           <AlertTriangle class="h-6 w-6" />
@@ -765,7 +765,7 @@ async function executeDeleteTag() {
           </strong>?
           Articles tagged with this category will not be deleted, but this category tag will be removed.
         </p>
-        <div class="mt-6 flex items-center justify-end gap-3">
+        <div class="mt-4 sm:mt-6 flex items-center justify-end gap-3">
           <BaseButton
             type="button"
             variant="outline"
@@ -775,7 +775,7 @@ async function executeDeleteTag() {
           </BaseButton>
           <button
             type="button"
-            class="inline-flex h-11 items-center justify-center rounded-2xl bg-rose-600 px-5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50"
+            class="inline-flex h-11 items-center justify-center rounded-lg sm:rounded-2xl bg-rose-600 px-4 sm:px-5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50"
             :disabled="categoryDeleting"
             @click="executeDeleteCategory"
           >
@@ -788,14 +788,14 @@ async function executeDeleteTag() {
     <!-- MODAL: TAG CREATE / EDIT -->
     <div
       v-if="tagModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
     >
       <div
-        class="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
+        class="w-full max-w-md rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
       >
-        <div class="flex items-center justify-between pb-4 border-b border-neutral-100 dark:border-neutral-800">
+        <div class="flex items-center justify-between pb-3 sm:pb-4 border-b border-neutral-100 dark:border-neutral-800">
           <h2 class="text-lg font-bold text-neutral-900 dark:text-neutral-100">
             {{ editingTagId ? 'Edit Tag' : 'Create New Tag' }}
           </h2>
@@ -808,7 +808,7 @@ async function executeDeleteTag() {
           </button>
         </div>
 
-        <form class="mt-5 space-y-4" @submit.prevent="saveTagSubmit">
+        <form class="mt-4 sm:mt-5 space-y-3 sm:space-y-4" @submit.prevent="saveTagSubmit">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
               Tag Name *
@@ -820,7 +820,7 @@ async function executeDeleteTag() {
                 type="text"
                 required
                 placeholder="e.g. design, webdev, architecture"
-                class="h-10 w-full rounded-2xl border border-neutral-200 bg-white ps-8 pe-3.5 text-sm text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
+                class="h-10 w-full rounded-lg sm:rounded-2xl border border-neutral-200 bg-white ps-6 sm:ps-8 pe-3.5 text-sm text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
                 @input="onTagNameInput"
               />
             </div>
@@ -834,14 +834,14 @@ async function executeDeleteTag() {
               v-model="tagForm.slug"
               type="text"
               placeholder="e.g. webdev"
-              class="mt-1 h-10 w-full rounded-2xl border border-neutral-200 bg-white px-3.5 font-mono text-xs text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
+              class="mt-1 h-10 w-full rounded-lg sm:rounded-2xl border border-neutral-200 bg-white px-3.5 font-mono text-xs text-neutral-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:ring-primary-900/40"
             />
             <p class="mt-1 text-[11px] text-neutral-400">
               URL path: /tag/{{ tagForm.slug || 'tag-name' }}
             </p>
           </div>
 
-          <div class="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+          <div class="mt-4 sm:mt-6 flex items-center justify-end gap-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
             <BaseButton
               type="button"
               variant="outline"
@@ -872,12 +872,12 @@ async function executeDeleteTag() {
     <!-- MODAL: DELETE TAG CONFIRMATION -->
     <div
       v-if="deleteTagModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
     >
       <div
-        class="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
+        class="w-full max-w-md rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="flex items-center gap-3 text-rose-600 dark:text-rose-400">
           <AlertTriangle class="h-6 w-6" />
@@ -890,7 +890,7 @@ async function executeDeleteTag() {
           </strong>?
           Articles will keep their content, but this tag badge will be removed.
         </p>
-        <div class="mt-6 flex items-center justify-end gap-3">
+        <div class="mt-4 sm:mt-6 flex items-center justify-end gap-3">
           <BaseButton
             type="button"
             variant="outline"
@@ -900,7 +900,7 @@ async function executeDeleteTag() {
           </BaseButton>
           <button
             type="button"
-            class="inline-flex h-11 items-center justify-center rounded-2xl bg-rose-600 px-5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50"
+            class="inline-flex h-11 items-center justify-center rounded-lg sm:rounded-2xl bg-rose-600 px-4 sm:px-5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50"
             :disabled="tagDeleting"
             @click="executeDeleteTag"
           >

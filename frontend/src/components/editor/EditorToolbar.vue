@@ -351,7 +351,7 @@ async function onFileSelected(event: Event): Promise<void> {
         </button>
         <div
           v-if="emojiOpen"
-          class="absolute end-0 top-full z-20 mt-2 grid w-44 grid-cols-4 gap-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
+          class="absolute end-0 top-full z-20 mt-2 grid w-44 grid-cols-4 gap-1 rounded-lg sm:rounded-2xl border border-neutral-200 bg-white p-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
         >
           <button
             v-for="emoji in emojis"

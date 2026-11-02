@@ -3,7 +3,7 @@ import NewsletterForm from './NewsletterForm.vue'
 </script>
 
 <template>
-  <div class="rounded-3xl bg-neutral-900 p-6 text-white dark:bg-neutral-900">
+  <div class="rounded-xl sm:rounded-3xl bg-neutral-900 p-4 sm:p-6 text-white dark:bg-neutral-900">
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary-300">
       Newsletter
     </p>
@@ -11,7 +11,7 @@ import NewsletterForm from './NewsletterForm.vue'
     <p class="mt-2 text-sm text-neutral-400">
       No noise, no growth hacks. Just the posts worth your morning coffee.
     </p>
-    <div class="mt-4">
+    <div class="mt-3 sm:mt-4">
       <NewsletterForm inverted compact />
     </div>
   </div>

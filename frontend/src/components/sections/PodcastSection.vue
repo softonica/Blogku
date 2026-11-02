@@ -12,7 +12,7 @@ defineProps<{ posts: Post[] }>()
 </script>
 
 <template>
-  <div v-if="posts.length" class="nc-SectionMagazine8 relative space-y-6">
+  <div v-if="posts.length" class="nc-SectionMagazine8 relative space-y-4 sm:space-y-6">
     <div class="flex items-end justify-between">
       <div>
         <h2 class="text-2xl font-bold tracking-tight sm:text-3xl text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
@@ -24,14 +24,14 @@ defineProps<{ posts: Post[] }>()
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-6">
+    <div class="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-6">
       <!-- 2 Large Podcast Cards (nc-Card16Podcast) -->
       <article
         v-for="post in posts.slice(0, 2)"
         :key="post.id"
         class="nc-Card16Podcast relative flex flex-col sm:col-span-3 lg:col-span-2 group"
       >
-        <div class="relative block w-full shrink-0 overflow-hidden rounded-3xl aspect-[4/3] bg-neutral-900 shadow-md">
+        <div class="relative block w-full shrink-0 overflow-hidden rounded-xl sm:rounded-3xl aspect-[4/3] bg-neutral-900 shadow-md">
           <PostImage
             :src="post.cover"
             :alt="post.title"
@@ -60,7 +60,7 @@ defineProps<{ posts: Post[] }>()
           </div>
         </div>
 
-        <div class="mt-4 flex flex-col gap-2">
+        <div class="mt-3 sm:mt-4 flex flex-col gap-2">
           <h3 class="nc-card-title text-base sm:text-lg font-semibold leading-snug">
             <RouterLink
               :to="`/post/${post.slug}`"

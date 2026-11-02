@@ -69,9 +69,9 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
 </script>
 
 <template>
-  <div class="pb-10">
+  <div class="pb-8 sm:pb-10">
     <div class="mx-auto max-w-5xl">
-      <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl dark:text-white">
             User & Role Management
@@ -89,7 +89,7 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
             v-model="searchQuery"
             type="text"
             placeholder="Search users…"
-            class="h-10 w-full rounded-2xl border-neutral-300 bg-white ps-9 pe-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+            class="h-10 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white ps-7 sm:ps-9 pe-3 sm:pe-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
           />
         </div>
       </header>
@@ -100,24 +100,24 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
 
       <EmptyState
         v-else-if="!filteredUsers.length"
-        class="mt-8"
+        class="mt-6 sm:mt-8"
         title="No users found"
         description="Try adjusting your search query."
       />
 
       <div
         v-else
-        class="mt-8 overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+        class="mt-6 sm:mt-8 overflow-hidden rounded-xl sm:rounded-3xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="overflow-x-auto">
           <table class="w-full text-start text-sm">
             <thead class="border-b border-neutral-200 bg-neutral-50 text-xs font-bold uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/50 dark:text-neutral-400">
               <tr>
-                <th scope="col" class="px-6 py-4">User</th>
-                <th scope="col" class="px-6 py-4">Email</th>
-                <th scope="col" class="px-6 py-4 text-center">Posts</th>
-                <th scope="col" class="px-6 py-4">Current Role</th>
-                <th scope="col" class="px-6 py-4 text-end">Change Role</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4">User</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4">Email</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4 text-center">Posts</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4">Current Role</th>
+                <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4 text-end">Change Role</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -126,7 +126,7 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
                 :key="user.id"
                 class="transition hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40"
               >
-                <td class="px-6 py-4">
+                <td class="px-4 sm:px-6 py-3 sm:py-4">
                   <div class="flex items-center gap-3">
                     <AppAvatar :src="user.avatar" :name="user.name" size="sm" />
                     <div>
@@ -139,13 +139,13 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 text-neutral-600 dark:text-neutral-300">
+                <td class="px-4 sm:px-6 py-3 sm:py-4 text-neutral-600 dark:text-neutral-300">
                   {{ user.email }}
                 </td>
-                <td class="px-6 py-4 text-center text-neutral-600 dark:text-neutral-300">
+                <td class="px-4 sm:px-6 py-3 sm:py-4 text-center text-neutral-600 dark:text-neutral-300">
                   {{ user.postCount ?? 0 }}
                 </td>
-                <td class="px-6 py-4">
+                <td class="px-4 sm:px-6 py-3 sm:py-4">
                   <AppBadge
                     :variant="user.role === 'admin' ? 'primary' : 'neutral'"
                     class="capitalize"
@@ -153,12 +153,12 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
                     {{ user.role }}
                   </AppBadge>
                 </td>
-                <td class="px-6 py-4 text-end">
+                <td class="px-4 sm:px-6 py-3 sm:py-4 text-end">
                   <select
                     :value="user.role"
                     :disabled="updatingId === user.id"
                     aria-label="Select role"
-                    class="h-9 rounded-xl border-neutral-300 bg-white px-3 text-xs font-semibold text-neutral-800 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:focus:border-primary-500 dark:focus:ring-primary-900"
+                    class="h-9 rounded-lg sm:rounded-xl border-neutral-300 bg-white px-3 text-xs font-semibold text-neutral-800 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:focus:border-primary-500 dark:focus:ring-primary-900"
                     @change="onRoleChange(user, ($event.target as HTMLSelectElement).value as Role)"
                   >
                     <option v-for="r in roles" :key="r" :value="r">

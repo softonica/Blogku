@@ -6,7 +6,7 @@ defineProps<{ posts: Post[] }>()
 </script>
 
 <template>
-  <div v-if="posts.length" class="grid gap-6 lg:grid-cols-3">
+  <div v-if="posts.length" class="grid gap-4 sm:gap-6 lg:grid-cols-3">
     <PostCard
       :post="posts[0]"
       layout="overlay"
@@ -15,7 +15,7 @@ defineProps<{ posts: Post[] }>()
       class="lg:col-span-2"
     />
     <div
-      class="flex h-full flex-col gap-5 rounded-3xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900"
+      class="flex h-full flex-col gap-4 sm:gap-5 rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-5 dark:border-neutral-800 dark:bg-neutral-900"
     >
       <template v-for="(post, index) in posts.slice(1, 4)" :key="post.id">
         <PostCard :post="post" layout="horizontal" />

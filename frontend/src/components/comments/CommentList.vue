@@ -16,7 +16,7 @@ const emit = defineEmits<{ delete: [id: string] }>()
 </script>
 
 <template>
-  <section aria-labelledby="comments-heading">
+  <section id="comments" aria-labelledby="comments-heading">
     <div class="flex items-center justify-between">
       <h2
         id="comments-heading"
@@ -29,16 +29,16 @@ const emit = defineEmits<{ delete: [id: string] }>()
       </h2>
     </div>
 
-    <div v-if="loading" class="mt-6 flex justify-center py-6">
+    <div v-if="loading" class="mt-4 sm:mt-6 flex justify-center py-4 sm:py-6">
       <LoadingSpinner />
     </div>
     <EmptyState
       v-else-if="!comments.length"
-      class="mt-6"
+      class="mt-4 sm:mt-6"
       title="No comments yet"
       description="Be the first to add a thoughtful note to this post."
     />
-    <div v-else class="mt-6 space-y-6">
+    <div v-else class="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
       <CommentItem
         v-for="comment in comments"
         :key="comment.id"

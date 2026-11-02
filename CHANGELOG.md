@@ -5,6 +5,107 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-01] — Mobile compact layout (spacing & dedup)
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- Task 1: sweep mekanis kelas Tailwind pada 57 file `frontend/src/**/*.vue` — padding/margin/gap/radius diturunkan di mobile (<640px), nilai desktop asli dipertahankan via `sm:` (base=mobile, `sm:`=desktop). Aturan: spacing 4-10 turun 1 langkah; rounded-3xl/2xl/xl/[2rem]/[1.5rem] → rounded-xl/lg; `rounded-full` & spacing <4 & token negatif tidak disentuh; aturan same-string `sm:` mencegah duplikasi `sm:`.
+- Task 2: PostPage — counter komentar (MessageCircle + formatNumber(post.commentCount)) ditambahkan di action row sebelum tombol Share (semua layar, scroll ke #comments); blok duplikat disembunyikan di mobile (sidebar magazine `hidden lg:block`; kartu "Written by" `hidden sm:flex`); `id="comments"` di CommentList.
+- Task 3: dedup halaman lain — ProfilePage (badge role hidden di mobile), DashboardPage (count duplikat di tab/widget hidden di mobile).
+- Task 4: dokumentasi `docs/features/19-mobile-compact-layout.md` + indeks `docs/README.md`.
+
+### Why
+- Permintaan pengguna: layout mobile lebih compact & hemat space; aturan "1 info tidak boleh tampil 2x" di mobile.
+
+### How it was verified
+- `npm run typecheck` → lulus.
+- `npm run lint` → bersih.
+- `npm run test` → 150/150 passed.
+- `npm run build` → sukses.
+
+### Handover notes
+- Desktop (`sm:`+) tidak berubah; verifikasi visual manual 375px vs ≥640px masih direkomendasikan.
+- WIP user (`CHANGELOG.md`, PostImage/EditorPage/ProfilePage, mock.source) tidak disentuh/ikut ter-commit; seluruh perubahan ada di working tree (belum di-commit).
+- CHANGELOG.md berisi WIP user sebelumnya — jangan di-commit bersama (hanya append).
+
+## [2026-11-01] — Mobile compact layout Task 3: dedup survey halaman lain
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/pages/ProfilePage.vue` — badge role pada header profil disembunyikan di mobile (`hidden sm:inline-flex`, baris 279); role tetap tampil sekali lewat kartu "Your Role" di bawahnya.
+- `frontend/src/pages/DashboardPage.vue` — angka duplikat disembunyikan di mobile saja:
+  - count tab "Published (N)" → "Published" (baris 205),
+  - count tab "Drafts (N)" → "Drafts" (baris 219),
+  - count widget samping "Local drafts" (baris 273);
+  ketiga angka masih tampil sekali di kartu statistik atas (Published posts / Drafts / Local drafts).
+
+### Why
+- Task 3 SDD `2026-11-01-mobile-compact-layout`: survey & perbaiki info duplikat literal di mobile di semua halaman selain PostPage. Hasil survey: hanya ProfilePage dan DashboardPage punya duplikat valid; halaman lain dibiarkan tidak berubah.
+
+### How it was verified
+- `npm run typecheck` → lulus.
+- `npm run lint` → bersih tanpa error.
+- `npm run test` → 150/150 passed.
+- `npm run build` → vite build sukses.
+
+### Handover notes
+- Tidak ada perubahan tata letak desktop (`sm:`+); hanya blok sekunder yang disembunyikan di mobile.
+- AdminDashboardPage menampilkan KPI ganda (metric cards vs content board vs editorial reach) — dinilai desain dashboard multi-view yang disengaja, dicatat sebagai concern di laporan task-3, tidak diubah.
+- Task 1 & 2 belum memiliki entri CHANGELOG sendiri (entri gabungan sesuai plan bisa dibuat saat semua task tuntas diverifikasi).
+
+## [2026-10-31] — Hapus clone global `~/.superpowers`
+**Author**: AI Agent (opencode) · **Role**: DevOps · **Status**: Done
+
+### What changed
+- Menghapus direktori global `~/.superpowers` (clone lama milik plugin lokal yang sudah dihapus). Di luar repo, tidak memengaruhi git.
+
+### Why
+- Tidak ada lagi yang merujuk direktori tersebut; plugin resmi memakai paket ter-cache di `~/.cache/opencode/packages/`.
+
+### How it was verified
+- `Test-Path ~/.superpowers` → `False`.
+- `opencode debug skill` (workdir repo) → 32 skill unik; `using-superpowers` masih terdaftar.
+
+### Handover notes
+- Tidak ada aksi lanjutan; skill Superpowers berasal dari plugin resmi (git spec di `opencode.jsonc`).
+
+## [2026-10-31] — Remove legacy local Superpowers plugin
+**Author**: AI Agent (opencode) · **Role**: DevOps · **Status**: Done
+
+### What changed
+- Menghapus `.opencode/plugins/superpower/` (plugin lokal lama, tidak ter-track git karena `.opencode/` di-ignore).
+- `opencode.jsonc` — array `plugin` kini hanya berisi `superpowers@git+https://github.com/obra/superpowers.git`.
+
+### Why
+- Plugin lokal lama tidak mendaftarkan skill apa pun di OpenCode 1.18.21 (ditulis untuk harness lain) dan hanya menyisakan kebingungan; plugin resmi sudah mencakup fungsinya.
+
+### How it was verified
+- `opencode debug config` (workdir repo) → `plugin` hanya satu entri resmi, ter-resolve.
+- `opencode debug skill` (workdir repo) → 32 skill unik, 0 duplikasi; skill Superpowers tetap terdaftar.
+- `Test-Path .opencode/plugins/superpower` → `False`.
+
+### Handover notes
+- Clone lama di `~/.superpowers` (global, di luar repo) tidak dihapus — aman dibiarkan; hapus manual jika tidak dipakai tooling lain.
+- Restart OpenCode agar sesi baru memuat konfigurasi plugin terbaru.
+
+## [2026-10-31] — Install Superpowers plugin (project-scoped)
+**Author**: AI Agent (opencode) · **Role**: DevOps · **Status**: Done
+
+### What changed
+- `opencode.jsonc` — menambahkan `superpowers@git+https://github.com/obra/superpowers.git` ke array `plugin`, di samping plugin lokal lama `.opencode/plugins/superpower/index.ts`.
+- Tidak ada perubahan kode aplikasi (`frontend/`, `backend/`).
+
+### Why
+- Agar skills Superpowers resmi (brainstorming, writing-plans, TDD, systematic-debugging, verification-before-completion, dll.) otomatis tersedia setiap repo ini dibuka di OpenCode, tanpa bergantung pada konfigurasi global mesin.
+
+### How it was verified
+- `opencode debug config` (workdir repo) → `plugin` berisi dua entri: spec git Superpowers + plugin lokal; keduanya ter-resolve.
+- `opencode debug skill` (workdir repo) → 32 skill unik, 0 duplikasi; skill Superpowers ikut terdaftar.
+
+### Handover notes
+- Plugin lokal lama `.opencode/plugins/superpower/index.ts` (clone `~/.superpowers`, register nama `superpowers/<skill>`) tidak terlihat mendaftarkan skill apa pun di OpenCode 1.18.21 — kemungkinan ditulis untuk harness lain. Belum dihapus; perlu keputusan tim apakah dibuang agar tidak membingungkan.
+- Restart OpenCode setelah perubahan config agar sesi baru memuat plugin.
+
 ## [2026-10-31] — Media orphan detection & cleanup (refCount)
 **Author**: AI Agent (opencode) · **Role**: Backend/Dev/QA · **Status**: Done
 
@@ -199,6 +300,41 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
   berubah untuk fitur ini).
 - Hapus media dengan referensi aktif diperbolehkan dengan peringatan (keputusan
   admin); varian yang tertinggal bisa dibersihkan lewat fitur orphan (18).
+
+## [2026-10-31] — Avatar inisial (tanpa preset) + placeholder "No image" di listing
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/pages/ProfilePage.vue` - hapus seluruh preset avatar image
+  (`avatarOptions`); default avatar kosong → inisial nama otomatis (max 2
+  huruf, mis. "Eko Siswanto" → "ES"). Tombol **Pakai inisial** untuk
+  mengosongkan foto; input URL eksternal tetap ada.
+- `frontend/src/components/ui/PostImage.vue` - saat `src` kosong render
+  placeholder default thumbnail: ikon + teks **"No image"** (gradien netral,
+  dark mode aman). Semua listing (PostCard vertical/horizontal/overlay, Hero,
+  Video/Podcast/Categories section, CategoryPage, Editor preview) otomatis
+  memakainya karena lewat komponen ini.
+- `frontend/src/pages/EditorPage.vue` - hapus default cover sample
+  (`sampleCovers`, tombol "Random sample"); draft tanpa cover di-restore
+  kosong.
+- `frontend/src/api/mock.source.ts` - `createPost` tidak lagi menyisipkan
+  cover default (pexels); cover kosong dibiarkan kosong.
+- Test: `PostImage.test.ts` (baru, mount vue-test-utils: img vs placeholder),
+  `mock.source.test.ts` (post tanpa cover → `cover === ''`).
+
+### Why
+- Permintaan pengguna: ganti avatar preset dengan inisial nicename; hilangkan
+  default image post, ganti thumbnail icon + state "no image" di card listing.
+
+### How it was verified
+- `npm run typecheck` → lulus; `npm run lint` → bersih.
+- `npm run test` → 16 files / 150 tests passed (sebelumnya 147).
+- `npm run build` → sukses.
+
+### Handover notes
+- Belum di-deploy / di-commit; backend tidak berubah (frontend-only).
+- Data avatar lama (URL) tetap tersimpan & tampil; hanya preset dan default
+  kosong yang berubah perilakunya.
 
 ## [2026-10-27] — Deploy v0.0.3-alpha (media) ke server 64 + Cloudflare Pages
 **Author**: AI Agent (opencode) · **Role**: DevOps/QA · **Status**: Done

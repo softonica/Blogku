@@ -37,7 +37,7 @@ const postLink = computed(() => `/post/${props.post.slug}`)
 <template>
   <article
     v-if="layout === 'vertical'"
-    class="group flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-card dark:border-neutral-800 dark:bg-neutral-900"
+    class="group flex h-full flex-col overflow-hidden rounded-xl sm:rounded-3xl border border-neutral-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-card dark:border-neutral-800 dark:bg-neutral-900"
   >
     <div class="relative">
       <RouterLink :to="postLink" class="block" tabindex="-1">
@@ -67,7 +67,7 @@ const postLink = computed(() => `/post/${props.post.slug}`)
         <SaveButton :post-id="post.id" :post-title="post.title" />
       </div>
     </div>
-    <div class="flex flex-1 flex-col gap-3 p-5">
+    <div class="flex flex-1 flex-col gap-3 p-4 sm:p-5">
       <PostMeta :author="post.author" :date="post.createdAt" />
       <h3
         class="text-base font-semibold leading-snug text-neutral-900 dark:text-neutral-100"
@@ -99,12 +99,12 @@ const postLink = computed(() => `/post/${props.post.slug}`)
 
   <article
     v-else-if="layout === 'horizontal'"
-    class="group flex gap-4"
+    class="group flex gap-3 sm:gap-4"
     :class="showStats ? 'items-start' : ''"
   >
     <RouterLink
       :to="postLink"
-      class="relative w-28 shrink-0 overflow-hidden rounded-2xl sm:w-36"
+      class="relative w-28 shrink-0 overflow-hidden rounded-lg sm:rounded-2xl sm:w-36"
       tabindex="-1"
     >
       <PostImage
@@ -148,7 +148,7 @@ const postLink = computed(() => `/post/${props.post.slug}`)
 
   <article
     v-else-if="layout === 'card5'"
-    class="nc-Card5 group relative flex flex-col justify-between rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-2xl transition duration-300 hover:-translate-y-1 hover:shadow-card dark:border-neutral-700/80 dark:bg-neutral-800"
+    class="nc-Card5 group relative flex flex-col justify-between rounded-xl sm:rounded-3xl border border-neutral-200/80 bg-white p-4 sm:p-5 shadow-2xl transition duration-300 hover:-translate-y-1 hover:shadow-card dark:border-neutral-700/80 dark:bg-neutral-800"
   >
     <div class="flex flex-col">
       <div class="flex items-center justify-between gap-2">
@@ -164,7 +164,7 @@ const postLink = computed(() => `/post/${props.post.slug}`)
         </RouterLink>
       </h3>
     </div>
-    <div class="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-700/60">
+    <div class="mt-3 sm:mt-4 flex items-center justify-between border-t border-neutral-100 pt-3 sm:pt-4 dark:border-neutral-700/60">
       <div class="flex items-center gap-2.5">
         <AppAvatar :src="post.author.avatar" :name="post.author.name" size="sm" />
         <div class="text-xs">
@@ -183,7 +183,7 @@ const postLink = computed(() => `/post/${props.post.slug}`)
     </div>
   </article>
 
-  <article v-else class="group relative overflow-hidden rounded-3xl">
+  <article v-else class="group relative overflow-hidden rounded-xl sm:rounded-3xl">
     <RouterLink :to="postLink" class="absolute inset-0 z-10">
       <span class="sr-only">{{ post.title }}</span>
     </RouterLink>

@@ -100,13 +100,6 @@ const publishing = ref(false)
 const pageTitle = ref('New submission')
 useDocumentTitle(pageTitle)
 
-const sampleCovers = [
-  'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80',
-]
-
 const uploadingCover = ref(false)
 const allowedDomains = ref<string[]>([...DEFAULT_ALLOWED_IMAGE_DOMAINS])
 
@@ -176,7 +169,7 @@ onMounted(async () => {
       postStyle.value = existingDraft.value.postStyle || 'style1'
       videoUrl.value = existingDraft.value.videoUrl || ''
       audioUrl.value = existingDraft.value.audioUrl || ''
-      cover.value = existingDraft.value.cover || sampleCovers[0]
+      cover.value = existingDraft.value.cover || ''
       selectedCategoryIds.value = existingDraft.value.categoryIds || []
       selectedTagIds.value = existingDraft.value.tagIds || []
       pageTitle.value = `Draft: ${existingDraft.value.title || 'Untitled'}`
@@ -509,7 +502,7 @@ async function publishStory(): Promise<void> {
             <!-- Save Draft Button -->
             <button
               type="button"
-              class="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              class="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 sm:px-4 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
               @click="saveLocalDraft"
             >
               <Save class="h-3.5 w-3.5" />
@@ -539,17 +532,17 @@ async function publishStory(): Promise<void> {
       </div>
 
       <!-- Main Canvas Container -->
-      <main class="mx-auto max-w-4xl px-4 sm:px-6 pt-10 sm:pt-14 space-y-8">
+      <main class="mx-auto max-w-4xl px-4 sm:px-6 pt-6 sm:pt-14 space-y-4 sm:space-y-8">
         <!-- Error alert banner -->
         <div
           v-if="error"
-          class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
+          class="rounded-lg sm:rounded-2xl border border-rose-200 bg-rose-50 p-3 sm:p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
         >
           {{ error }}
         </div>
 
         <!-- Write Tab -->
-        <div v-show="tab === 'write'" class="space-y-6">
+        <div v-show="tab === 'write'" class="space-y-4 sm:space-y-6">
           <!-- Title Input (Document Style) -->
           <div>
             <textarea
@@ -569,7 +562,7 @@ async function publishStory(): Promise<void> {
           </div>
 
           <!-- Interactive Tags Bar -->
-          <div class="flex flex-wrap items-center gap-2 border-b border-neutral-100 pb-4 dark:border-neutral-800">
+          <div class="flex flex-wrap items-center gap-2 border-b border-neutral-100 pb-3 sm:pb-4 dark:border-neutral-800">
             <span
               v-for="tagId in selectedTagIds"
               :key="tagId"
@@ -611,8 +604,8 @@ async function publishStory(): Promise<void> {
           </div>
 
           <!-- Cover Image Widget / Banner -->
-          <div class="relative overflow-hidden rounded-3xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 p-4 dark:bg-neutral-900/30">
-            <div v-if="cover" class="relative aspect-[16/8] sm:aspect-[16/7] w-full overflow-hidden rounded-2xl bg-neutral-950 mb-3">
+          <div class="relative overflow-hidden rounded-xl sm:rounded-3xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 p-3 sm:p-4 dark:bg-neutral-900/30">
+            <div v-if="cover" class="relative aspect-[16/8] sm:aspect-[16/7] w-full overflow-hidden rounded-lg sm:rounded-2xl bg-neutral-950 mb-3">
               <PostImage :src="cover" :alt="title || 'Cover image'" aspect="h-full w-full object-cover" />
               <button
                 type="button"
@@ -627,7 +620,7 @@ async function publishStory(): Promise<void> {
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div class="flex items-center gap-2">
                 <label
-                  class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-white px-4 text-xs font-semibold text-neutral-700 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700"
+                  class="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-white px-3 sm:px-4 text-xs font-semibold text-neutral-700 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700"
                 >
                   <Upload class="h-3.5 w-3.5" />
                   <span>{{ uploadingCover ? 'Uploading…' : cover ? 'Change image' : 'Upload feature image' }}</span>
@@ -639,15 +632,6 @@ async function publishStory(): Promise<void> {
                     @change="onCoverUpload"
                   />
                 </label>
-
-                <!-- Sample covers picker -->
-                <button
-                  type="button"
-                  class="text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-white"
-                  @click="cover = sampleCovers[Math.floor(Math.random() * sampleCovers.length)]"
-                >
-                  Random sample
-                </button>
               </div>
 
               <span class="text-[11px] text-neutral-400">
@@ -663,8 +647,8 @@ async function publishStory(): Promise<void> {
         </div>
 
         <!-- Preview Tab -->
-        <div v-show="tab === 'preview'" class="space-y-6">
-          <div class="border-b border-neutral-200 pb-6 dark:border-neutral-800">
+        <div v-show="tab === 'preview'" class="space-y-4 sm:space-y-6">
+          <div class="border-b border-neutral-200 pb-4 sm:pb-6 dark:border-neutral-800">
             <div class="mb-3 flex flex-wrap gap-2">
               <span
                 v-for="catId in selectedCategoryIds"
@@ -677,12 +661,12 @@ async function publishStory(): Promise<void> {
             <h1 class="text-3xl font-bold text-neutral-900 sm:text-5xl dark:text-white leading-tight">
               {{ title || 'Untitled Post' }}
             </h1>
-            <p v-if="excerpt" class="mt-4 text-base text-neutral-500 dark:text-neutral-300 leading-relaxed">
+            <p v-if="excerpt" class="mt-3 sm:mt-4 text-base text-neutral-500 dark:text-neutral-300 leading-relaxed">
               {{ excerpt }}
             </p>
           </div>
 
-          <div v-if="cover" class="aspect-[16/8] overflow-hidden rounded-3xl bg-neutral-900">
+          <div v-if="cover" class="aspect-[16/8] overflow-hidden rounded-xl sm:rounded-3xl bg-neutral-900">
             <PostImage :src="cover" :alt="title" aspect="h-full w-full object-cover" />
           </div>
 
@@ -693,14 +677,14 @@ async function publishStory(): Promise<void> {
       <!-- Post Options Modal (Matching Ncmaz Faust "Post options" dialog) -->
       <div
         v-if="showOptionsModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs"
         @click.self="showOptionsModal = false"
       >
         <div
-          class="relative w-full max-w-lg overflow-hidden rounded-[32px] bg-white p-6 shadow-2xl dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 max-h-[90vh] flex flex-col"
+          class="relative w-full max-w-lg overflow-hidden rounded-[32px] bg-white p-4 sm:p-6 shadow-2xl dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 max-h-[90vh] flex flex-col"
         >
           <!-- Header -->
-          <div class="flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-neutral-800">
+          <div class="flex items-center justify-between border-b border-neutral-100 pb-3 sm:pb-4 dark:border-neutral-800">
             <h3 class="text-lg font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
               <SlidersHorizontal class="h-4 w-4 text-primary-600" />
               <span>Post options</span>
@@ -715,7 +699,7 @@ async function publishStory(): Promise<void> {
           </div>
 
           <!-- Body -->
-          <div class="overflow-y-auto space-y-5 py-4 pe-1">
+          <div class="overflow-y-auto space-y-4 sm:space-y-5 py-3 sm:py-4 pe-1">
             <!-- Post Format -->
             <div>
               <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
@@ -725,7 +709,7 @@ async function publishStory(): Promise<void> {
                 <button
                   type="button"
                   :class="[
-                    'flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-xs font-semibold transition',
+                    'flex flex-col items-center gap-1.5 rounded-lg sm:rounded-2xl border p-3 text-xs font-semibold transition',
                     postType === 'standard'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-500 dark:bg-primary-950/60 dark:text-primary-300'
                       : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800',
@@ -738,7 +722,7 @@ async function publishStory(): Promise<void> {
                 <button
                   type="button"
                   :class="[
-                    'flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-xs font-semibold transition',
+                    'flex flex-col items-center gap-1.5 rounded-lg sm:rounded-2xl border p-3 text-xs font-semibold transition',
                     postType === 'video'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-500 dark:bg-primary-950/60 dark:text-primary-300'
                       : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800',
@@ -751,7 +735,7 @@ async function publishStory(): Promise<void> {
                 <button
                   type="button"
                   :class="[
-                    'flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-xs font-semibold transition',
+                    'flex flex-col items-center gap-1.5 rounded-lg sm:rounded-2xl border p-3 text-xs font-semibold transition',
                     postType === 'audio'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-500 dark:bg-primary-950/60 dark:text-primary-300'
                       : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800',
@@ -764,7 +748,7 @@ async function publishStory(): Promise<void> {
                 <button
                   type="button"
                   :class="[
-                    'flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-xs font-semibold transition',
+                    'flex flex-col items-center gap-1.5 rounded-lg sm:rounded-2xl border p-3 text-xs font-semibold transition',
                     postType === 'gallery'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-500 dark:bg-primary-950/60 dark:text-primary-300'
                       : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800',
@@ -791,7 +775,7 @@ async function publishStory(): Promise<void> {
                   :key="s"
                   type="button"
                   :class="[
-                    'rounded-xl border py-2 text-xs font-semibold capitalize transition',
+                    'rounded-lg sm:rounded-xl border py-2 text-xs font-semibold capitalize transition',
                     postStyle === s
                       ? 'border-primary-600 bg-primary-50 text-primary-700 dark:border-primary-500 dark:bg-primary-950 dark:text-primary-300'
                       : 'border-neutral-200 text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800',
@@ -812,7 +796,7 @@ async function publishStory(): Promise<void> {
                 v-model="videoUrl"
                 type="url"
                 placeholder="https://www.youtube.com/watch?v=..."
-                class="h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                class="h-10 w-full rounded-lg sm:rounded-xl border border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
               />
             </div>
 
@@ -825,7 +809,7 @@ async function publishStory(): Promise<void> {
                 v-model="audioUrl"
                 type="url"
                 placeholder="https://example.com/audio.mp3"
-                class="h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                class="h-10 w-full rounded-lg sm:rounded-xl border border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
               />
             </div>
 
@@ -909,7 +893,7 @@ async function publishStory(): Promise<void> {
                 rows="2"
                 maxlength="300"
                 placeholder="Brief summary for social cards and previews…"
-                class="w-full rounded-xl border border-neutral-300 bg-white p-2.5 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                class="w-full rounded-lg sm:rounded-xl border border-neutral-300 bg-white p-2.5 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
               ></textarea>
             </div>
 
@@ -921,7 +905,7 @@ async function publishStory(): Promise<void> {
               <input
                 v-model="scheduleTime"
                 type="datetime-local"
-                class="h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                class="h-10 w-full rounded-lg sm:rounded-xl border border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
               />
             </div>
 
@@ -947,7 +931,7 @@ async function publishStory(): Promise<void> {
           </div>
 
           <!-- Footer -->
-          <div class="flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-800">
+          <div class="flex items-center justify-between border-t border-neutral-100 pt-3 sm:pt-4 dark:border-neutral-800">
             <button
               type="button"
               class="text-xs font-semibold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-white"
@@ -957,7 +941,7 @@ async function publishStory(): Promise<void> {
             </button>
             <button
               type="button"
-              class="rounded-full bg-primary-600 px-5 py-2 text-xs font-semibold text-white hover:bg-primary-700 transition"
+              class="rounded-full bg-primary-600 px-4 sm:px-5 py-2 text-xs font-semibold text-white hover:bg-primary-700 transition"
               @click="applyPostOptions"
             >
               Apply

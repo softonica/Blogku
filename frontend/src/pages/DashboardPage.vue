@@ -122,8 +122,8 @@ async function deletePost(id: string): Promise<void> {
 
 <template>
   <div class="page-shell pb-20">
-    <header class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-      <div class="flex items-center gap-4">
+    <header class="flex flex-col gap-4 sm:gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-3 sm:gap-4">
         <AppAvatar
           :src="auth.user?.avatar"
           :name="auth.user?.name ?? 'User'"
@@ -153,11 +153,11 @@ async function deletePost(id: string): Promise<void> {
       </div>
     </header>
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="mt-6 sm:mt-8 grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <div
         v-for="stat in stats"
         :key="stat.label"
-        class="rounded-3xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900"
+        class="rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-5 dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="flex items-center justify-between">
           <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
@@ -171,7 +171,7 @@ async function deletePost(id: string): Promise<void> {
       </div>
     </div>
 
-    <div class="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div class="mt-8 sm:mt-10 grid gap-6 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <section>
         <div class="flex items-end justify-between">
           <h2 class="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
@@ -186,7 +186,7 @@ async function deletePost(id: string): Promise<void> {
         </div>
 
         <div
-          class="mt-4 inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 p-1 dark:border-neutral-800 dark:bg-neutral-950"
+          class="mt-3 sm:mt-4 inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 p-1 dark:border-neutral-800 dark:bg-neutral-950"
           role="tablist"
           aria-label="Post status"
         >
@@ -195,28 +195,28 @@ async function deletePost(id: string): Promise<void> {
             role="tab"
             :aria-selected="activeTab === 'published'"
             :class="[
-              'whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-semibold transition',
+              'whitespace-nowrap rounded-full px-3 sm:px-4 py-1.5 text-xs font-semibold transition',
               activeTab === 'published'
                 ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
             ]"
             @click="activeTab = 'published'"
           >
-            Published ({{ publishedPosts.length }})
+            Published <span class="hidden sm:inline-flex">({{ publishedPosts.length }})</span>
           </button>
           <button
             type="button"
             role="tab"
             :aria-selected="activeTab === 'draft'"
             :class="[
-              'whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-semibold transition',
+              'whitespace-nowrap rounded-full px-3 sm:px-4 py-1.5 text-xs font-semibold transition',
               activeTab === 'draft'
                 ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
             ]"
             @click="activeTab = 'draft'"
           >
-            Drafts ({{ draftPosts.length }})
+            Drafts <span class="hidden sm:inline-flex">({{ draftPosts.length }})</span>
           </button>
         </div>
 
@@ -225,7 +225,7 @@ async function deletePost(id: string): Promise<void> {
         </div>
         <EmptyState
           v-else-if="!posts.length"
-          class="mt-5"
+          class="mt-4 sm:mt-5"
           :title="activeTab === 'published' ? 'No published posts' : 'No drafts'"
           :description="
             activeTab === 'published'
@@ -235,7 +235,7 @@ async function deletePost(id: string): Promise<void> {
         >
           <BaseButton to="/editor" size="sm">Write a draft</BaseButton>
         </EmptyState>
-        <div v-else class="mt-5 grid gap-6 sm:grid-cols-2">
+        <div v-else class="mt-4 sm:mt-5 grid gap-4 sm:gap-6 sm:grid-cols-2">
           <div v-for="post in posts" :key="post.id" class="flex flex-col">
             <div class="flex-1">
               <PostCard :post="post" />
@@ -264,25 +264,25 @@ async function deletePost(id: string): Promise<void> {
         </div>
       </section>
 
-      <aside class="space-y-6">
-        <div class="rounded-3xl border border-neutral-200 p-6 dark:border-neutral-800">
+      <aside class="space-y-4 sm:space-y-6">
+        <div class="rounded-xl sm:rounded-3xl border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <div class="flex items-center justify-between">
             <h2 class="text-sm font-bold uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">
               Local drafts
             </h2>
-            <span class="text-xs font-semibold text-neutral-400">{{ drafts.count }}</span>
+            <span class="hidden sm:inline-flex text-xs font-semibold text-neutral-400">{{ drafts.count }}</span>
           </div>
           <p
             v-if="!drafts.count"
-            class="mt-4 text-sm text-neutral-500 dark:text-neutral-400"
+            class="mt-3 sm:mt-4 text-sm text-neutral-500 dark:text-neutral-400"
           >
             Nothing saved locally yet. Drafts never leave this browser.
           </p>
-          <ul v-else class="mt-4 space-y-3">
+          <ul v-else class="mt-3 sm:mt-4 space-y-3">
             <li
               v-for="draft in drafts.drafts"
               :key="draft.id"
-              class="rounded-2xl border border-neutral-100 p-3 dark:border-neutral-800"
+              class="rounded-lg sm:rounded-2xl border border-neutral-100 p-3 dark:border-neutral-800"
             >
               <RouterLink
                 :to="{ name: 'editor', query: { draft: draft.id } }"
@@ -307,7 +307,7 @@ async function deletePost(id: string): Promise<void> {
           </ul>
         </div>
 
-        <div class="rounded-3xl bg-neutral-900 p-6 text-white">
+        <div class="rounded-xl sm:rounded-3xl bg-neutral-900 p-4 sm:p-6 text-white">
           <h2 class="text-sm font-bold uppercase tracking-[0.18em] text-neutral-400">
             Backend-backed content
           </h2>

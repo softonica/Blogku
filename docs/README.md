@@ -41,6 +41,7 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **16** | **Client-Side Image Processing (WebP multi-variant)** | ✅ Implemented | [16-client-side-image-processing.md](./features/16-client-side-image-processing.md) |
 | **17** | **Media Library (grouped Year > Month)** | ✅ Implemented | [17-media-library-year-month.md](./features/17-media-library-year-month.md) |
 | **18** | **Media Orphan Detection & Cleanup (refCount)** | ✅ Implemented | [18-media-orphan-cleanup.md](./features/18-media-orphan-cleanup.md) |
+| **19** | **Mobile Compact Layout (Spacing & Dedup)** | ✅ Implemented | [19-mobile-compact-layout.md](./features/19-mobile-compact-layout.md) |
 
 ---
 
