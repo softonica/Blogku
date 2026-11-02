@@ -25,8 +25,23 @@ var (
 	slugRe = regexp.MustCompile(`[^a-z0-9]+`)
 	htmlRe = regexp.MustCompile(`<[^>]*>`)
 	// HTML allowlist policy for post content / static page body.
-	sanitizer = bluemonday.UGCPolicy()
+	sanitizer = newSanitizer()
 )
+
+// newSanitizer builds the UGC policy plus the narrow set of inline styles
+// emitted by the Tiptap editor for tables (sizing and alignment). Arbitrary
+// CSS stays blocked.
+func newSanitizer() *bluemonday.Policy {
+	cssLength := regexp.MustCompile(`^\d+(?:\.\d+)?(?:px|%|em|rem|pt|vw|ch)$`)
+	cssTextAlign := regexp.MustCompile(`(?i)^(?:left|right|center|justify|start|end)$`)
+
+	p := bluemonday.UGCPolicy()
+	p.AllowAttrs("style").OnElements("table", "colgroup", "col", "thead", "tbody", "tfoot", "tr", "th", "td", "p", "h2", "h3")
+	p.AllowStyles("text-align").Matching(cssTextAlign).OnElements("table", "thead", "tbody", "tfoot", "tr", "th", "td", "p", "h2", "h3")
+	p.AllowStyles("vertical-align").MatchingEnum("top", "middle", "bottom", "baseline").OnElements("th", "td")
+	p.AllowStyles("width", "min-width", "max-width").Matching(cssLength).OnElements("table", "colgroup", "col", "th", "td")
+	return p
+}
 
 const (
 	roleAdmin       = "admin"
@@ -700,9 +715,9 @@ func seedUsers(app core.App) error {
 		},
 		{
 			username: "demo", email: "demo@blogku.com", name: "Jenny Wilson", role: rolePenulis,
-			password: envOr("SEED_AUTHOR_PASSWORD", "demo12345"),
-			avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80",
-			bio: "Immerse yourself in the world of literature with our curated collection of books. From bestsellers to hidden gems, our assortment caters to a variety of interests.",
+			password:    envOr("SEED_AUTHOR_PASSWORD", "demo12345"),
+			avatar:      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80",
+			bio:         "Immerse yourself in the world of literature with our curated collection of books. From bestsellers to hidden gems, our assortment caters to a variety of interests.",
 			coverBanner: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
 			socials: map[string]string{
 				"facebook": "https://www.facebook.com/", "youtube": "https://www.youtube.com/",

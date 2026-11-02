@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { onClickOutside } from '@vueuse/core'
 import type { Editor } from '@tiptap/vue-3'
 import { useEditorSettingsStore } from '@/stores/editor-settings'
 import {
@@ -48,6 +49,35 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
 const emojiOpen = ref(false)
 
+const TABLE_MAX = 8
+const tableMenuRef = ref<HTMLElement | null>(null)
+const tableMenuOpen = ref(false)
+const hoveredRows = ref(3)
+const hoveredCols = ref(3)
+const tableCells = Array.from({ length: TABLE_MAX * TABLE_MAX }, (_, index) => index)
+
+onClickOutside(tableMenuRef, () => {
+  tableMenuOpen.value = false
+})
+
+function tableRowFor(index: number): number {
+  return Math.floor(index / TABLE_MAX) + 1
+}
+
+function tableColFor(index: number): number {
+  return (index % TABLE_MAX) + 1
+}
+
+function setTableHover(index: number): void {
+  hoveredRows.value = tableRowFor(index)
+  hoveredCols.value = tableColFor(index)
+}
+
+function resetTableHover(): void {
+  hoveredRows.value = 3
+  hoveredCols.value = 3
+}
+
 const emojis = [
   '😀', '😂', '😍', '👍', '🎉', '🔥', '❤️', '✨',
   '🚀', '👏', '🤔', '😅', '🙏', '💡', '🌟', '🥳',
@@ -80,18 +110,56 @@ function setAlign(align: 'left' | 'center' | 'right'): void {
   props.editor.chain().focus().setTextAlign(align).run()
 }
 
-function insertTable(): void {
+function insertTable(rows: number, cols: number): void {
   if (!props.editor) return
-  props.editor
-    .chain()
-    .focus()
-    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-    .run()
+  props.editor.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run()
+  tableMenuOpen.value = false
 }
 
-function deleteTable(): void {
+function insertTableFromIndex(index: number): void {
+  insertTable(tableRowFor(index), tableColFor(index))
+}
+
+function tableCommand(
+  command:
+    | 'addRowBefore'
+    | 'addRowAfter'
+    | 'deleteRow'
+    | 'toggleHeaderRow'
+    | 'addColumnBefore'
+    | 'addColumnAfter'
+    | 'deleteColumn'
+    | 'deleteTable',
+): void {
   if (!props.editor) return
-  props.editor.chain().focus().deleteTable().run()
+  const chain = props.editor.chain().focus()
+  switch (command) {
+    case 'addRowBefore':
+      chain.addRowBefore().run()
+      break
+    case 'addRowAfter':
+      chain.addRowAfter().run()
+      break
+    case 'deleteRow':
+      chain.deleteRow().run()
+      break
+    case 'toggleHeaderRow':
+      chain.toggleHeaderRow().run()
+      break
+    case 'addColumnBefore':
+      chain.addColumnBefore().run()
+      break
+    case 'addColumnAfter':
+      chain.addColumnAfter().run()
+      break
+    case 'deleteColumn':
+      chain.deleteColumn().run()
+      break
+    case 'deleteTable':
+      chain.deleteTable().run()
+      tableMenuOpen.value = false
+      break
+  }
 }
 
 async function insertImageUrl(): Promise<void> {
@@ -402,26 +470,98 @@ async function onFileSelected(event: Event): Promise<void> {
 
     <template v-if="editorSettings.settings.showTable">
       <span class="toolbar-divider" />
-      <button
-        v-if="!editor.isActive('table')"
-        type="button"
-        title="Insert Table"
-        aria-label="Insert Table"
-        class="toolbar-btn"
-        @click="insertTable"
-      >
-        <Table class="h-4 w-4" aria-hidden="true" />
-      </button>
-      <button
-        v-else
-        type="button"
-        title="Delete Table"
-        aria-label="Delete Table"
-        class="toolbar-btn"
-        @click="deleteTable"
-      >
-        <Trash2 class="h-4 w-4 text-rose-500" aria-hidden="true" />
-      </button>
+      <div ref="tableMenuRef" class="relative">
+        <button
+          type="button"
+          title="Table"
+          aria-label="Table"
+          aria-haspopup="menu"
+          :aria-expanded="tableMenuOpen"
+          class="toolbar-btn"
+          :class="{ 'is-active': tableMenuOpen || editor.isActive('table') }"
+          @click="tableMenuOpen = !tableMenuOpen"
+        >
+          <Table class="h-4 w-4" aria-hidden="true" />
+        </button>
+
+        <div
+          v-if="tableMenuOpen"
+          class="absolute end-0 top-full z-20 mt-2 w-64 rounded-lg sm:rounded-2xl border border-neutral-200 bg-white p-3 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
+          role="menu"
+        >
+          <div class="mb-2 flex items-center justify-between gap-2">
+            <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-200">Insert table</span>
+            <span class="text-xs font-medium text-primary-600 dark:text-primary-400">
+              {{ hoveredRows }} × {{ hoveredCols }}
+            </span>
+          </div>
+
+          <div
+            class="grid grid-cols-8 gap-1"
+            @mouseleave="resetTableHover"
+          >
+            <button
+              v-for="cell in tableCells"
+              :key="cell"
+              type="button"
+              :title="`${tableRowFor(cell)} rows × ${tableColFor(cell)} columns`"
+              :aria-label="`Insert ${tableRowFor(cell)} rows by ${tableColFor(cell)} columns table`"
+              class="h-5 w-5 rounded border transition"
+              :class="
+                tableRowFor(cell) <= hoveredRows && tableColFor(cell) <= hoveredCols
+                  ? 'border-primary-500 bg-primary-500'
+                  : 'border-neutral-300 bg-neutral-50 hover:border-primary-300 dark:border-neutral-700 dark:bg-neutral-800'
+              "
+              @mouseenter="setTableHover(cell)"
+              @focus="setTableHover(cell)"
+              @click="insertTableFromIndex(cell)"
+            />
+          </div>
+
+          <div v-if="editor.isActive('table')" class="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-800">
+            <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+              Rows
+            </p>
+            <div class="grid grid-cols-2 gap-1">
+              <button type="button" class="table-menu-btn" @click="tableCommand('addRowBefore')">
+                + Row above
+              </button>
+              <button type="button" class="table-menu-btn" @click="tableCommand('addRowAfter')">
+                + Row below
+              </button>
+              <button type="button" class="table-menu-btn" @click="tableCommand('deleteRow')">
+                − Delete row
+              </button>
+              <button type="button" class="table-menu-btn" @click="tableCommand('toggleHeaderRow')">
+                Toggle header
+              </button>
+            </div>
+
+            <p class="mb-1 mt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+              Columns
+            </p>
+            <div class="grid grid-cols-2 gap-1">
+              <button type="button" class="table-menu-btn" @click="tableCommand('addColumnBefore')">
+                + Column left
+              </button>
+              <button type="button" class="table-menu-btn" @click="tableCommand('addColumnAfter')">
+                + Column right
+              </button>
+              <button type="button" class="table-menu-btn" @click="tableCommand('deleteColumn')">
+                − Delete column
+              </button>
+              <button
+                type="button"
+                class="table-menu-btn flex items-center justify-center gap-1 text-rose-600 dark:text-rose-400"
+                @click="tableCommand('deleteTable')"
+              >
+                <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />
+                Delete table
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -439,5 +579,9 @@ async function onFileSelected(event: Event): Promise<void> {
 
 .toolbar-divider {
   @apply mx-1 h-5 w-px bg-neutral-200 dark:bg-neutral-800;
+}
+
+.table-menu-btn {
+  @apply rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800;
 }
 </style>

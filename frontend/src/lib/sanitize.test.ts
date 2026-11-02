@@ -54,6 +54,35 @@ describe('sanitizeHtml', () => {
     expect(result).toContain('text')
   })
 
+  it('keeps table structure and safe table attributes', () => {
+    const html =
+      '<table style="min-width: 320px"><colgroup><col style="width: 120px"></colgroup><tbody><tr><th colspan="2" scope="col" style="text-align: center">Head</th></tr><tr><td rowspan="2">Cell</td></tr></tbody></table>'
+    const result = sanitizeHtml(html)
+    expect(result).toContain('<table')
+    expect(result).toContain('<colgroup>')
+    expect(result).toContain('<col ')
+    expect(result).toContain('<tbody>')
+    expect(result).toContain('<tr>')
+    expect(result).toContain('<th')
+    expect(result).toContain('colspan="2"')
+    expect(result).toContain('rowspan="2"')
+    expect(result).toContain('scope="col"')
+    expect(result).toContain('text-align: center')
+    expect(result).toContain('min-width: 320px')
+    expect(result).toContain('width: 120px')
+  })
+
+  it('keeps only safe css declarations in style attributes', () => {
+    const result = sanitizeHtml(
+      '<p style="color:red;text-align:center;background:url(javascript:alert(1));width:100px">text</p>',
+    )
+    expect(result).toContain('text-align: center')
+    expect(result).toContain('width: 100px')
+    expect(result).not.toContain('color:')
+    expect(result).not.toContain('background')
+    expect(result).not.toContain('javascript')
+  })
+
   it('adds lazy loading to images', () => {
     const result = sanitizeHtml('<img src="https://example.com/a.jpg" alt="a" />')
     expect(result).toContain('loading="lazy"')

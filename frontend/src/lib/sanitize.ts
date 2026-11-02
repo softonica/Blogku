@@ -18,6 +18,16 @@ const ALLOWED_TAGS = [
   'pre',
   'img',
   'hr',
+  'table',
+  'caption',
+  'colgroup',
+  'col',
+  'thead',
+  'tbody',
+  'tfoot',
+  'tr',
+  'th',
+  'td',
 ]
 
 const ALLOWED_ATTR = [
@@ -30,7 +40,40 @@ const ALLOWED_ATTR = [
   'class',
   'target',
   'rel',
+  'style',
+  'colspan',
+  'rowspan',
+  'colwidth',
+  'scope',
+  'align',
 ]
+
+const ALLOWED_STYLE: Record<string, RegExp> = {
+  'text-align': /^(left|right|center|justify|start|end)$/,
+  'vertical-align': /^(top|middle|bottom|baseline)$/,
+  width: /^\d+(\.\d+)?(px|%|em|rem|pt|vw|ch)$/,
+  'min-width': /^\d+(\.\d+)?(px|%|em|rem|pt|vw|ch)$/,
+  'max-width': /^\d+(\.\d+)?(px|%|em|rem|pt|vw|ch)$/,
+}
+
+/**
+ * Keeps only the safe CSS declarations we rely on for editor layout
+ * (table sizing and text alignment). Everything else is dropped.
+ */
+function filterStyleAttribute(style: string): string {
+  const safe: string[] = []
+  for (const declaration of style.split(';')) {
+    const separator = declaration.indexOf(':')
+    if (separator === -1) continue
+    const property = declaration.slice(0, separator).trim().toLowerCase()
+    const value = declaration.slice(separator + 1).trim().toLowerCase()
+    const pattern = ALLOWED_STYLE[property]
+    if (pattern && pattern.test(value)) {
+      safe.push(`${property}: ${value}`)
+    }
+  }
+  return safe.join('; ')
+}
 
 let hooksInstalled = false
 
@@ -52,6 +95,14 @@ function installHooks(): void {
     if (node.nodeName === 'IMG') {
       node.setAttribute('loading', 'lazy')
       node.setAttribute('decoding', 'async')
+    }
+    if (node.hasAttribute('style')) {
+      const safeStyle = filterStyleAttribute(node.getAttribute('style') || '')
+      if (safeStyle) {
+        node.setAttribute('style', safeStyle)
+      } else {
+        node.removeAttribute('style')
+      }
     }
   })
 }
@@ -79,7 +130,7 @@ export function sanitizeHtml(dirty: string | null | undefined): string {
         'link',
         'meta',
       ],
-      FORBID_ATTR: ['style', 'srcset', 'onerror', 'onload', 'onclick', 'onmouseover'],
+      FORBID_ATTR: ['srcset', 'onerror', 'onload', 'onclick', 'onmouseover'],
     }),
   )
 }

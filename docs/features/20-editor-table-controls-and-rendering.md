@@ -1,0 +1,114 @@
+# Editor Table Controls & Rendering
+
+| Metadata | Keterangan |
+| :--- | :--- |
+| **Status** | Stable |
+| **Fase Arsitektur** | Fase 1 (Mock) / Fase 2 (PocketBase) |
+| **Izin Minimum (RBAC)** | Penulis |
+| **Komponen Utama** | [EditorToolbar.vue](file:///c:/Users/Administrator/Desktop/ncmaz-clone/frontend/src/components/editor/EditorToolbar.vue), [RichTextEditor.vue](file:///c:/Users/Administrator/Desktop/ncmaz-clone/frontend/src/components/editor/RichTextEditor.vue), [sanitize.ts](file:///c:/Users/Administrator/Desktop/ncmaz-clone/frontend/src/lib/sanitize.ts) |
+| **Tanggal Ditambahkan** | 2026-11-02 |
+
+---
+
+## 1. Ringkasan & Tujuan Fitur
+
+Sebelumnya tombol tabel di editor selalu menyisipkan tabel **3 × 3** dan tidak ada cara menentukan jumlah baris/kolom. Selain itu, `sanitizeHtml()` membuang seluruh tag tabel (`table`, `tr`, `td`, dst.) sehingga tabel hilang/berantakan saat tab **Preview** dan saat artikel terbit di halaman post.
+
+Fitur ini menyelesaikan dua masalah tersebut:
+
+1. Penulis dapat memilih ukuran tabel (hingga 8 × 8) sebelum menyisipkan, lalu menambah/menghapus baris dan kolom setelah tabel dibuat.
+2. Struktur tabel dan gaya aman (lebar kolom, perataan teks) dipertahankan oleh sanitizer, dan tampilan tabel konsisten di editor, preview, serta halaman artikel terbit (light & dark mode).
+
+---
+
+## 2. Alur Pengguna (User Flow)
+
+1. Penulis membuka `/editor` lalu menekan ikon **Table** di toolbar.
+2. Muncul popover berisi grid 8 × 8. Mengarahkan kursor/`focus` ke sel menampilkan label `baris × kolom`.
+3. Klik salah satu sel untuk menyisipkan tabel dengan ukuran tersebut (baris pertama menjadi header).
+4. Saat kursor berada di dalam tabel, buka kembali menu yang sama untuk:
+   - menambah baris di atas/bawah,
+   - menghapus baris,
+   - mengaktifkan/menonaktifkan baris header,
+   - menambah kolom kiri/kanan,
+   - menghapus kolom,
+   - menghapus seluruh tabel.
+5. Tab **Preview** dan halaman `/post/:slug` menampilkan tabel dengan border, header berwarna, dan scroll horizontal pada layar sempit.
+
+---
+
+## 3. Arsitektur & Komponen Terkait
+
+- `frontend/src/components/editor/EditorToolbar.vue`
+  - State popover (`tableMenuOpen`, `hoveredRows`, `hoveredCols`) dan grid pemilih ukuran.
+  - `insertTable(rows, cols)` memanggil perintah Tiptap `insertTable`.
+  - `tableCommand()` membungkus `addRowBefore`, `addRowAfter`, `deleteRow`, `toggleHeaderRow`, `addColumnBefore`, `addColumnAfter`, `deleteColumn`, dan `deleteTable`.
+  - `onClickOutside` menutup popover saat klik di luar toolbar.
+- `frontend/src/components/editor/RichTextEditor.vue`
+  - Ekstensi `Table` + `TableRow`, `TableHeader`, `TableCell` dengan `resizable: true`.
+  - Style editor untuk `.tableWrapper` (scroll horizontal), `.selectedCell`, dan `.column-resize-handle`.
+- `frontend/src/lib/sanitize.ts`
+  - Allowlist tag tabel dan atribut `style`, `colspan`, `rowspan`, `colwidth`, `scope`, `align`.
+  - `filterStyleAttribute()` hanya meloloskan `text-align`, `vertical-align`, `width`, `min-width`, dan `max-width` dengan nilai yang aman.
+- `frontend/src/styles/main.css`
+  - Aturan `.prose-ncmaz` untuk tabel: border, padding, header, zebra row, dan dark mode.
+- `frontend/src/pages/PostPage.vue`
+  - Artikel terbit memakai class `prose-ncmaz` agar gaya tabel sama dengan preview editor.
+- `backend/main.go`
+  - `newSanitizer()` = `bluemonday.UGCPolicy()` + allowlist style sempit untuk elemen tabel, sehingga lebar kolom dan perataan teks tidak hilang saat konten disimpan ke PocketBase.
+- `backend/sanitize_test.go`
+  - Test preservasi struktur tabel dan penolakan CSS berbahaya.
+
+---
+
+## 4. Kontrak Data & TypeScript Schema
+
+Tabel disimpan sebagai HTML Tiptap di field `content` (string) dan tidak menambah tipe domain baru. Contoh HTML yang dihasilkan:
+
+```html
+<table style="min-width: 300px">
+  <colgroup><col style="width: 120px"></colgroup>
+  <tbody>
+    <tr><th colspan="2" style="text-align: center">Header</th></tr>
+    <tr><td rowspan="2">Isi</td><td>Nilai</td></tr>
+  </tbody>
+</table>
+```
+
+Allowlist style yang diizinkan:
+
+```typescript
+const ALLOWED_STYLE: Record<string, RegExp> = {
+  'text-align': /^(left|right|center|justify|start|end)$/,
+  'vertical-align': /^(top|middle|bottom|baseline)$/,
+  width: /^\d+(\.\d+)?(px|%|em|rem|pt|vw|ch)$/,
+  'min-width': /^\d+(\.\d+)?(px|%|em|rem|pt|vw|ch)$/,
+  'max-width': /^\d+(\.\d+)?(px|%|em|rem|pt|vw|ch)$/,
+}
+```
+
+---
+
+## 5. Keamanan & Otorisasi
+
+- **RBAC**: Hanya route editor yang bisa diakses penulis/admin; tidak ada perubahan aturan akses.
+- **Sanitasi / Anti-XSS**: `sanitizeHtml()` tetap menjadi satu-satunya jalur render HTML. Semua tag/atribut di luar allowlist dibuang. `style` tidak lolos mentah: hanya properti di `ALLOWED_STYLE` dengan nilai regex-safe yang dipertahankan, sehingga `url()`, `expression()`, `position`, dan properti berbahaya lain tidak bisa masuk.
+- **Backend**: `newSanitizer()` memakai `bluemonday.UGCPolicy()` dan hanya mengizinkan properti style tabel yang sama (`text-align`, `vertical-align`, `width`, `min-width`, `max-width`) dengan regex nilai yang ketat, sehingga konten yang disimpan tetap aman sekaligus mempertahankan layout tabel.
+- `script`, `iframe`, event handler (`on*`), dan `javascript:` URL tetap diblokir baik di frontend maupun backend.
+
+---
+
+## 6. Pengujian & Verifikasi
+
+- Unit test sanitizer frontend: `npm run test -- src/lib/sanitize.test.ts`
+  - Memastikan struktur tabel, `colspan`, `rowspan`, `scope`, dan style aman dipertahankan.
+  - Memastikan `color`, `background`, dan `url(javascript:...)` dibuang.
+- Unit test sanitizer backend: `cd backend && go test ./...`
+  - Memastikan tabel, `colspan`/`rowspan`, lebar kolom, dan perataan bertahan saat disimpan.
+  - Memastikan CSS berbahaya (`position`, `background`, `javascript:`) dibuang.
+- Verifikasi manual:
+  1. Buka `/editor`, klik ikon Table, pilih misalnya 4 × 5.
+  2. Tambah/hapus baris dan kolom dari menu tabel.
+  3. Buka tab **Preview** dan pastikan tabel tampil rapi.
+  4. Simpan/terbitkan, buka `/post/:slug`, cek tabel di light & dark mode serta layar mobile (scroll horizontal).
+- Quality gate: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`, dan `go test ./...` (backend).

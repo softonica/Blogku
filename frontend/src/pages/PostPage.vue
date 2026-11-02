@@ -349,7 +349,7 @@ async function copyLink(): Promise<void> {
         <div>
           <article
             :class="[
-              'prose prose-neutral dark:prose-invert',
+              'prose-ncmaz',
               isMagazineStyle ? 'mt-0 max-w-none' : ['mt-8 sm:mt-10 mx-auto', contentWidthClass],
             ]"
             :data-post-style="postStyle"

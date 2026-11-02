@@ -167,6 +167,33 @@
   .prose-ncmaz :where(pre code):not(:where([class~='not-prose'] *)) {
     @apply bg-transparent p-0 text-inherit;
   }
+
+  .prose-ncmaz :where(table):not(:where([class~='not-prose'] *)) {
+    @apply my-4 w-full border-collapse text-sm;
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .prose-ncmaz :where(th, td):not(:where([class~='not-prose'] *)) {
+    @apply border border-neutral-200 px-3 py-2 align-top dark:border-neutral-700;
+  }
+
+  .prose-ncmaz :where(thead):not(:where([class~='not-prose'] *)) {
+    @apply bg-neutral-100 dark:bg-neutral-800;
+  }
+
+  .prose-ncmaz :where(th):not(:where([class~='not-prose'] *)) {
+    @apply text-left font-semibold text-neutral-900 dark:text-white;
+  }
+
+  .prose-ncmaz :where(tbody tr:nth-child(even)):not(:where([class~='not-prose'] *)) {
+    @apply bg-neutral-50/70 dark:bg-neutral-900/40;
+  }
+
+  .prose-ncmaz :where(table p):not(:where([class~='not-prose'] *)) {
+    @apply my-0;
+  }
 }
 
 @layer utilities {

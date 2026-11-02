@@ -70,7 +70,7 @@ const editor = useEditor({
     Table.configure({
       resizable: true,
       HTMLAttributes: {
-        class: 'border-collapse table-auto w-full my-3 sm:my-4',
+        class: 'border-collapse table-fixed w-full my-3 sm:my-4',
       },
     }),
     TableRow,
@@ -140,5 +140,28 @@ onBeforeUnmount(() => {
 :deep(.tiptap img) {
   max-width: 100%;
   height: auto;
+}
+
+:deep(.tiptap .tableWrapper) {
+  overflow-x: auto;
+}
+
+:deep(.tiptap .selectedCell::after) {
+  background: rgb(var(--c-primary-500) / 0.15);
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+:deep(.tiptap .column-resize-handle) {
+  background-color: rgb(var(--c-primary-500));
+  bottom: -2px;
+  pointer-events: none;
+  position: absolute;
+  right: -2px;
+  top: 0;
+  width: 4px;
 }
 </style>

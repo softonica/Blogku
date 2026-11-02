@@ -5,6 +5,39 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-02] — Editor table row/column controls & consistent table rendering
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/lib/sanitize.ts` — menambahkan tag tabel (`table`, `caption`, `colgroup`, `col`, `thead`, `tbody`, `tfoot`, `tr`, `th`, `td`) dan atribut `style`, `colspan`, `rowspan`, `colwidth`, `scope`, `align` ke allowlist. Menambahkan `filterStyleAttribute()` yang hanya meloloskan `text-align`, `vertical-align`, `width`, `min-width`, `max-width` dengan nilai regex-safe; `style` dihapus dari `FORBID_ATTR`.
+- `frontend/src/components/editor/EditorToolbar.vue` — tombol Table kini membuka popover grid 8×8 untuk memilih jumlah baris/kolom, plus menu operasi tabel (tambah/hapus baris & kolom, toggle header, hapus tabel) saat kursor di dalam tabel.
+- `frontend/src/components/editor/RichTextEditor.vue` — `table-layout: fixed` untuk kolom resizable, style `.tableWrapper` (scroll horizontal), `.selectedCell`, dan `.column-resize-handle`.
+- `frontend/src/styles/main.css` — aturan `.prose-ncmaz` untuk tabel (border, padding, header, zebra row, dark mode, scroll horizontal).
+- `frontend/src/pages/PostPage.vue` — artikel terbit memakai `prose-ncmaz` agar tabel dan tipografi sama dengan preview editor.
+- `frontend/src/lib/sanitize.test.ts` — 2 test baru: struktur/atribut tabel dipertahankan, dan CSS berbahaya dibuang.
+- `backend/main.go` — `sanitizer` sekarang dibangun via `newSanitizer()`: `UGCPolicy()` + allowlist style sempit (`text-align`, `vertical-align`, `width`, `min-width`, `max-width`) untuk elemen tabel, sehingga lebar kolom & perataan tidak hilang saat disimpan.
+- `backend/sanitize_test.go` — 2 test baru untuk preservasi tabel dan penolakan CSS berbahaya.
+- `docs/features/20-editor-table-controls-and-rendering.md` + indeks `docs/README.md`.
+
+### Why
+- Pengguna tidak bisa menentukan jumlah baris/kolom tabel di editor (selalu 3×3).
+- `sanitizeHtml()` membuang seluruh tag tabel sehingga preview dan artikel terbit berantakan.
+
+### How it was verified
+- `npm run typecheck` → lulus tanpa error.
+- `npm run lint` → bersih.
+- `npm run test` → 17 file, 155/155 test passed.
+- `npm run build` → vite build sukses (dist terbentuk).
+- `backend: go test ./...` → `ok ncmaz.backend`.
+- Build single-binary Linux amd64 (`VITE_USE_POCKETBASE=true`, `VITE_PB_URL=""`, `GOOS=linux`) → `backend/blogku` 28.135.584 bytes.
+- Deploy ke server 64 (`64.235.45.122:2232`): binary di-upload ke `/tmp/blogku-upload`, backup `/opt/blogku/blogku.prev-<timestamp>`, swap, restart → `systemctl is-active blogku` = `active`.
+- Verifikasi produksi: `https://blog.artku.my.id/` → `spa:200`; `/api/health` → `health:200`; canonical & `og:url` = `https://blog.artku.my.id/`.
+
+### Handover notes
+- Ukuran grid maksimum 8×8; ubah `TABLE_MAX` di `EditorToolbar.vue` bila perlu lebih besar.
+- Sanitizer sekarang mengizinkan `style` dengan allowlist ketat; jangan menambah properti CSS baru tanpa regex validasi.
+- Verifikasi visual manual (light/dark, mobile scroll) tetap disarankan.
+
 ## [2026-11-01] — Mobile compact layout (spacing & dedup)
 **Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
 
