@@ -5,6 +5,24 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-02] — Chore: track remaining Superpowers docs & Playwright check script
+**Author**: AI Agent (opencode) · **Role**: Docs/QA · **Status**: Done
+
+### What changed
+- Menambahkan `docs/superpowers/plans/2026-11-01-mobile-compact-layout.md` dan `docs/superpowers/specs/2026-11-01-mobile-compact-layout-design.md`.
+- Menambahkan `pw-check.cjs` (skrip Playwright untuk cek homepage produksi).
+- Tidak ada perubahan kode produk; hanya artefak dokumentasi & tooling yang sebelumnya untracked.
+
+### Why
+- Permintaan pengguna: commit semua agar working tree bersih.
+
+### How it was verified
+- `git status --porcelain --untracked-files=all` setelah commit → bersih (file yang di-ignore seperti `opencode.jsonc`, `.codegraph/`, `.opencode/`, `.superpowers/` tidak ditampilkan).
+- Tidak ada secret/kredensial di file yang ditambahkan (dicek dengan pola password/token/secret/api key).
+
+### Handover notes
+- `pw-check.cjs` memakai Chrome lokal (`playwright` + executable Chrome) dan menargetkan `https://blog.artku.my.id/`.
+
 ## [2026-11-02] — Deploy: site-name titles + SPA CSP (with pending UI fixes)
 **Author**: AI Agent (opencode) · **Role**: DevOps · **Status**: Done
 
