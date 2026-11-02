@@ -297,9 +297,7 @@ export class MockSource implements DataSource {
       title,
       excerpt,
       content,
-      cover:
-        (input.cover && sanitizeUrl(input.cover)) ||
-        'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      cover: input.cover ? sanitizeUrl(input.cover) : '',
       status: input.status ?? 'published',
       postType,
       videoUrl: input.videoUrl ? sanitizeUrl(input.videoUrl) : undefined,

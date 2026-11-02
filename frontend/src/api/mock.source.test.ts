@@ -406,6 +406,18 @@ describe('MockSource', () => {
     expect(result.total).toBe(0)
   })
 
+  it('creates a post without a default cover image', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+    const post = await source.createPost({
+      title: 'Post without cover',
+      excerpt: 'An excerpt that is long enough for the mock post.',
+      content: '<p>Body</p>',
+      status: 'published',
+    })
+    expect(post.cover).toBe('')
+  })
+
   it('deletes own uploaded media as penulis', async () => {
     const source = new MockSource()
     await source.login('demo', 'password')
