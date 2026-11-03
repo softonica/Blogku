@@ -289,6 +289,7 @@ func postMediaRefIDs(r *core.Record) map[string]struct{} {
 	out := map[string]struct{}{}
 	collectMediaRefsFromText(r.GetString("cover"), out)
 	collectMediaRefsFromText(r.GetString("content"), out)
+	collectMediaRefsFromText(r.GetString("audioUrl"), out)
 	var gallery []string
 	if err := r.UnmarshalJSONField("gallery", &gallery); err == nil {
 		for _, u := range gallery {

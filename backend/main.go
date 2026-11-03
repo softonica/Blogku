@@ -472,8 +472,8 @@ func ensureMediaCollection(app core.App, users *core.Collection) (*core.Collecti
 		Name:      "file",
 		Required:  true,
 		MaxSelect: 1,
-		MaxSize:   5 * 1024 * 1024,
-		MimeTypes: []string{"image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"},
+		MaxSize:   20 * 1024 * 1024,
+		MimeTypes: []string{"image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "audio/mpeg", "audio/mp4", "audio/wav", "audio/ogg", "audio/webm"},
 	})
 	media.Fields.Add(&core.RelationField{Name: "owner", CollectionId: users.Id, MaxSelect: 1})
 	media.Fields.Add(&core.TextField{Name: "alt", Max: 160})
