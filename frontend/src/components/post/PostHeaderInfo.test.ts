@@ -1,3 +1,4 @@
+import { defineComponent, h, ref } from 'vue'
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import type { Post } from '@/api/types'
@@ -32,14 +33,46 @@ const post: Post = {
   featured: false,
 }
 
-function mountInfo(tone?: 'default' | 'on-image') {
+function createCaptureStub(name: string, stubClass: string, propNames: string[]) {
+  const received = ref<Record<string, unknown>>({})
+  const Stub = defineComponent({
+    name: `${name}Stub`,
+    inheritAttrs: false,
+    props: propNames,
+    setup(props) {
+      received.value = { ...props }
+      return () => h('button', { class: stubClass }, name)
+    },
+  })
+  return { received, Stub }
+}
+
+const likeStub = createCaptureStub('Like', 'like-stub', [
+  'post',
+  'showCount',
+  'variant',
+  'size',
+  'tone',
+])
+const saveStub = createCaptureStub('Save', 'save-stub', [
+  'postId',
+  'postTitle',
+  'showLabel',
+  'variant',
+  'size',
+  'tone',
+])
+
+function mountInfo(tone?: 'default' | 'on-image', postOverrides: Partial<Post> = {}) {
+  likeStub.received.value = {}
+  saveStub.received.value = {}
   return mount(PostHeaderInfo, {
-    props: { post, ...(tone ? { tone } : {}) },
+    props: { post: { ...post, ...postOverrides }, ...(tone ? { tone } : {}) },
     global: {
       stubs: {
         RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' },
-        LikeButton: { template: '<button class="like-stub">Like</button>' },
-        SaveButton: { template: '<button class="save-stub">Save</button>' },
+        LikeButton: likeStub.Stub,
+        SaveButton: saveStub.Stub,
       },
     },
   })
@@ -69,6 +102,34 @@ describe('PostHeaderInfo', () => {
     expect(wrapper.emitted('share')).toBeTruthy()
   })
 
+  it('forwards size="md" and tone props to LikeButton', () => {
+    mountInfo()
+    expect(likeStub.received.value.size).toBe('md')
+    expect(likeStub.received.value.tone).toBe('default')
+  })
+
+  it('forwards size="md" and tone props to SaveButton', () => {
+    mountInfo()
+    expect(saveStub.received.value.size).toBe('md')
+    expect(saveStub.received.value.tone).toBe('default')
+  })
+
+  it('forwards on-image tone to LikeButton and SaveButton', () => {
+    mountInfo('on-image')
+    expect(likeStub.received.value.tone).toBe('on-image')
+    expect(saveStub.received.value.tone).toBe('on-image')
+  })
+
+  it('renders zero counts', () => {
+    const wrapper = mountInfo(undefined, {
+      commentCount: 0,
+      viewCount: 0,
+      likeCount: 0,
+    })
+    expect(wrapper.find('button[aria-label="Comments (0)"]').exists()).toBe(true)
+    expect(wrapper.find('span[aria-label="Views: 0"]').text()).toBe('0')
+  })
+
   it('applies on-image tone classes', () => {
     const wrapper = mountInfo('on-image')
     expect(wrapper.classes()).toContain('text-white')
@@ -77,7 +138,13 @@ describe('PostHeaderInfo', () => {
   it('centers content when align is center', () => {
     const wrapper = mount(PostHeaderInfo, {
       props: { post, align: 'center' },
-      global: { stubs: { RouterLink: true, LikeButton: true, SaveButton: true } },
+      global: {
+        stubs: {
+          RouterLink: true,
+          LikeButton: likeStub.Stub,
+          SaveButton: saveStub.Stub,
+        },
+      },
     })
     expect(wrapper.classes()).toContain('items-center')
   })

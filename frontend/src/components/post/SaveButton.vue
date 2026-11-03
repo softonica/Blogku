@@ -52,6 +52,13 @@ const iconClass = computed(() =>
   props.size === 'md' ? 'h-5 w-5' : 'h-4 w-4',
 )
 
+const savedStateClass = computed(() => {
+  if (!saved.value) return 'stroke-[2.2]'
+  return props.tone === 'on-image'
+    ? 'fill-current text-primary-100 dark:text-primary-200'
+    : 'fill-current text-primary-600 dark:text-primary-400'
+})
+
 const accessibleLabel = computed(() => {
   if (props.postTitle) {
     return saved.value
@@ -89,7 +96,7 @@ function toggle(): void {
       :class="[
         iconClass,
         'transition-transform duration-200 group-hover/save:scale-110',
-        saved ? 'fill-current text-primary-600 dark:text-primary-400' : 'stroke-[2.2]',
+        savedStateClass,
       ]"
       aria-hidden="true"
     />
