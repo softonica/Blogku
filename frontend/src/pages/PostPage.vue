@@ -1,7 +1,7 @@
 ﻿<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Clock, Eye, Link2, PenLine, Share2, X } from 'lucide-vue-next'
+import { Clock, Eye, Link2, Pause, PenLine, Play, Share2, X } from 'lucide-vue-next'
 import { Facebook, Linkedin, MessageCircle, Send, Twitter } from 'lucide-vue-next'
 import type { Category, Comment, Post, Tag } from '@/api/types'
 import { getDataSource } from '@/api'
@@ -10,6 +10,7 @@ import { sanitizeHtml } from '@/lib/sanitize'
 import { getEmbedUrl } from '@/lib/video'
 import { canManagePost } from '@/lib/permissions'
 import { useAuthStore } from '@/stores/auth'
+import { usePlayerStore } from '@/stores/player'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { trackViewIfNew } from '@/composables/useTrackView'
 import { useUiStore } from '@/stores/ui'
@@ -43,6 +44,12 @@ useDocumentTitle(title)
 const cleanContent = computed(() => sanitizeHtml(post.value?.content ?? ''))
 const videoEmbedUrl = computed(() =>
   post.value?.postType === 'video' ? getEmbedUrl(post.value.videoUrl) : null,
+)
+
+const player = usePlayerStore()
+const isAudioPost = computed(() => post.value?.postType === 'audio' && !!post.value?.audioUrl)
+const isPlayingThis = computed(
+  () => isAudioPost.value && player.isCurrentPost(post.value!.id) && player.playing,
 )
 
 // Layout style is picked in the editor (standard posts only).
@@ -203,6 +210,64 @@ async function copyLink(): Promise<void> {
         <span class="line-clamp-1 text-neutral-500 dark:text-neutral-400">{{ post.title }}</span>
       </nav>
 
+      <!-- Audio post header with spinning cover art + play controls -->
+      <header
+        v-if="isAudioPost"
+        class="mt-2 flex flex-col items-center justify-center gap-8 rounded-2xl bg-white p-4 sm:p-8 shadow-2xl sm:rounded-[40px] md:flex-row md:items-center dark:bg-neutral-900"
+      >
+        <div class="w-1/2 shrink-0 sm:w-1/3 md:w-1/4 lg:w-1/5">
+          <div class="relative aspect-square overflow-hidden rounded-full ring-1 ring-neutral-200 dark:ring-neutral-800">
+            <img
+              :src="post.cover"
+              :alt="post.title"
+              class="h-full w-full object-cover"
+              :class="{ 'animate-audio-spin': isPlayingThis }"
+            />
+            <button
+              type="button"
+              class="absolute inset-0 m-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-neutral-300 bg-black/50 text-white transition hover:bg-black/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              :aria-label="isPlayingThis ? 'Pause audio' : 'Play audio'"
+              @click="isPlayingThis ? player.toggle() : player.play(post)"
+            >
+              <Play v-if="!isPlayingThis" class="h-9 w-9" aria-hidden="true" />
+              <Pause v-else class="h-9 w-9" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+        <div class="flex min-w-0 flex-1 flex-col text-center md:text-start">
+          <div class="flex justify-center md:justify-start">
+            <CategoryBadgeList :categories="post.categories" />
+          </div>
+          <h1 class="mt-4 text-balance text-3xl font-bold leading-tight tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl dark:text-white">
+            {{ post.title }}
+          </h1>
+          <p class="mt-4 text-base leading-relaxed text-neutral-500 sm:text-lg dark:text-neutral-400">
+            {{ post.excerpt }}
+          </p>
+          <div class="mt-5 flex flex-wrap items-center justify-center gap-4 md:justify-start">
+            <div class="flex items-center gap-3">
+              <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
+              <div class="text-center md:text-start text-sm">
+                <RouterLink
+                  :to="`/author/${post.author.username}`"
+                  class="font-semibold text-neutral-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-300"
+                >
+                  {{ post.author.name }}
+                </RouterLink>
+                <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                  {{ formatDate(post.createdAt) }}
+                </p>
+              </div>
+            </div>
+            <span class="h-8 w-px bg-neutral-200 dark:bg-neutral-800"></span>
+            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+              <Clock class="h-4 w-4" aria-hidden="true" />
+              {{ post.readingTime }} min read
+            </span>
+          </div>
+        </div>
+      </header>
+
       <!-- Style 4: full-bleed hero with overlay title -->
       <div
         v-if="isHeroStyle && post.cover"
@@ -231,7 +296,7 @@ async function copyLink(): Promise<void> {
       </div>
 
       <header
-        v-if="!isHeroStyle"
+        v-if="!isAudioPost && !isHeroStyle"
         :class="['mx-auto', isWideStyle ? 'max-w-5xl' : 'max-w-4xl', isCenteredStyle ? 'text-center' : 'text-start']"
       >
         <div :class="['flex', isCenteredStyle ? 'justify-center' : 'justify-start']">
@@ -541,3 +606,18 @@ async function copyLink(): Promise<void> {
     </div>
   </Teleport>
 </template>
+
+<style scoped>
+@keyframes audio-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-audio-spin {
+  animation: audio-spin 8s linear infinite;
+}
+</style>
