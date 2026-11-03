@@ -69,9 +69,8 @@ const props = withDefaults(
   defineProps<{
     post: Post
     tone?: 'default' | 'on-image' // default: 'default'
-    align?: 'start' | 'center'    // default: 'start'
   }>(),
-  { tone: 'default', align: 'start' },
+  { tone: 'default' },
 )
 
 const emit = defineEmits<{
@@ -80,7 +79,9 @@ const emit = defineEmits<{
 }>()
 ```
 
-Struktur render: baris atas = avatar (44px) + kolom teks (nama author di atas, lalu `<time>` + `·` + `{readingTime} min read` di bawahnya); baris aksi (jarak `gap-5`/`sm:gap-8` dari baris atas) = `LikeButton` compact (circle + jumlah), grup komentar (circle + jumlah di luar), grup views (circle non-interaktif + jumlah di luar), pemisah vertikal (`h-6`, margin `mx-1 sm:mx-2`), lalu grup bookmark + share. Semua tombol bulat 44px (`h-11 w-11`), ikon 20px, jumlah `text-sm font-semibold` di luar lingkaran; jarak antar grup `gap-4 sm:gap-6`. Baris aksi boleh wrap di mobile.
+Struktur render: baris atas (selalu rata kiri) = avatar (44px) + kolom teks (nama author di atas, lalu `<time>` + `·` + `{readingTime} min read` di bawahnya); baris aksi (jarak `gap-5`/`sm:gap-8` dari baris atas) = `LikeButton` compact (circle + jumlah), grup komentar (circle + jumlah di luar), grup views (circle non-interaktif + jumlah di luar), pemisah vertikal (`h-6`, margin `mx-1 sm:mx-2`), lalu grup bookmark + share + menu `...`. Semua tombol bulat 44px (`h-11 w-11`), ikon 22px, jumlah `text-sm font-semibold` di luar lingkaran; jarak antar grup `gap-4 sm:gap-6`. Baris aksi boleh wrap di mobile.
+
+Menu `...` hanya dirender bila `canManagePost` (admin atau penulis pemilik post). Klik membuka popup `role="menu"` berisi satu item `role="menuitem"` "Edit post" → `/editor/:id` (ikon pensil). Popup tertutup saat klik di luar atau tombol `Escape` (fokus kembali ke trigger); di `tone="on-image"` popup terbuka ke atas agar tidak terpotong `overflow-hidden` cover hero.
 
 ### Prop baru pada atom (opsional, default tidak berubah)
 
@@ -113,7 +114,8 @@ Tidak ada perubahan schema Zod/API/backend.
 - Menampilkan jumlah views/komentar terformat (`formatNumber`), stub `LikeButton`/`SaveButton` hadir.
 - Emit `comments` (klik tombol `aria-label^="Comments"`) dan `share` (klik `aria-label="Share post"`).
 - Kelas `tone="on-image"` diterapkan (`text-white`).
-- `align="center"` menambahkan `items-center`.
+- Blok author selalu `items-start` (tidak pernah center).
+- Menu `...` tidak muncul untuk pengunjung; untuk penulis/admin, klik membuka `role="menu"` dengan item "Edit post" menuju `/editor/:id`; `Escape` menutup menu.
 
 **Perintah otomatis** (dari `frontend/`):
 ```bash

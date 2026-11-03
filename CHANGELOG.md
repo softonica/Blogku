@@ -1594,3 +1594,23 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 - Tidak ada perubahan kontrak props/emit; test lama tetap valid.
 - Perbaikan ini belum di-deploy/push sampai diminta.
 - Selisih yang tersisa vs gambar: avatar referensi ≈52px (kita 44px, ukuran `md` AppAvatar) dan tombol `...` tidak ada (memang tidak diminta).
+
+## [2026-11-03] — Menu aksi `...` + header info rata kiri + ikon lebih besar
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/components/post/PostHeaderInfo.vue`:
+  - Tambah tombol bulat `...` (`Ellipsis`) setelah share; hanya dirender bila `canManagePost` (admin/penulis pemilik). Klik membuka popup `role="menu"` berisi item "Edit post" (`role="menuitem"`, ikon `PenLine`) → `/editor/:id`. Popup tertutup saat klik di luar atau `Escape` (fokus kembali ke trigger); di `tone="on-image"` popup terbuka ke atas agar tidak terpotong cover hero.
+  - Blok author (avatar, nama, tanggal, reading time) dan baris aksi **selalu rata kiri** — prop `align` dihapus; `PostPage.vue` tidak lagi mengirim `align`/`justify-center`.
+  - Padding dalam lingkaran dikurangi dengan memperbesar ikon 20px → 22px (`h-[22px] w-[22px]`) pada komentar/views/share/menu; ikon `LikeButton`/`SaveButton` varian `md` ikut 22px.
+- `PostHeaderInfo.test.ts` — mount memakai Pinia; test baru: author selalu `items-start`, menu tersembunyi untuk pengunjung, menu terbuka untuk penulis dengan item Edit, `Escape` menutup menu.
+
+### Why
+- Permintaan pengguna: tombol menu `...` seperti gambar referensi dengan popup berisi edit; ikon terasa terlalu banyak padding; grup author jangan di-center.
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 22 file / **218 passed** (12 di antaranya `PostHeaderInfo`).
+
+### Handover notes
+- Halaman post style 1 (centered) kini menampilkan header info rata kiri; judul/excerpt tetap mengikuti style masing-masing.
+- Popup menu belum di-deploy/push sampai langkah berikutnya dijalankan.

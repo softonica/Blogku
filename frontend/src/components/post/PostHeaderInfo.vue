@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Eye, MessageCircle, Share2 } from 'lucide-vue-next'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Ellipsis, Eye, MessageCircle, PenLine, Share2 } from 'lucide-vue-next'
 import type { Post } from '@/api/types'
 import { formatDate, formatNumber } from '@/lib/format'
+import { canManagePost } from '@/lib/permissions'
+import { useAuthStore } from '@/stores/auth'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import LikeButton from './LikeButton.vue'
 import SaveButton from './SaveButton.vue'
@@ -11,15 +13,54 @@ const props = withDefaults(
   defineProps<{
     post: Post
     tone?: 'default' | 'on-image'
-    align?: 'start' | 'center'
   }>(),
-  { tone: 'default', align: 'start' },
+  { tone: 'default' },
 )
 
 const emit = defineEmits<{
   comments: []
   share: []
 }>()
+
+const auth = useAuthStore()
+const canEdit = computed(() =>
+  canManagePost(auth.user?.role, auth.user?.id, props.post.author.id),
+)
+
+const menuOpen = ref(false)
+const menuRoot = ref<HTMLElement | null>(null)
+const menuButton = ref<HTMLButtonElement | null>(null)
+
+function toggleMenu(): void {
+  menuOpen.value = !menuOpen.value
+}
+
+function closeMenu(restoreFocus = false): void {
+  menuOpen.value = false
+  if (restoreFocus) menuButton.value?.focus()
+}
+
+function onPointerDown(event: PointerEvent): void {
+  if (!menuOpen.value) return
+  const target = event.target as Node | null
+  if (target && menuRoot.value && !menuRoot.value.contains(target)) {
+    closeMenu()
+  }
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && menuOpen.value) closeMenu(true)
+}
+
+onMounted(() => {
+  document.addEventListener('pointerdown', onPointerDown)
+  document.addEventListener('keydown', onKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', onPointerDown)
+  document.removeEventListener('keydown', onKeydown)
+})
 
 const roundButtonClass = computed(() =>
   props.tone === 'on-image'
@@ -36,11 +77,8 @@ const countClass = computed(() =>
 
 <template>
   <div
-    class="flex flex-col gap-5 sm:gap-8"
-    :class="[
-      align === 'center' ? 'items-center' : 'items-start',
-      tone === 'on-image' ? 'text-white dark:text-white' : '',
-    ]"
+    class="flex flex-col items-start gap-5 sm:gap-8"
+    :class="tone === 'on-image' ? 'text-white dark:text-white' : ''"
   >
     <RouterLink
       :to="`/author/${post.author.username}`"
@@ -84,7 +122,7 @@ const countClass = computed(() =>
           :aria-label="`Comments (${formatNumber(post.commentCount)})`"
           @click="emit('comments')"
         >
-          <MessageCircle class="h-5 w-5" aria-hidden="true" />
+          <MessageCircle class="h-[22px] w-[22px]" aria-hidden="true" />
         </button>
         <span class="text-sm font-semibold" :class="countClass">
           {{ formatNumber(post.commentCount) }}
@@ -97,7 +135,7 @@ const countClass = computed(() =>
           :class="roundButtonClass"
           aria-hidden="true"
         >
-          <Eye class="h-5 w-5" aria-hidden="true" />
+          <Eye class="h-[22px] w-[22px]" aria-hidden="true" />
         </span>
         <span
           class="text-sm font-semibold"
@@ -135,8 +173,42 @@ const countClass = computed(() =>
           title="Share"
           @click="emit('share')"
         >
-          <Share2 class="h-5 w-5" aria-hidden="true" />
+          <Share2 class="h-[22px] w-[22px]" aria-hidden="true" />
         </button>
+
+        <div v-if="canEdit" ref="menuRoot" class="relative">
+          <button
+            ref="menuButton"
+            type="button"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
+            :class="roundButtonClass"
+            aria-label="More actions"
+            aria-haspopup="menu"
+            :aria-expanded="menuOpen"
+            aria-controls="post-actions-menu"
+            @click="toggleMenu"
+          >
+            <Ellipsis class="h-[22px] w-[22px]" aria-hidden="true" />
+          </button>
+
+          <div
+            v-if="menuOpen"
+            id="post-actions-menu"
+            role="menu"
+            class="absolute end-0 z-30 w-44 rounded-xl border border-neutral-200 bg-white p-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+            :class="tone === 'on-image' ? 'bottom-full mb-2' : 'top-full mt-2'"
+          >
+            <RouterLink
+              :to="`/editor/${post.id}`"
+              role="menuitem"
+              class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              @click="menuOpen = false"
+            >
+              <PenLine class="h-4 w-4" aria-hidden="true" />
+              Edit post
+            </RouterLink>
+          </div>
+        </div>
       </div>
     </div>
   </div>

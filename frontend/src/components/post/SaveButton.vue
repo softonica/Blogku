@@ -49,7 +49,7 @@ const toneClass = computed(() => {
 })
 
 const iconClass = computed(() =>
-  props.size === 'md' ? 'h-5 w-5' : 'h-4 w-4',
+  props.size === 'md' ? 'h-[22px] w-[22px]' : 'h-4 w-4',
 )
 
 const savedStateClass = computed(() => {

@@ -1,6 +1,8 @@
 import { defineComponent, h, ref } from 'vue'
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { useAuthStore } from '@/stores/auth'
 import type { Post } from '@/api/types'
 import { formatDate, formatNumber } from '@/lib/format'
 import PostHeaderInfo from './PostHeaderInfo.vue'
@@ -63,12 +65,27 @@ const saveStub = createCaptureStub('Save', 'save-stub', [
   'tone',
 ])
 
-function mountInfo(tone?: 'default' | 'on-image', postOverrides: Partial<Post> = {}) {
+function mountInfo(
+  tone?: 'default' | 'on-image',
+  postOverrides: Partial<Post> = {},
+  role: 'admin' | 'penulis' | 'subscriber' | null = null,
+) {
   likeStub.received.value = {}
   saveStub.received.value = {}
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  if (role) {
+    const auth = useAuthStore()
+    auth.user = {
+      ...post.author,
+      id: role === 'admin' ? 'admin-1' : post.author.id,
+      role,
+    }
+  }
   return mount(PostHeaderInfo, {
     props: { post: { ...post, ...postOverrides }, ...(tone ? { tone } : {}) },
     global: {
+      plugins: [pinia],
       stubs: {
         RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' },
         LikeButton: likeStub.Stub,
@@ -135,17 +152,39 @@ describe('PostHeaderInfo', () => {
     expect(wrapper.classes()).toContain('text-white')
   })
 
-  it('centers content when align is center', () => {
-    const wrapper = mount(PostHeaderInfo, {
-      props: { post, align: 'center' },
-      global: {
-        stubs: {
-          RouterLink: true,
-          LikeButton: likeStub.Stub,
-          SaveButton: saveStub.Stub,
-        },
-      },
-    })
-    expect(wrapper.classes()).toContain('items-center')
+  it('keeps the author info left-aligned', () => {
+    const wrapper = mountInfo()
+    expect(wrapper.classes()).toContain('items-start')
+    expect(wrapper.classes()).not.toContain('items-center')
+  })
+
+  it('hides the actions menu for visitors who cannot edit', () => {
+    const wrapper = mountInfo()
+    expect(wrapper.find('button[aria-label="More actions"]').exists()).toBe(false)
+  })
+
+  it('opens an edit menu for the post author', async () => {
+    const wrapper = mountInfo(undefined, {}, 'penulis')
+    const trigger = wrapper.find('button[aria-label="More actions"]')
+    expect(trigger.exists()).toBe(true)
+    expect(trigger.attributes('aria-expanded')).toBe('false')
+
+    await trigger.trigger('click')
+    expect(trigger.attributes('aria-expanded')).toBe('true')
+
+    const item = wrapper.find('[role="menuitem"]')
+    expect(item.exists()).toBe(true)
+    expect(item.text()).toContain('Edit post')
+    expect(item.attributes('href')).toBe('/editor/p1')
+  })
+
+  it('closes the actions menu on Escape', async () => {
+    const wrapper = mountInfo(undefined, {}, 'admin')
+    await wrapper.find('button[aria-label="More actions"]').trigger('click')
+    expect(wrapper.find('[role="menu"]').exists()).toBe(true)
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
   })
 })

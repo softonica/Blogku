@@ -271,10 +271,9 @@ async function copyLink(): Promise<void> {
           {{ post.excerpt }}
         </p>
 
-        <div :class="isCenteredStyle ? 'mt-5 sm:mt-7 flex justify-center' : 'mt-5 sm:mt-7'">
+        <div class="mt-5 sm:mt-7">
           <PostHeaderInfo
             :post="post"
-            :align="isCenteredStyle ? 'center' : 'start'"
             @comments="scrollToComments"
             @share="openShare"
           />

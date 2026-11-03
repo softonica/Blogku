@@ -45,7 +45,7 @@ const compactCircleClass = computed(() =>
 )
 
 const compactIconClass = computed(() =>
-  props.size === 'md' ? 'h-5 w-5' : 'h-[18px] w-[18px]',
+  props.size === 'md' ? 'h-[22px] w-[22px]' : 'h-[18px] w-[18px]',
 )
 
 const compactCircleStateClass = computed(() => {
