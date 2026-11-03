@@ -13,8 +13,10 @@ const props = withDefaults(
     post: Pick<Post, 'id' | 'likeCount'>
     showCount?: boolean
     variant?: 'pill' | 'icon' | 'compact'
+    size?: 'sm' | 'md'
+    tone?: 'default' | 'on-image'
   }>(),
-  { showCount: true, variant: 'pill' },
+  { showCount: true, variant: 'pill', size: 'sm', tone: 'default' },
 )
 
 const auth = useAuthStore()
@@ -32,15 +34,39 @@ const variantClass = computed(() =>
   props.variant === 'icon'
     ? 'h-10 w-10 border border-neutral-200 dark:border-neutral-800'
     : props.variant === 'compact'
-      ? 'h-9 gap-1.5 px-1.5 text-xs'
+      ? props.size === 'md'
+        ? 'h-11 gap-2 px-2 text-sm'
+        : 'h-9 gap-1.5 px-1.5 text-xs'
       : 'h-10 px-3 sm:px-4 text-sm',
 )
 
+const compactCircleClass = computed(() =>
+  props.size === 'md' ? 'h-11 w-11' : 'h-9 w-9',
+)
+
+const compactIconClass = computed(() =>
+  props.size === 'md' ? 'h-5 w-5' : 'h-[18px] w-[18px]',
+)
+
+const compactCircleStateClass = computed(() => {
+  if (liked.value) {
+    return 'bg-rose-50 dark:bg-rose-950/60'
+  }
+  if (props.tone === 'on-image') {
+    return 'bg-white/10 hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20'
+  }
+  return 'bg-neutral-50 hover:bg-rose-50 dark:bg-neutral-800 dark:hover:bg-rose-100/10'
+})
+
 const stateClass = computed(() => {
   if (props.variant === 'compact') {
-    return liked.value
-      ? 'text-rose-600 dark:text-rose-300'
-      : 'text-neutral-700 hover:text-rose-600 dark:text-neutral-200 dark:hover:text-rose-400'
+    if (liked.value) {
+      return 'text-rose-600 dark:text-rose-300'
+    }
+    if (props.tone === 'on-image') {
+      return 'text-white hover:text-rose-300 dark:text-white dark:hover:text-rose-300'
+    }
+    return 'text-neutral-700 hover:text-rose-600 dark:text-neutral-200 dark:hover:text-rose-400'
   }
   return liked.value
     ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300'
@@ -83,16 +109,14 @@ async function toggle(): Promise<void> {
   >
     <span
       v-if="variant === 'compact'"
-      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors"
-      :class="
-        liked
-          ? 'bg-rose-50 dark:bg-rose-950/60'
-          : 'bg-neutral-50 hover:bg-rose-50 dark:bg-neutral-800 dark:hover:bg-rose-100/10'
-      "
+      :class="[
+        'flex shrink-0 items-center justify-center rounded-full transition-colors',
+        compactCircleClass,
+        compactCircleStateClass,
+      ]"
     >
       <Heart
-        class="h-[18px] w-[18px]"
-        :class="liked ? 'fill-current' : ''"
+        :class="[compactIconClass, liked ? 'fill-current' : '']"
         aria-hidden="true"
       />
     </span>
