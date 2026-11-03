@@ -72,7 +72,7 @@ onBeforeUnmount(() => {
     class="pointer-events-none fixed inset-x-0 z-40 flex justify-center px-3"
     :style="{ bottom: 'calc(var(--player-dock-height, 0px) + 1rem)' }"
   >
-    <div class="nc-no-scrollbar pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto sm:gap-2">
+    <div class="pointer-events-auto flex max-w-full items-center gap-1 sm:gap-2">
       <div
         class="flex shrink-0 items-center justify-center gap-1 rounded-full bg-white p-1.5 text-xs shadow-lg ring-1 ring-neutral-900/5 ring-offset-1 sm:gap-2 dark:bg-neutral-800 dark:ring-neutral-700 dark:ring-offset-neutral-600"
       >

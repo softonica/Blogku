@@ -1718,3 +1718,16 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 ### How it was verified
 - `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 24 file / 229 passed.
 - Diverifikasi ulang di produksi setelah deploy (lihat redeploy berikutnya).
+
+## [2026-11-03] — Fix popover TOC terpotong oleh overflow dock
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/components/post/PostActionDock.vue` — wrapper dock tidak lagi memakai `overflow-x-auto` (yang membuat popover ke atas ter-clip); cukup `flex max-w-full items-center`.
+
+### Why
+- Smoke produksi: tombol TOC berfungsi (11 item terdeteksi) tetapi panel "On this page" tidak terlihat karena terpotong scroll container horizontal pada dock.
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 24 file / 229 passed.
+- Smoke produksi `https://blog.artku.my.id/post/cara-deploy-blogku-di-vps`: panel "On this page" tampil dengan 11 heading; scroll ke `#comments` → `9%` berganti tombol Back to top.
