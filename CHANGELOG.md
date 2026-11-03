@@ -1765,3 +1765,35 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 ### How it was verified
 - `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 25 file / 233 passed.
 - Akan diverifikasi ulang lewat smoke test produksi setelah deploy (`scrollWidth == viewport`).
+
+## [2026-11-03] — Rilis v0.0.4-alpha
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- Versi dinaikkan `0.0.3-alpha` → **`0.0.4-alpha`** di `package.json`, `frontend/package.json`, dan `package-lock.json`.
+- Isi rilis sejak `v0.0.3-alpha` (51 commit):
+  - **Audio player Ncmaz parity + upload** (header vinyl, global dock, volume/speed/skip, upload audio).
+  - **Post Header Info reusable** di semua tipe post (avatar/author/tanggal · reading time + like/komentar/views/save/share), menu `...` berisi Edit (admin/penulis).
+  - **Post Action Dock**: TOC "On this page", progress baca `NN%`, back-to-top saat section komentar; hapus `BackToTop` lama; dock di atas player audio.
+  - **Dukungan heading H4** (editor, sanitizer, TOC).
+  - **Tabel responsive** (wrapper scroll horizontal) di post, preview editor, halaman statis.
+  - **Breadcrumb mobile 1 baris** (scroll samping tanpa scrollbar) + hapus link Edit dari breadcrumb.
+  - **Fix overflow footer** (tombol Subscribe) dan **fix TOC kosong/terpotong**.
+  - Dokumentasi: `docs/features/22`, `23`, `24`, pembaruan `20`, spec/plan terkait.
+
+### Why
+- Permintaan pengguna: push perubahan dan rilis versi baru.
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 25 file / **233 passed**.
+- Smoke produksi `https://blog.artku.my.id/post/lorem-ipsum-style-3` (1280 & 390):
+  - `scrollWidth == viewport` (1280/390) setelah fix footer.
+  - Tabel 900px bisa digeser di wrapper (client 768/358), halaman tidak melebar.
+  - Dock: progress 13%/19% → TOC tampil (4 item) → saat komentar berganti tombol Back to top, klik kembali ke `scrollY 0`.
+  - Tanpa console error.
+- Deploy produksi: binary md5 `26645947a224f671ee477973492d9a97`, service `active`, asset `index-B6tQ0t4f.js`.
+
+### Handover notes
+- Tag rilis: **`v0.0.4-alpha`** (annotated). GitHub Release belum dibuat (tidak ada token GitHub di environment ini).
+- Rollback server: `/opt/blogku/blogku.prev-<timestamp>` lalu restart `blogku`.
+- Branch `feat/blogku-single-binary` + PR #1 diperbarui.
