@@ -26,4 +26,11 @@ describe('createPb base URL', () => {
     const pb = createPb()
     expect((pb as unknown as { baseURL: string }).baseURL).toBe('http://127.0.0.1:8090')
   })
+
+  it('falls back to window.location.origin when VITE_PB_URL is empty string', async () => {
+    ;(import.meta.env as Record<string, unknown>).VITE_PB_URL = ''
+    const { createPb } = await import('./pb')
+    const pb = createPb()
+    expect((pb as unknown as { baseURL: string }).baseURL).toBe(window.location.origin)
+  })
 })
