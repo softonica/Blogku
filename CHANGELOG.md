@@ -1705,3 +1705,16 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 ### Handover notes
 - H4 kini aman dirender di artikel publik dan muncul di TOC dengan indentasi level 3.
 - Belum di-deploy/push sampai langkah berikutnya.
+
+## [2026-11-03] — Fix TOC kosong karena heading dikumpulkan sebelum artikel render
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/pages/PostPage.vue` — watch pengumpul heading sekarang juga memantau `loading`; `collectHeadings()` + `update()` dijalankan lewat `nextTick` setelah state loading selesai, sehingga `<article v-html>` sudah ada di DOM.
+
+### Why
+- Smoke produksi: tombol TOC tidak muncul meskipun artikel punya `h2`. Penyebab: watch lama terpicu saat `loading` masih `true` (template masih spinner), `articleRef` masih `null`, sehingga daftar heading kosong dan tidak pernah dikumpulkan ulang.
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 24 file / 229 passed.
+- Diverifikasi ulang di produksi setelah deploy (lihat redeploy berikutnya).

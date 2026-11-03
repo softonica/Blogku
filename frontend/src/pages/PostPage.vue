@@ -49,7 +49,7 @@ const { headings, progress, showBackToTop, collectHeadings, update } = usePostRe
   articleRef,
 })
 watch(
-  () => [post.value?.id, cleanContent.value] as const,
+  () => [post.value?.id, cleanContent.value, loading.value] as const,
   async () => {
     await nextTick()
     collectHeadings()
