@@ -1,0 +1,127 @@
+# Komponen Post Header Info (Reusable antar Tipe Post)
+
+| Metadata | Keterangan |
+| :--- | :--- |
+| **Status** | Stable |
+| **Fase Arsitektur** | Fase 2 (PocketBase) — frontend-only, tanpa perubahan backend |
+| **Izin Minimum (RBAC)** | Publik (tampilan) / Penulis & Admin (link Edit via breadcrumb) |
+| **Komponen Utama** | [PostHeaderInfo.vue](frontend/src/components/post/PostHeaderInfo.vue) · [AppAvatar.vue](frontend/src/components/ui/AppAvatar.vue) · [LikeButton.vue](frontend/src/components/post/LikeButton.vue) · [SaveButton.vue](frontend/src/components/post/SaveButton.vue) · [AudioPostHeader.vue](frontend/src/components/post/AudioPostHeader.vue) · [PostPage.vue](frontend/src/pages/PostPage.vue) |
+| **Tanggal Ditambahkan** | 2026-11-03 |
+
+---
+
+## 1. Ringkasan & Tujuan Fitur
+
+Sebelum fitur ini, setiap tipe/layout post menampilkan info author dan baris aksi dengan gaya berbeda: `AudioPostHeader.vue` punya versi ringkas, sedangkan `PostPage.vue` punya header standar, overlay hero, sidebar magazine, dan action row pill terpisah. Ini menyebabkan duplikasi markup dan inkonsistensi visual antar post type (bertentangan dengan aturan dedup pada `docs/features/19-mobile-compact-layout.md`).
+
+Fitur ini menghadirkan **satu komponen reusable `PostHeaderInfo.vue`** sebagai satu-satunya sumber tampilan info author + aksi post: avatar, nama author (link), tanggal · reading time, dan baris tombol bulat (like + jumlah, komentar + jumlah, views + jumlah, pemisah, bookmark, share). Komponen dipakai di semua tipe post (audio, standard, video, hero) dengan dua varian `tone` (default / on-image untuk overlay cover hero).
+
+Non-goals: tidak ada menu `...`, tidak mengubah store/DataSource/backend, tidak mendesain ulang kartu sidebar magazine (hanya menghapus duplikasi).
+
+---
+
+## 2. Alur Pengguna (User Flow)
+
+1. Pengguna membuka halaman post apa pun (`postType = audio/standard/video`, style 1–4).
+2. Di bawah excerpt (atau di dalam overlay untuk hero style 4) tampil `PostHeaderInfo`: avatar + nama author (link ke `/author/:username`), tanggal · reading time, lalu baris aksi bulat.
+3. Klik **Like** → toggle like (wajib login; jika belum login redirect ke halaman login lalu kembali). Klik **Bookmark** → simpan/lepas bookmark. Klik **Comments** → emit `comments` dan `PostPage` scroll ke `#comments`. Klik **Share** → emit `share` dan membuka modal share.
+4. Penulis/admin: menu aksi tidak lagi mengandung tombol Edit; tautan kecil "Edit post" tersedia di sisi kanan breadcrumb (hanya bila `canManagePost`).
+
+---
+
+## 3. Arsitektur & Komponen Terkait
+
+```
+PostHeaderInfo.vue (komponen reusable)
+   ├── AppAvatar.vue (avatar 44px, dibungkus RouterLink → /author/:username)
+   ├── LikeButton.vue (variant="compact", size="md", tone)
+   ├── SaveButton.vue (variant="icon", size="md", tone)
+   ├── lib/format.ts (formatDate, formatNumber)
+   └── lucide-vue-next (Eye, MessageCircle, Share2)
+
+Dipakai oleh:
+   ├── AudioPostHeader.vue → <PostHeaderInfo> (emit comments/share diteruskan)
+   └── PostPage.vue → <PostHeaderInfo> (standard/video style 1–3, di bawah excerpt)
+                     → <PostHeaderInfo tone="on-image"> (hero style 4, di dalam overlay)
+```
+
+Tidak ada perubahan pada `stores/reaction.ts`, `stores/bookmark.ts`, `DataSource`, atau backend.
+
+### Matriks Integrasi (dari spec §6)
+
+| Lokasi | Perubahan |
+| :--- | :--- |
+| `AudioPostHeader.vue` | Blok author + meta + action row diganti `<PostHeaderInfo>`; emit `comments`/`share` diteruskan ke `PostPage`. |
+| `PostPage.vue` — standard & video (style 1–3) | Baris author/tanggal dan action row pill diganti satu `<PostHeaderInfo>` di bawah excerpt. |
+| `PostPage.vue` — hero (style 4) | Meta author di dalam overlay diganti `<PostHeaderInfo tone="on-image">`; action row pill di bawah hero dihapus agar tidak duplikat. |
+| `PostPage.vue` — magazine (style 3) | Sidebar "Written by" tidak lagi merender author + Like/Save/Share (duplikat); hanya menyisakan kartu "Post details". |
+| Breadcrumb `PostPage.vue` | Tautan kecil "Edit post" (hanya `canManagePost`) dipindah ke sisi kanan breadcrumb agar akses edit tidak hilang setelah tombol edit dihapus dari action row. |
+
+---
+
+## 4. Kontrak Data & TypeScript Schema
+
+### Kontrak `PostHeaderInfo.vue`
+
+```typescript
+// frontend/src/components/post/PostHeaderInfo.vue
+const props = withDefaults(
+  defineProps<{
+    post: Post
+    tone?: 'default' | 'on-image' // default: 'default'
+    align?: 'start' | 'center'    // default: 'start'
+  }>(),
+  { tone: 'default', align: 'start' },
+)
+
+const emit = defineEmits<{
+  comments: []
+  share: []
+}>()
+```
+
+Struktur render: baris atas = avatar + nama author + `<time>` + `·` + `{readingTime} min read`; baris aksi = `LikeButton` compact + tombol komentar bulat + stats views (non-interaktif) + pemisah vertikal + `SaveButton` ikon + tombol share. Semua tombol bulat 44px (`h-11 w-11`), ikon 20px, jumlah `text-sm font-semibold`. Baris aksi boleh wrap di mobile.
+
+### Prop baru pada atom (opsional, default tidak berubah)
+
+```typescript
+// LikeButton.vue — tambahan
+size?: 'sm' | 'md'        // default 'sm'
+tone?: 'default' | 'on-image' // default 'default'
+
+// SaveButton.vue — tambahan
+size?: 'sm' | 'md'        // default 'sm'
+tone?: 'default' | 'on-image' // default 'default'
+```
+
+Tidak ada perubahan schema Zod/API/backend.
+
+---
+
+## 5. Keamanan & Otorisasi
+
+- **RBAC**: Komponen bersifat publik (tampilan). Aksi like/bookmark memakai store yang sudah ada dengan redirect login bila belum autentikasi. Link "Edit post" di breadcrumb hanya dirender bila `canManagePost` (role `admin` atau penulis pemilik post) — akses edit tidak hilang setelah tombol edit dihapus dari action row.
+- **Sanitasi / Anti-XSS**: Komponen tidak merender HTML kaya; semua teks dirender sebagai teks Vue (escaped). Nama author, judul (untuk `aria-label` bookmark) dan tanggal dilewatkan sebagai binding data, bukan `v-html`. Tidak ada `eval()`/`new Function()`.
+- **Aksesibilitas / Dark mode**: Nilai `aria-label` pada tombol komentar/share/views, `<time datetime>`, focus ring (`focus-visible:ring-2`), dan varian `dark:` pada semua kelas; `tone="on-image"` memakai teks putih di atas cover hero.
+
+---
+
+## 6. Pengujian & Verifikasi
+
+**Unit test** (`frontend/src/components/post/PostHeaderInfo.test.ts`):
+- Merender link `/author/john` dengan nama author, tanggal terformat (`formatDate`), dan reading time ("4 min read").
+- Menampilkan jumlah views/komentar terformat (`formatNumber`), stub `LikeButton`/`SaveButton` hadir.
+- Emit `comments` (klik tombol `aria-label^="Comments"`) dan `share` (klik `aria-label="Share post"`).
+- Kelas `tone="on-image"` diterapkan (`text-white`).
+- `align="center"` menambahkan `items-center`.
+
+**Perintah otomatis** (dari `frontend/`):
+```bash
+npm run typecheck && npm run lint && npm run test
+```
+Semua lulus (typecheck vue-tsc --noEmit bersih, eslint bersih, vitest hijau).
+
+**Verifikasi manual** (dev server):
+- Buka post audio, standard (style 1–4), dan video.
+- Cek mode terang & gelap; lebar 375px dan 1440px (baris aksi wrap rapi di mobile).
+- Like tanpa login → redirect login lalu kembali; bookmark toggle; share membuka modal; klik komentar scroll ke `#comments`.

@@ -45,6 +45,7 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **20** | **Editor Table Controls & Rendering** | ✅ Stable | [20-editor-table-controls-and-rendering.md](./features/20-editor-table-controls-and-rendering.md) |
 | **21** | **Post Status: Publish, Draft & Private** | 📝 Spec (review) | [21-post-status-draft-private.md](./features/21-post-status-draft-private.md) |
 | **22** | **Audio Post Player & Upload** | ✅ Stable | [22-audio-player-and-upload.md](./features/22-audio-player-and-upload.md) |
+| **23** | **Post Header Info Component (Reusable)** | ✅ Stable | [23-post-header-info-component.md](./features/23-post-header-info-component.md) |
 
 ---
 

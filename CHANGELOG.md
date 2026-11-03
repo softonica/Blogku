@@ -1517,3 +1517,18 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 - `npm run typecheck` → sukses; `npm run lint` → bersih.
 ### Handover notes
 - Tidak ada perubahan backend. Style berlaku di editor preview & halaman post publik (sanitize mempertahankan class).
+
+## [2026-11-03] — Post header info component (reusable across post types)
+**Author** · **Role** (Dev) · **Status** (Done)
+### What changed
+- New `frontend/src/components/post/PostHeaderInfo.vue` (avatar, author, date · reading time, round action row: like/comments/views, divider, save, share).
+- `LikeButton`/`SaveButton`: new optional `size`/`tone` props (defaults unchanged).
+- `AudioPostHeader.vue` and `PostPage.vue` refactored to use it; pill action row, duplicate bottom "Written by" card, and magazine sidebar author/action card removed; Edit link moved to breadcrumb.
+- Docs: `docs/features/23-post-header-info-component.md`, `docs/README.md`.
+### Why
+- Unify header info presentation across audio/standard/video/hero post layouts; avoid duplicated info per feature 19 rule.
+### How it was verified
+- `npm run typecheck && npm run lint && npm run test` all pass in `frontend/`.
+- Manual smoke (dev server): all post styles, dark mode, 375px + 1440px, like/bookmark/share/comments, login redirect.
+### Handover notes
+- No API/backend changes; stores untouched. If a future design wants a "..." menu, add it inside `PostHeaderInfo` and re-introduce Edit there.
