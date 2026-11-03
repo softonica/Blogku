@@ -12,6 +12,10 @@ const h = vi.hoisted(() => {
     play: 0,
     pause: 0,
     seek: [] as number[],
+    skip: [] as number[],
+    volume: [] as number[],
+    muted: [] as boolean[],
+    rate: [] as number[],
     stop: 0,
   }
 
@@ -20,7 +24,10 @@ const h = vi.hoisted(() => {
     playing: false,
     currentTime: 0,
     duration: 0,
-    volume: 1,
+    buffered: 0,
+    volume: 0.8,
+    muted: false,
+    playbackRate: 1,
     error: null,
   }
 
@@ -56,6 +63,27 @@ const h = vi.hoisted(() => {
       state.currentTime = time
       emit()
     },
+    skip(seconds: number): void {
+      calls.skip.push(seconds)
+      state.currentTime += seconds
+      emit()
+    },
+    setVolume(volume: number): void {
+      calls.volume.push(volume)
+      state.volume = volume
+      state.muted = volume === 0
+      emit()
+    },
+    setMuted(muted: boolean): void {
+      calls.muted.push(muted)
+      state.muted = muted
+      emit()
+    },
+    setPlaybackRate(rate: number): void {
+      calls.rate.push(rate)
+      state.playbackRate = rate
+      emit()
+    },
     stop(): void {
       calls.stop += 1
       state.track = null
@@ -81,13 +109,20 @@ const h = vi.hoisted(() => {
     calls.play = 0
     calls.pause = 0
     calls.seek.length = 0
+    calls.skip.length = 0
+    calls.volume.length = 0
+    calls.muted.length = 0
+    calls.rate.length = 0
     calls.stop = 0
     Object.assign(state, {
       track: null,
       playing: false,
       currentTime: 0,
       duration: 0,
-      volume: 1,
+      buffered: 0,
+      volume: 0.8,
+      muted: false,
+      playbackRate: 1,
       error: null,
     })
     listeners.clear()
@@ -147,10 +182,13 @@ describe('player store', () => {
     expect(h.calls.load).toEqual([
       {
         postId: 'p1',
+        slug: 'p1',
         title: 'Title p1',
         audioUrl: 'https://audio/p1.mp3',
         coverUrl: 'https://cover/p1.jpg',
         authorName: 'Alice',
+        categoryName: 'Alice',
+        likeCount: 0,
       },
     ])
     expect(h.calls.play).toBe(1)
@@ -243,5 +281,53 @@ describe('player store', () => {
     store.play(makePost('p1'))
     expect(store.isCurrentPost('p1')).toBe(true)
     expect(store.isCurrentPost('p2')).toBe(false)
+  })
+
+  it('forwards volume and mute actions to the engine', () => {
+    const store = usePlayerStore()
+
+    store.setVolume(0.35)
+    expect(h.calls.volume).toEqual([0.35])
+    expect(store.volume).toBe(0.35)
+
+    store.toggleMute()
+    expect(h.calls.muted).toEqual([true])
+    expect(store.muted).toBe(true)
+
+    store.toggleMute()
+    expect(h.calls.muted).toEqual([true, false])
+    expect(store.muted).toBe(false)
+  })
+
+  it('cycles playback rate 1 → 1.5 → 2 → 1', () => {
+    const store = usePlayerStore()
+
+    store.cycleRate()
+    expect(h.calls.rate).toEqual([1.5])
+    store.cycleRate()
+    expect(h.calls.rate).toEqual([1.5, 2])
+    store.cycleRate()
+    expect(h.calls.rate).toEqual([1.5, 2, 1])
+  })
+
+  it('forwards skip calls to the engine', () => {
+    const store = usePlayerStore()
+    store.skip(-10)
+    store.skip(15)
+    expect(h.calls.skip).toEqual([-10, 15])
+  })
+
+  it('syncs buffered, volume, muted, and rate from the engine', () => {
+    const store = usePlayerStore()
+    h.state.buffered = 22
+    h.state.volume = 0.4
+    h.state.muted = true
+    h.state.playbackRate = 1.5
+    h.emit()
+
+    expect(store.buffered).toBe(22)
+    expect(store.volume).toBe(0.4)
+    expect(store.muted).toBe(true)
+    expect(store.playbackRate).toBe(1.5)
   })
 })

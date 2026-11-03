@@ -2,11 +2,12 @@
 
 | Metadata | Keterangan |
 | :--- | :--- |
-| **Status** | Stable |
+| **Status** | Stable (redesign Ncmaz 2026-11-03) |
 | **Fase Arsitektur** | Fase 2 (PocketBase) |
 | **Izin Minimum (RBAC)** | Publik (playback) / Penulis (upload audio) |
-| **Komponen Utama** | [audio-engine.ts](frontend/src/lib/audio-engine.ts) · [player.ts](frontend/src/stores/player.ts) · [AudioPlayer.vue](frontend/src/components/player/AudioPlayer.vue) · [PostPage.vue](frontend/src/pages/PostPage.vue) · [EditorPage.vue](frontend/src/pages/EditorPage.vue) |
+| **Komponen Utama** | [audio-engine.ts](frontend/src/lib/audio-engine.ts) · [player.ts](frontend/src/stores/player.ts) · [AudioPlayer.vue](frontend/src/components/player/AudioPlayer.vue) · [AudioPostHeader.vue](frontend/src/components/post/AudioPostHeader.vue) · [PlayerProgressBar.vue](frontend/src/components/player/PlayerProgressBar.vue) · [PlayerTrackInfo.vue](frontend/src/components/player/PlayerTrackInfo.vue) · [PlayerControls.vue](frontend/src/components/player/PlayerControls.vue) · [PlayerVolume.vue](frontend/src/components/player/PlayerVolume.vue) · [PostPage.vue](frontend/src/pages/PostPage.vue) · [EditorPage.vue](frontend/src/pages/EditorPage.vue) |
 | **Tanggal Ditambahkan** | 2026-11-02 |
+| **Redesign Terakhir** | 2026-11-03 — Ncmaz header + global dock 1:1 |
 
 ---
 
@@ -17,11 +18,11 @@ Sebelum fitur ini, post dengan `postType === 'audio'` tidak memiliki pengalaman 
 Fitur ini menghadirkan:
 
 - **Header post audio** di `PostPage.vue` ala Ncmaz: album art bulat yang berputar saat diputar + tombol play/pause di tengah, badges kategori, judul, dan meta author/date.
-- **Player global fixed** yang tetap berjalan saat pengguna berpindah halaman (SPA): album art bulat, judul/post, progress bar seekable, play/pause, dan tombol close.
+- **Player global fixed** yang tetap berjalan saat pengguna berpindah halaman (SPA): dock full-width dengan album art bulat, judul/kategori, progress seekable + buffered, skip 10/15 detik, speed, volume/mute, play/pause, waktu, close, dan mode expanded di mobile.
 - **Upload file audio** di editor (`audio/*`, max 20 MB) untuk mengisi `audioUrl`, dengan input URL manual sebagai alternatif.
 - **Integrasi orphan-cleanup**: file audio yang diupload dihitung sebagai referensi sehingga tidak dibersihkan sebelum dipakai.
 
-Non-goals: playlist/antrean multi-track, shuffle/repeat, persistensi posisi putar lintas sesi, auto-play saat navigasi, transkrip/equalizer, kontrol volume mini-player.
+Non-goals: playlist/antrean multi-track, shuffle/repeat, persistensi posisi putar lintas sesi, auto-play saat navigasi, transkrip/equalizer. Catatan: kontrol volume yang dulu non-goal **sudah termasuk** sejak redesign 2026-11-03 (dock Ncmaz).
 
 ---
 
@@ -59,7 +60,7 @@ audio-engine.ts (modul TS murni, singleton HTMLAudioElement)
 
 - **`frontend/src/lib/audio-engine.ts`** — modul murni; satu instance `HTMLAudioElement` (preload="auto") dibuat sekali dan hidup seumur app. API: `load(track)`, `play()`, `pause()`, `seek(time)`, `stop()`, `getState()`, `subscribe(listener)`. Event `timeupdate/durationchange/play/pause/ended/error` → push state ke subscribers. `ended` → playing=false (berhenti di akhir); `error` → pesan error di state.
 - **`frontend/src/stores/player.ts`** — store Pinia `player`. State: `track`, `playing`, `currentTime`, `duration`, `volume`, `error`. Actions: `play(post)` (load track baru bila beda post, lalu play; resume bila sama), `toggle()`, `pause()`, `seek(t)`, `close()` (stop + clear), `isCurrentPost(postId)`. Store me-subscribe engine; komponen hanya membaca store.
-- **`frontend/src/components/player/AudioPlayer.vue`** — di-mount di `App.vue` (global, setara ToastHost). Fixed bottom-left (`fixed bottom-4 left-4 z-40`), hidden saat `track == null`. Album art bulat (class `animate-spin-slow` saat playing), judul + author, progress bar `input[type=range]` (seek), tombol play/pause + close. Aksesibilitas: `aria-label` per tombol, `role="alert"` untuk error, dark mode.
+- **`frontend/src/components/player/AudioPlayer.vue`** — di-mount di `App.vue` (global, setara ToastHost). Sejak redesign 2026-11-03 berupa dock full-width `fixed bottom-0 z-30` (bukan mini-card kiri-bawah), hidden saat `track == null`. Berisi `PlayerTrackInfo`, `PlayerProgressBar`, `PlayerControls`, `PlayerVolume`; mobile expand 64→128 px. Aksesibilitas: `role="region" aria-label="Audio player"`, `aria-label` per tombol, `role="alert"`/toast untuk error, dark mode. Detail lengkap di §7.
 - **`frontend/src/pages/PostPage.vue`** — blok `v-if="isAudioPost"` header khusus untuk `postType === 'audio' && audioUrl`: album art `rounded-full` + tombol play besar tengah (`aria-label="Play audio"`), state tombol mengikuti store (`isCurrentPost` + `playing`), `@click="isPlayingThis ? player.toggle() : player.play(post)"`. Animasi `audio-spin` (8s linear infinite). Konten artikel/tags/komentar/related tetap di bawahnya. Post non-audio tidak berubah.
 - **`frontend/src/pages/EditorPage.vue`** — branch `postType === 'audio'` di Post Options: kontrol upload audio (accept `audio/*`, validasi MIME audio + 20MB, `onAudioUpload` → `getDataSource().uploadFile(file)` → set `audioUrl`), state `uploadingAudio` ("Uploading…"), preview `<audio controls>` + tombol hapus, input URL manual tetap tersedia.
 - **`frontend/src/api/mock.source.ts`** — `uploadFile` kini menerima audio (MIME list + ≤20MB); audio disimpan **in-memory** (`sessionAudio` Map), tidak ditulis ke localStorage (hindari kuota data URL besar); `createPost`/`updatePost` saat publish membersihkan `sessionAudio`. `referencedMediaRefs()` menyertakan `post.audioUrl` agar scan orphan gambar tetap konsisten.
@@ -151,3 +152,78 @@ Test spesifik terkait:
 7. Mode mock: publish post audio → audio mock dibersihkan (session); di PocketBase: verifikasi `audioUrl` tersimpan dan file `media` tidak dihapus oleh orphan-cleanup.
 
 **Verifikasi produksi (PocketBase):** untuk instalasi lama, pastikan koleksi `media` di-update manual di admin (tambah MIME audio + MaxSize 20MB) — lihat Handover notes di `CHANGELOG.md` (Task 10).
+
+---
+
+## 7. Redesign 2026-11-03 — Header + Global Dock Ncmaz (1:1)
+
+Bagian ini menggantikan deskripsi mini-card kiri-bawah pada versi awal. Referensi visual: post audio Ncmaz (album art berputar + dock full-width).
+
+### 7.1 Header audio (`AudioPostHeader.vue`)
+- Hanya dirender untuk `postType === 'audio' && audioUrl`; post non-audio tidak berubah.
+- Band `bg-primary-50 dark:bg-neutral-800` setinggi 240 px, card `max-w-[78rem]`, `rounded-2xl md:rounded-[40px]`,
+  `shadow-2xl`, padding `px-4 py-7 sm:px-5 lg:p-11`.
+- Vinyl: `aspect-square rounded-full`, `nc-animation-spin` 20 detik, overlay `neutral-900/75`,
+  tombol play 80×80 di tengah; ikon play 44 px saat paused, equalizer CSS saat playing.
+- Info: kategori, judul `2xl → [2.75rem]` semibold, divider, avatar/nama/date/read time,
+  lalu aksi compact: like + komentar + views | save + share + edit (edit hanya jika berhak).
+- **Excerpt tidak ditampilkan** di header audio.
+- Baris aksi lama di luar header dan kartu “Written by” disembunyikan untuk audio agar
+  Like/Save tidak muncul dua kali.
+
+### 7.2 Global dock (`AudioPlayer.vue` + subkomponen)
+- Muncul setelah track diputar; fixed `bottom-0`, `z-30`, full-width, `bg-white dark:bg-neutral-800`,
+  shadow Google-like; tetap hidup lintas rute SPA.
+- Progress absolute di `bottom-full`: 2 px, played `primary-500`, buffered `primary-500/30`,
+  thumb 12 px, input range transparan (aria-label “Seek audio”).
+- Tinggi: 64 px (<640), 80 px (≥640), +64 px saat expanded (<1024). Progress overlay
+  tidak dihitung dalam tinggi.
+- Kiri: cover 40/48 px berputar, judul + kategori (link ke post), like compact + save (≥1280).
+- Tengah (≥1024): skip -10 detik, play/pause 56/64 px, skip +15 detik, speed
+  `1.0x → 1.5x → 2.0x → 1.0x`.
+- Kanan: mute + volume 96 px (default 80%), waktu `0:00 / 2:16` (≥1024), close.
+- Mobile collapsed: cover/title/kategori, play/pause, close, chevron expand.
+- Mobile expanded (128 px di 390): save, skip -10, play/pause 56 px, skip +15, speed.
+  Tombol play/pause baris atas disembunyikan saat expanded agar tidak duplikat.
+
+### 7.3 State & kontrak baru
+```ts
+export interface AudioTrack {
+  postId: string
+  slug: string
+  title: string
+  audioUrl: string
+  coverUrl: string
+  authorName: string
+  categoryName: string
+  likeCount: number
+}
+```
+`AudioEngineState` menambah `buffered`, `muted`, `playbackRate`. Engine menambah
+`setVolume`, `setMuted`, `setPlaybackRate`, `skip`; store menambah ref/action yang sama
+(`toggleMute`, `cycleRate`, `skip`). Volume default 0.8; `setVolume(0)` memutingkan;
+unmute memulihkan `lastVolume`. `LikeButton` mendapat varian `compact` dan menerima
+`Pick<Post, 'id' | 'likeCount'>`.
+
+### 7.4 BackToTop & Toast
+- Dock mengukur tinggi aktual via `ResizeObserver` dan menulis
+  `--player-dock-height` ke `<html>`; reset 0 saat track null/unmount.
+- `BackToTop` memakai `bottom: calc(var(--player-dock-height, 0px) + 1.5rem)`.
+- `ToastHost` memakai offset yang sama (`+ 1rem`) agar tidak menutupi kontrol dock.
+- Hasil e2e: gap BackToTop ke dock = 24 px pada desktop, mobile collapsed, dan mobile expanded.
+
+### 7.5 Verifikasi redesign
+- `npm run typecheck` — bersih.
+- `npm run lint` — bersih.
+- `npm test` — 19 file / 199 test passed.
+- `npx playwright test e2e/audio-player.spec.ts` — 3 passed (header/dock, BackToTop desktop/mobile, post non-audio).
+- Build produksi + deploy ke server 64; smoke test `https://blog.artku.my.id/post/snap-cracle`:
+  dock 80 px desktop, 64/128 px mobile, BackToTop gap 24 px, speed/mute/close bekerja,
+  `scrollWidth <= clientWidth`, tidak ada console error, `/api/health` 200.
+
+### 7.6 Deviasi sadar dari referensi
+- Equalizer CSS, bukan GIF `icon-playing.gif` (tema-aware + reduced motion).
+- Badge kategori tetap palet project (primary), bukan peta warna per kategori Ncmaz.
+- Menu “more” referensi tidak ditiru; edit hanya ikon untuk yang berhak.
+- Mobile expanded tidak menduplikasi tombol play/pause.
+- Toast ikut di-offset; referensi tidak punya toast.

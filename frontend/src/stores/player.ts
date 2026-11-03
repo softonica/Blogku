@@ -12,6 +12,10 @@ export const usePlayerStore = defineStore('player', () => {
   const playing = ref(initial.playing)
   const currentTime = ref(initial.currentTime)
   const duration = ref(initial.duration)
+  const buffered = ref(initial.buffered)
+  const volume = ref(initial.volume)
+  const muted = ref(initial.muted)
+  const playbackRate = ref(initial.playbackRate)
   const error = ref<string | null>(initial.error)
 
   engine.subscribe((state) => {
@@ -19,6 +23,10 @@ export const usePlayerStore = defineStore('player', () => {
     playing.value = state.playing
     currentTime.value = state.currentTime
     duration.value = state.duration
+    buffered.value = state.buffered
+    volume.value = state.volume
+    muted.value = state.muted
+    playbackRate.value = state.playbackRate
     error.value = state.error
   })
 
@@ -27,10 +35,13 @@ export const usePlayerStore = defineStore('player', () => {
     if (track.value?.postId !== post.id) {
       engine.load({
         postId: post.id,
+        slug: post.slug,
         title: post.title,
         audioUrl: post.audioUrl,
         coverUrl: post.cover,
         authorName: post.author.name,
+        categoryName: post.categories[0]?.name ?? post.author.name,
+        likeCount: post.likeCount,
       })
     }
     void engine.play()
@@ -52,6 +63,24 @@ export const usePlayerStore = defineStore('player', () => {
     engine.seek(time)
   }
 
+  function skip(seconds: number): void {
+    engine.skip(seconds)
+  }
+
+  function setVolume(next: number): void {
+    engine.setVolume(next)
+  }
+
+  function toggleMute(): void {
+    engine.setMuted(!muted.value)
+  }
+
+  function cycleRate(): void {
+    const current = playbackRate.value
+    const next = current === 1 ? 1.5 : current === 1.5 ? 2 : 1
+    engine.setPlaybackRate(next)
+  }
+
   function close(): void {
     engine.stop()
   }
@@ -65,11 +94,19 @@ export const usePlayerStore = defineStore('player', () => {
     playing,
     currentTime,
     duration,
+    buffered,
+    volume,
+    muted,
+    playbackRate,
     error,
     play,
     toggle,
     pause,
     seek,
+    skip,
+    setVolume,
+    toggleMute,
+    cycleRate,
     close,
     isCurrentPost,
   }

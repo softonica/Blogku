@@ -33,6 +33,7 @@ onBeforeUnmount(() => {
       v-if="visible"
       type="button"
       class="fixed bottom-6 end-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg shadow-primary-600/30 transition hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:bg-primary-500 dark:text-neutral-950 dark:hover:bg-primary-400"
+      :style="{ bottom: 'calc(var(--player-dock-height, 0px) + 1.5rem)' }"
       aria-label="Back to top"
       @click="scrollToTop"
     >

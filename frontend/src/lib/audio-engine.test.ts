@@ -13,10 +13,17 @@ class MockAudio {
   currentTime = 0
   duration = NaN
   volume = 1
+  muted = false
+  playbackRate = 1
   paused = true
+  buffered: { length: number; end: (index: number) => number } = {
+    length: 0,
+    end: () => 0,
+  }
 
   ontimeupdate: (() => void) | null = null
   ondurationchange: (() => void) | null = null
+  onprogress: (() => void) | null = null
   onplay: (() => void) | null = null
   onpause: (() => void) | null = null
   onended: (() => void) | null = null
@@ -33,14 +40,26 @@ class MockAudio {
 
 const sampleTrack: AudioTrack = {
   postId: 'post-1',
+  slug: 'track-title',
   title: 'Track title',
   audioUrl: 'https://cdn.example.com/audio.mp3',
   coverUrl: 'https://cdn.example.com/cover.jpg',
   authorName: 'Author',
+  categoryName: 'Podcast',
+  likeCount: 5,
 }
 
 beforeEach(() => {
   vi.stubGlobal('Audio', MockAudio)
+  const engine = getAudioEngine()
+  engine.stop()
+  engine.setVolume(0.8)
+  engine.setMuted(false)
+  engine.setPlaybackRate(1)
+  for (const audio of MockAudio.instances) {
+    audio.play.mockClear()
+    audio.pause.mockClear()
+  }
 })
 
 describe('getAudioEngine', () => {
@@ -126,5 +145,109 @@ describe('getAudioEngine', () => {
     const count = seen.length
     engine.seek(10)
     expect(seen.length).toBe(count)
+  })
+
+  it('defaults to 80% volume, unmuted, 1x', () => {
+    const state = getAudioEngine().getState()
+    expect(state.volume).toBe(0.8)
+    expect(state.muted).toBe(false)
+    expect(state.playbackRate).toBe(1)
+  })
+
+  it('clamps volume, mutes at zero, and restores the last volume', () => {
+    const engine = getAudioEngine()
+    const audio = MockAudio.instances[0]
+
+    engine.setVolume(1.5)
+    expect(engine.getState().volume).toBe(1)
+
+    engine.setVolume(0.4)
+    expect(engine.getState().volume).toBe(0.4)
+    expect(audio.volume).toBe(0.4)
+
+    engine.setVolume(0)
+    expect(engine.getState().volume).toBe(0)
+    expect(engine.getState().muted).toBe(true)
+    expect(audio.muted).toBe(true)
+
+    engine.setMuted(false)
+    expect(engine.getState().muted).toBe(false)
+    expect(engine.getState().volume).toBe(0.4)
+    expect(audio.volume).toBe(0.4)
+  })
+
+  it('setMuted remembers the current volume', () => {
+    const engine = getAudioEngine()
+    engine.setVolume(0.6)
+    engine.setMuted(true)
+    expect(engine.getState().muted).toBe(true)
+    engine.setMuted(false)
+    expect(engine.getState().volume).toBe(0.6)
+  })
+
+  it('setPlaybackRate updates the element and state', () => {
+    const engine = getAudioEngine()
+    engine.setPlaybackRate(1.5)
+    expect(engine.getState().playbackRate).toBe(1.5)
+    expect(MockAudio.instances[0].playbackRate).toBe(1.5)
+  })
+
+  it('skip() clamps to the track duration', () => {
+    const engine = getAudioEngine()
+    const audio = MockAudio.instances[0]
+    audio.duration = 100
+    audio.ondurationchange!()
+
+    audio.currentTime = 95
+    audio.ontimeupdate!()
+    engine.skip(15)
+    expect(audio.currentTime).toBe(100)
+
+    audio.currentTime = 3
+    audio.ontimeupdate!()
+    engine.skip(-10)
+    expect(audio.currentTime).toBe(0)
+  })
+
+  it('tracks buffered range on progress', () => {
+    const engine = getAudioEngine()
+    const audio = MockAudio.instances[0]
+    audio.buffered = { length: 1, end: () => 42 }
+    audio.onprogress!()
+    expect(engine.getState().buffered).toBe(42)
+  })
+
+  it('load() resets time/buffer but keeps volume and rate preferences', () => {
+    const engine = getAudioEngine()
+    const audio = MockAudio.instances[0]
+    audio.currentTime = 20
+    audio.ontimeupdate!()
+    audio.buffered = { length: 1, end: () => 40 }
+    audio.onprogress!()
+    engine.setVolume(0.5)
+    engine.setPlaybackRate(2)
+
+    engine.load(sampleTrack)
+
+    const state = engine.getState()
+    expect(state.currentTime).toBe(0)
+    expect(state.buffered).toBe(0)
+    expect(state.volume).toBe(0.5)
+    expect(state.playbackRate).toBe(2)
+  })
+
+  it('stop() resets playback but keeps volume and rate preferences', () => {
+    const engine = getAudioEngine()
+    engine.setVolume(0.5)
+    engine.setPlaybackRate(2)
+    engine.load(sampleTrack)
+    engine.stop()
+
+    const state = engine.getState()
+    expect(state.track).toBeNull()
+    expect(state.currentTime).toBe(0)
+    expect(state.buffered).toBe(0)
+    expect(state.volume).toBe(0.5)
+    expect(state.playbackRate).toBe(2)
   })
 })

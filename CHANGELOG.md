@@ -5,7 +5,42 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
-## [2026-11-03] — Hotfix: base URL API kosong merusak semua halaman post (produksi)
+## [2026-11-03] - Audio Player Ncmaz Parity (header + global dock)
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/lib/audio-engine.ts` — `AudioTrack` menambah `slug`, `categoryName`, `likeCount`; state menambah `buffered`, `muted`, `playbackRate`; API menambah `setVolume`, `setMuted`, `setPlaybackRate`, `skip`; volume default 0.8.
+- `frontend/src/stores/player.ts` — ref/action baru (`buffered`, `volume`, `muted`, `playbackRate`, `setVolume`, `toggleMute`, `cycleRate`, `skip`); mapping track dari `Post`.
+- `frontend/src/components/post/AudioPostHeader.vue` (baru) — header Ncmaz: band 240 px, vinyl 20 detik + overlay, play 80 px/equalizer, judul, divider, meta, aksi compact; tanpa excerpt.
+- `frontend/src/components/player/AudioPlayer.vue` — mini-card diganti dock full-width: progress buffered, skip -10/+15, speed 1.0/1.5/2.0, volume/mute, waktu, close, like/save, mobile expand 64→128 px.
+- `PlayerProgressBar.vue`, `PlayerTrackInfo.vue`, `PlayerControls.vue`, `PlayerVolume.vue`, `SkipButton.vue`, `PlayingEqualizer.vue` (baru) — subkomponen dock/header.
+- `frontend/src/components/post/LikeButton.vue` — varian `compact`; tipe prop menjadi `Pick<Post, 'id' | 'likeCount'>`.
+- `frontend/src/components/layout/BackToTop.vue` + `ToastHost.vue` — offset mengikuti `--player-dock-height` (ResizeObserver) agar tidak menutupi dock.
+- `frontend/src/pages/PostPage.vue` — memakai `AudioPostHeader`; baris aksi lama dan kartu “Written by” disembunyikan untuk audio.
+- `frontend/src/styles/main.css` — animasi `nc-animation-spin` 20 detik + reduced motion.
+- `frontend/e2e/audio-player.spec.ts` (baru) — header/dock, speed, close, BackToTop desktop/mobile, post non-audio.
+- `docs/superpowers/specs/2026-11-02-audio-player-ncmaz-parity-design.md` + `docs/superpowers/plans/2026-11-02-audio-player-ncmaz-parity.md` (baru); `docs/features/22-audio-player-and-upload.md` diperbarui.
+
+### Why
+- Permintaan user: UI + fungsi player audio dibuat 1:1 seperti Ncmaz pada post type audio, menggantikan mini-card kiri-bawah. Termasuk header vinyl, dock full-width, volume, speed, skip, mobile expand, dan like/save.
+- BackToTop lama (`fixed bottom-6 end-6 z-40`) akan menutupi kontrol dock; offset berbasis tinggi aktual dock diperlukan, termasuk saat mobile expanded.
+
+### How it was verified
+- `npm run typecheck` (dari `frontend/`) → `vue-tsc --noEmit` bersih.
+- `npm run lint` → `eslint .` bersih.
+- `npm test` → **19 file / 199 test passed**.
+- `npx playwright test e2e/audio-player.spec.ts` → **3 passed** (header/dock, BackToTop gap desktop + mobile 390 collapsed/expanded, post standard tanpa dock).
+- Build produksi: `VITE_USE_POCKETBASE=true VITE_PB_URL=` + `vite build` sukses; cross-compile Linux amd64 `backend/blogku` (28.176.544 byte).
+- Deploy: binary baru ke `/opt/blogku/blogku` (backup `blogku.bak-ncmaz-parity`), `systemctl restart blogku` → `active`; `spa:200`, `health:200`.
+- Smoke produksi `https://blog.artku.my.id/post/snap-cracle` via Playwright: dock 80 px desktop, 64/128 px mobile, BackToTop gap 24 px di ketiga state, speed 1.0x→1.5x, mute `aria-pressed=true`, close menghilangkan dock, `scrollWidth <= clientWidth`, tidak ada console error.
+
+### Handover notes
+- Tidak ada perubahan schema/PocketBase; tidak perlu migrasi data.
+- Build artefak (`frontend/dist`, `backend/dist`, `backend/blogku`) tidak di-commit.
+- Deviasi sadar dari referensi: equalizer CSS (bukan GIF), badge kategori tetap palet project, menu “more” diganti ikon edit untuk yang berhak, mobile expanded tidak menduplikasi play/pause.
+- E2E memakai seed mock `/post/the-producers-reshaping-ambient-music`; smoke produksi memakai `/post/snap-cracle`.
+
+## [2026-11-03] - Hotfix: base URL API kosong merusak semua halaman post (produksi)
 **Author**: AI Agent (opencode) · **Role**: Dev/Backend · **Status**: Done
 
 ### What changed

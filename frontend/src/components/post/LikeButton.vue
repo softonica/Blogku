@@ -10,9 +10,9 @@ import { formatNumber, getErrorMessage } from '@/lib/format'
 
 const props = withDefaults(
   defineProps<{
-    post: Post
+    post: Pick<Post, 'id' | 'likeCount'>
     showCount?: boolean
-    variant?: 'pill' | 'icon'
+    variant?: 'pill' | 'icon' | 'compact'
   }>(),
   { showCount: true, variant: 'pill' },
 )
@@ -31,8 +31,21 @@ const base =
 const variantClass = computed(() =>
   props.variant === 'icon'
     ? 'h-10 w-10 border border-neutral-200 dark:border-neutral-800'
-    : 'h-10 px-3 sm:px-4 text-sm',
+    : props.variant === 'compact'
+      ? 'h-9 gap-1.5 px-1.5 text-xs'
+      : 'h-10 px-3 sm:px-4 text-sm',
 )
+
+const stateClass = computed(() => {
+  if (props.variant === 'compact') {
+    return liked.value
+      ? 'text-rose-600 dark:text-rose-300'
+      : 'text-neutral-700 hover:text-rose-600 dark:text-neutral-200 dark:hover:text-rose-400'
+  }
+  return liked.value
+    ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300'
+    : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'
+})
 
 async function toggle(): Promise<void> {
   if (busy.value) return
@@ -56,13 +69,7 @@ async function toggle(): Promise<void> {
 <template>
   <button
     type="button"
-    :class="[
-      base,
-      variantClass,
-      liked
-        ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300'
-        : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800',
-    ]"
+    :class="[base, variantClass, stateClass]"
     :aria-pressed="liked"
     :aria-label="
       showCount
@@ -74,7 +81,23 @@ async function toggle(): Promise<void> {
     :disabled="busy"
     @click.stop.prevent="toggle"
   >
+    <span
+      v-if="variant === 'compact'"
+      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors"
+      :class="
+        liked
+          ? 'bg-rose-50 dark:bg-rose-950/60'
+          : 'bg-neutral-50 hover:bg-rose-50 dark:bg-neutral-800 dark:hover:bg-rose-100/10'
+      "
+    >
+      <Heart
+        class="h-[18px] w-[18px]"
+        :class="liked ? 'fill-current' : ''"
+        aria-hidden="true"
+      />
+    </span>
     <Heart
+      v-else
       class="h-4 w-4"
       :class="liked ? 'fill-current' : ''"
       aria-hidden="true"

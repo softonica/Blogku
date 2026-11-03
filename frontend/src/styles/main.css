@@ -4,6 +4,28 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+.nc-animation-spin {
+  animation: nc-spin 20s linear infinite;
+  animation-play-state: paused;
+}
+
+.nc-animation-spin.playing {
+  animation-play-state: running;
+}
+
+@keyframes nc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nc-animation-spin,
+  .nc-animation-spin.playing {
+    animation: none;
+  }
+}
+
 @theme {
   --color-primary-50: rgb(var(--c-primary-50));
   --color-primary-100: rgb(var(--c-primary-100));

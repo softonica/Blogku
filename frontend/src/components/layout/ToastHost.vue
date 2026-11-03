@@ -9,6 +9,7 @@ const ui = useUiStore()
   <Teleport to="body">
     <div
       class="pointer-events-none fixed inset-x-4 bottom-4 z-[60] flex flex-col items-end gap-2 sm:inset-x-auto sm:end-6"
+      :style="{ bottom: 'calc(var(--player-dock-height, 0px) + 1rem)' }"
       role="status"
       aria-live="polite"
     >
