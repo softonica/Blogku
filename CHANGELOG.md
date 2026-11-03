@@ -5,6 +5,26 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-03] — Hotfix: base URL API kosong merusak semua halaman post (produksi)
+**Author**: AI Agent (opencode) · **Role**: Dev/Backend · **Status**: Done
+
+### What changed
+- `frontend/src/lib/pb.ts` — `resolveUrl()` memakai `||` menggantikan `??`: ketika `VITE_PB_URL` kosong (string kosong dari `backend/build.sh`), base URL sekarang jatuh kembali ke `window.location.origin`.
+- `frontend/src/lib/pb.test.ts` — tambah test "falls back to window.location.origin when VITE_PB_URL is empty string" (RED→GREEN).
+- Deploy ulang binary ke server 64 (`64.235.45.122`, service `blogku`).
+
+### Why
+- Pasca deploy audio-player, semua halaman post menampilkan "Post not found". Root cause: build.sh mengekspor `VITE_PB_URL=` (kosong); `'' ?? originUrl()` menghasilkan `''`, sehingga request API menjadi relatif (`api/...`) dan di halaman `/post/<slug>/` ter-resolve ke `/post/<slug>/api/...` → server mengembalikan HTML SPA (bukan JSON). Halaman home (`/`) kebetulan bekerja.
+- Diperbaiki dengan `fromEnv || originUrl()` + test kosong.
+
+### How it was verified
+- `npm test -- src/lib/pb.test.ts` — 4/4 pass (RED awal: `baseURL ''` vs expected origin).
+- `npm run typecheck` & `npm run lint` — bersih; `npm test` full — 19 file / 185 test passed.
+- Verifikasi produksi via Playwright headless: API kini memanggil `https://blog.artku.my.id/api/...` (JSON), halaman post render lengkap (judul, author, konten) — bukan lagi "Post not found".
+
+### Handover notes
+- Migrasi schema collection `media` (MIME audio + 20MB) tetap menunggu dilakukan di admin, agar upload audio berfungsi di produksi.
+
 ## [2026-11-02] — Audio Post Player (SPA-global) & Audio Upload — dokumentasi & verifikasi (Task 10)
 **Author**: AI Agent (opencode) · **Role**: Docs/QA · **Status**: Done
 
