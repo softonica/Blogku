@@ -136,6 +136,31 @@ describe('sanitizeUrl', () => {
     expect(sanitizeUrl(null)).toBe('')
     expect(sanitizeUrl('not a url')).toBe('')
   })
+
+  it('keeps data URLs when allowData is true', () => {
+    const dataUrl = 'data:audio/mpeg;base64,AAAA'
+    expect(sanitizeUrl(dataUrl, { allowData: true })).toBe(dataUrl)
+  })
+
+  it('strips data URLs by default (backward compatible)', () => {
+    expect(sanitizeUrl('data:audio/mpeg;base64,AAAA')).toBe('')
+  })
+
+  it('blocks javascript: even when allowData is true', () => {
+    expect(sanitizeUrl('javascript:alert(1)', { allowData: true })).toBe('')
+    expect(sanitizeUrl('vbscript:msgbox(1)', { allowData: true })).toBe('')
+  })
+
+  it('rejects oversized data URLs even when allowData is true', () => {
+    const huge = 'data:' + 'x'.repeat(30_000_000)
+    expect(sanitizeUrl(huge, { allowData: true })).toBe('')
+  })
+
+  it('rejects html-capable data URLs even when allowData is true', () => {
+    expect(sanitizeUrl('data:text/html,<script>alert(1)</script>', { allowData: true })).toBe(
+      '',
+    )
+  })
 })
 
 describe('sanitizeEmail', () => {

@@ -150,18 +150,62 @@ export function sanitizePlainText(value: string | null | undefined): string {
     .trim()
 }
 
+export interface SanitizeUrlOptions {
+  /**
+   * When true, allows `data:` URLs (e.g. `data:audio/mpeg;base64,...`)
+   * up to 20MB encoded, for use in media fields (cover, video, audio).
+   * `javascript:` and other dangerous schemes are always rejected.
+   */
+  allowData?: boolean
+}
+
+/**
+ * Maximum encoded length for allowed data: URLs (~20MB binary).
+ * 20MB * (4/3) base64 expansion ≈ 27,972,000 characters.
+ */
+const MAX_DATA_URL_LENGTH = 27972000
+
+/** Media types that can be interpreted as markup/scripts — never allowed, even with allowData. */
+const FORBIDDEN_DATA_MEDIA_TYPES = ['html', 'xml', 'svg']
+
+/** Extracts the lowercased media type from a data: URL ('' when absent). */
+function getDataMediaType(dataUrl: string): string {
+  const match = /^data:([^,]*),/i.exec(dataUrl)
+  if (!match) return ''
+  return match[1].split(';')[0].trim().toLowerCase()
+}
+
 /**
  * Validates and sanitizes URL inputs (avatar, cover, video, audio, etc.).
  * Strictly disallows dangerous schemes like javascript:, vbscript:, data:text/html.
+ * `data:` URLs are only allowed when `opts.allowData` is true, guarded by a size limit.
  */
-export function sanitizeUrl(url: string | null | undefined): string {
+export function sanitizeUrl(url: string | null | undefined, opts?: SanitizeUrlOptions): string {
   if (!url) return ''
   const trimmed = url.trim()
   if (!trimmed) return ''
 
+  const allowData = opts?.allowData === true
+
   // Allow safe relative URLs starting with / (excluding //protocol-relative)
   if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
     return trimmed
+  }
+
+  // Allow data: URLs only when explicitly requested, within the size guard,
+  // and never for HTML-capable media types.
+  if (allowData && /^data:/i.test(trimmed)) {
+    if (trimmed.length > MAX_DATA_URL_LENGTH) return ''
+    const mediaType = getDataMediaType(trimmed)
+    if (FORBIDDEN_DATA_MEDIA_TYPES.some((t) => mediaType.includes(t))) return ''
+    try {
+      const parsed = new URL(trimmed)
+      if (parsed.protocol.toLowerCase() === 'data:') {
+        return trimmed
+      }
+    } catch {
+      return ''
+    }
   }
 
   try {

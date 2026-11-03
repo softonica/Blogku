@@ -118,15 +118,15 @@ export const draftSchema = z.object({
   cover: z
     .string()
     .optional()
-    .transform((val) => (val ? sanitizeUrl(val) : undefined)),
+    .transform((val) => (val ? sanitizeUrl(val, { allowData: true }) : undefined)),
   videoUrl: z
     .string()
     .optional()
-    .transform((val) => (val ? sanitizeUrl(val) : undefined)),
+    .transform((val) => (val ? sanitizeUrl(val, { allowData: true }) : undefined)),
   audioUrl: z
     .string()
     .optional()
-    .transform((val) => (val ? sanitizeUrl(val) : undefined)),
+    .transform((val) => (val ? sanitizeUrl(val, { allowData: true }) : undefined)),
 })
 
 export const categorySchema = z.object({
