@@ -169,6 +169,19 @@ describe('player store', () => {
     expect(h.calls.play).toBe(2)
   })
 
+  it('no-ops play when the post has no audioUrl', () => {
+    const store = usePlayerStore()
+    const post = makePost('p1')
+    delete post.audioUrl
+
+    store.play(post)
+
+    expect(h.calls.load).toEqual([])
+    expect(h.calls.play).toBe(0)
+    expect(store.track).toBeNull()
+    expect(store.playing).toBe(false)
+  })
+
   it('toggles between playing and paused', () => {
     const store = usePlayerStore()
     store.play(makePost('p1'))

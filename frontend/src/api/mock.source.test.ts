@@ -519,14 +519,24 @@ describe('MockSource', () => {
   })
 
   it('does not report referenced audio as orphan media', async () => {
+    // Plant a persisted media item whose URL matches the post's audioUrl so
+    // the orphan scanner must actually consult the audioUrl reference to skip
+    // it (session-only uploads would never appear and would trivially pass).
+    const audioUrl = 'https://example.com/audio/track.mp3'
+    localStorage.setItem(
+      'ncmaz.mock.media.v1',
+      JSON.stringify([
+        {
+          id: 'media-audio-track',
+          url: audioUrl,
+          name: 'track.mp3',
+          createdAt: '2026-01-01T00:00:00.000Z',
+        },
+      ]),
+    )
+
     const source = new MockSource()
     await source.login('demo', 'password')
-    const audio = new File(
-      [new Uint8Array([7, 8, 9])],
-      'track.mp3',
-      { type: 'audio/mpeg' },
-    )
-    const uploaded = await source.uploadFile(audio)
 
     await source.createPost({
       title: 'Audio post',
@@ -534,12 +544,11 @@ describe('MockSource', () => {
       content: '<p>Body</p>',
       status: 'published',
       postType: 'audio',
-      audioUrl: uploaded.url,
+      audioUrl,
     })
 
     const result = await source.listOrphanMedia()
-    expect(result.total).toBe(0)
-    expect(result.items.some((item) => item.url === uploaded.url)).toBe(false)
+    expect(result.items.some((item) => item.url === audioUrl)).toBe(false)
   })
 
   it('rejects non-audio/non-image types and oversized audio', async () => {

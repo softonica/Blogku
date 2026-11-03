@@ -41,8 +41,9 @@ const state: AudioEngineState = {
 const listeners = new Set<AudioEngineListener>()
 
 function emit(): void {
+  const snapshot = { ...state }
   for (const listener of listeners) {
-    listener(state)
+    listener(snapshot)
   }
 }
 
@@ -135,7 +136,7 @@ const engine: AudioEngine = {
   },
 
   getState(): AudioEngineState {
-    return state
+    return { ...state }
   },
 
   subscribe(listener: AudioEngineListener): () => void {

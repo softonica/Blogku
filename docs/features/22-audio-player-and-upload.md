@@ -5,7 +5,7 @@
 | **Status** | Stable |
 | **Fase Arsitektur** | Fase 2 (PocketBase) |
 | **Izin Minimum (RBAC)** | Publik (playback) / Penulis (upload audio) |
-| **Komponen Utama** | [audio-engine.ts](file:///C:/Users/Administrator/.local/share/opencode/worktree/322395/audio-player-feature/frontend/src/lib/audio-engine.ts) · [player.ts](file:///C:/Users/Administrator/.local/share/opencode/worktree/322395/audio-player-feature/frontend/src/stores/player.ts) · [AudioPlayer.vue](file:///C:/Users/Administrator/.local/share/opencode/worktree/322395/audio-player-feature/frontend/src/components/player/AudioPlayer.vue) · [PostPage.vue](file:///C:/Users/Administrator/.local/share/opencode/worktree/322395/audio-player-feature/frontend/src/pages/PostPage.vue) · [EditorPage.vue](file:///C:/Users/Administrator/.local/share/opencode/worktree/322395/audio-player-feature/frontend/src/pages/EditorPage.vue) |
+| **Komponen Utama** | [audio-engine.ts](frontend/src/lib/audio-engine.ts) · [player.ts](frontend/src/stores/player.ts) · [AudioPlayer.vue](frontend/src/components/player/AudioPlayer.vue) · [PostPage.vue](frontend/src/pages/PostPage.vue) · [EditorPage.vue](frontend/src/pages/EditorPage.vue) |
 | **Tanggal Ditambahkan** | 2026-11-02 |
 
 ---

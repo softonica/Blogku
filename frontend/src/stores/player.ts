@@ -23,11 +23,12 @@ export const usePlayerStore = defineStore('player', () => {
   })
 
   function play(post: Post): void {
+    if (!post.audioUrl) return
     if (track.value?.postId !== post.id) {
       engine.load({
         postId: post.id,
         title: post.title,
-        audioUrl: post.audioUrl ?? '',
+        audioUrl: post.audioUrl,
         coverUrl: post.cover,
         authorName: post.author.name,
       })

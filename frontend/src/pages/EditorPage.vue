@@ -859,7 +859,8 @@ async function publishStory(): Promise<void> {
               </div>
 
               <label
-                class="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-full bg-white px-3.5 text-xs font-semibold text-neutral-700 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700"
+                :class="uploadingAudio ? 'opacity-50 cursor-not-allowed' : ''"
+                class="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-full bg-white px-3.5 text-xs font-semibold text-neutral-700 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700"
               >
                 <Upload class="h-3.5 w-3.5" />
                 <span>{{ uploadingAudio ? 'Uploading…' : audioUrl ? 'Change audio' : 'Upload audio' }}</span>

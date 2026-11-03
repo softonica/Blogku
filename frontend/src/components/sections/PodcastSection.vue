@@ -66,12 +66,7 @@ function handlePlayClick(post: Post): void {
           <!-- Center Play Button -->
           <div
             class="absolute inset-0 flex items-center justify-center"
-            role="link"
-            tabindex="0"
-            :aria-label="`View post: ${post.title}`"
             @click="navigateToPost(post.slug)"
-            @keydown.enter="navigateToPost(post.slug)"
-            @keydown.space.prevent="navigateToPost(post.slug)"
           >
             <button
               type="button"
