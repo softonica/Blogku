@@ -1552,3 +1552,21 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 - Rollback: kembalikan `/opt/blogku/blogku.prev-<timestamp>` lalu `systemctl restart blogku`.
 - Build artefak (`frontend/dist`, `backend/dist`, `backend/blogku`) tidak di-commit.
 - Smoke visual manual hero/magazine/wide (mock tanpa seed style 2-4) tetap disarankan di produksi.
+
+## [2026-11-03] — Redeploy Post Header Info (termasuk polish final review) ke server 64
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- Rebuild single-binary dari HEAD (`4e6c944`): memuat commit polish final review `32c2014` (konsistensi tombol round `w-11` + count `text-sm font-semibold`, wrap/truncate nama author di mobile, ikon bookmark tone-aware di on-image, focus ring offset + `ring-white/70`, test prop-capture & zero-count) dan docs spec/plan.
+- Deploy ulang ke server 64 (`64.235.45.122`, SSH 2232): backup `/opt/blogku/blogku.prev-<timestamp>`, swap, `systemctl restart blogku` → `active`. Binary baru `md5sum bb93a2281a1691b244df8ef7ae516bef` (28.176.544 byte).
+
+### Why
+- Permintaan pengguna: "Rebuild lalu deploy jika sudah oke baru push" — menyelaraskan produksi dengan HEAD setelah fix wave.
+
+### How it was verified
+- Build: `VITE_USE_POCKETBASE=true` + `VITE_PB_URL=` + `vite build` → `index-COgrpDpn.js`; `go build -trimpath -ldflags="-s -w"` → `backend/blogku`.
+- Produksi: `https://blog.artku.my.id/` → `spa:200`; `/api/health` → `health:200`; index.html menyajikan asset baru `index-COgrpDpn.js` (cocok dengan output build lokal); `systemctl is-active blogku` = `active`.
+
+### Handover notes
+- Rollback: kembalikan `/opt/blogku/blogku.prev-<timestamp>` lalu restart.
+- Suite kode tetap hijau (215/215) — tidak ada perubahan kode pada redeploy ini selain yang sudah ter-review.
