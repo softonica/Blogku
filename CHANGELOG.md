@@ -5,7 +5,31 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
-## [2026-11-02] — Chore: track remaining Superpowers docs & Playwright check script
+## [2026-11-02] — Audio Post Player (SPA-global) & Audio Upload — dokumentasi & verifikasi (Task 10)
+**Author**: AI Agent (opencode) · **Role**: Docs/QA · **Status**: Done
+
+### What changed
+- `docs/features/22-audio-player-and-upload.md` (baru) — dokumen fitur lengkap: status, fase arsitektur, izin RBAC, komponen utama, ringkasan/motivasi, alur pengguna (playback + author), arsitektur engine→store→komponen→halaman, kontrak data (AudioTrack, player store state, media-limits, sanitizeUrl allowData, backend media FileField), keamanan/otorisasi (RBAC + sanitasi, tanpa `eval`), dan pengujian (unit + manual checklist).
+- `docs/README.md` — tambah baris indeks **22** Audio Post Player & Upload.
+- `CHANGELOG.md` — entri ini.
+- `docs/superpowers/specs/2026-11-02-audio-player-feature-design.md` & `docs/superpowers/plans/2026-11-02-audio-player-feature.md` — di-`git add` agar branch membawa dokumen desainnya sendiri.
+
+### Why
+- Task 10 dari plan audio-player-feature: verifikasi penuh seluruh gate + dokumentasi fitur mengikuti template `docs/FEATURE-DOCUMENTATION-GUIDELINES.md`, update indeks, entri CHANGELOG format team-work.
+- Nomor file fitur memakai **22**, bukan 14 dari brief, karena `docs/features/14-post-view-counter.md` sudah menempati nomor 14 (collision) — 22 adalah nomor bebas berikutnya.
+
+### How it was verified
+- `npm run typecheck` (from `frontend/`) → `vue-tsc --noEmit` lulus tanpa error.
+- `npm run lint` (from `frontend/`) → `eslint .` bersih.
+- `npm test` (from `frontend/`) → **19 file / 183 test passed**.
+- `go test ./...` (from `backend/`) → `ok ncmaz.backend`.
+- `git status --porcelain` setelah commit → bersih (hanya commit ini).
+
+### Handover notes
+- **PENTING (migrasi manual PocketBase):** instalasi PocketBase yang **sudah ada** harus meng-update skema koleksi `media` **secara manual di admin** (tambah MIME audio `audio/mpeg`, `audio/mp4`, `audio/wav`, `audio/ogg`, `audio/webm` dan naikkan MaxSize ke 20MB pada field `file`). `ensureMediaCollection` hanya menambahkan field saat koleksi `media` **belum ada** — jadi deployment existing tidak otomatis menerima update ini.
+- Fitur terimplementasi penuh dari Task 1–9 (engine, store, AudioPlayer global, header PostPage, PodcastSection/PostCard wiring, upload editor, mock & pocketbase source, backend Go, sanitasi `allowData`); commit Task 10 ini hanya dokumen + verifikasi, tanpa perubahan kode produk.
+- Non-goals yang disengaja: playlist/antrean, shuffle/repeat, persistensi posisi putar lintas sesi, auto-play, kontrol volume mini-player.
+
 **Author**: AI Agent (opencode) · **Role**: Docs/QA · **Status**: Done
 
 ### What changed
