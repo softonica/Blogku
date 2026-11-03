@@ -9,6 +9,7 @@ import BgGlassmorphism from '@/components/layout/BgGlassmorphism.vue'
 import SearchDialog from '@/components/layout/SearchDialog.vue'
 import ToastHost from '@/components/layout/ToastHost.vue'
 import BackToTop from '@/components/layout/BackToTop.vue'
+import AudioPlayer from '@/components/player/AudioPlayer.vue'
 
 const route = useRoute()
 const ui = useUiStore()
@@ -51,6 +52,7 @@ watch(
     <AppFooter v-if="!isAdminArea" />
     <SearchDialog />
     <ToastHost />
+    <AudioPlayer />
     <BackToTop />
   </div>
 </template>
