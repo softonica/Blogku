@@ -4,6 +4,7 @@ import { PenSquare } from 'lucide-vue-next'
 import { getDataSource } from '@/api'
 import type { PageContent } from '@/api/types'
 import { sanitizeHtml } from '@/lib/sanitize'
+import { vResponsiveTables } from '@/directives/responsiveTables'
 import { useAuthStore } from '@/stores/auth'
 import { can } from '@/lib/permissions'
 import BaseButton from '@/components/ui/BaseButton.vue'
@@ -55,6 +56,7 @@ onMounted(async () => {
         </BaseButton>
       </div>
       <div
+        v-responsive-tables
         class="prose prose-neutral mt-6 sm:mt-8 max-w-none dark:prose-invert"
         v-html="renderedBody"
       />

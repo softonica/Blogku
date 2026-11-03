@@ -20,6 +20,7 @@ import { getDataSource } from '@/api'
 import type { Category, Post, PostType, Tag } from '@/api/types'
 import { draftSchema, firstError } from '@/lib/validation'
 import { sanitizeHtml, sanitizePlainText } from '@/lib/sanitize'
+import { vResponsiveTables } from '@/directives/responsiveTables'
 import { firstParagraphExcerpt } from '@/lib/excerpt'
 import {
   DEFAULT_ALLOWED_IMAGE_DOMAINS,
@@ -701,7 +702,7 @@ async function publishStory(): Promise<void> {
             <PostImage :src="cover" :alt="title" aspect="h-full w-full object-cover" />
           </div>
 
-          <div class="prose-ncmaz" v-html="sanitizedPreview"></div>
+          <div v-responsive-tables class="prose-ncmaz" v-html="sanitizedPreview"></div>
         </div>
       </main>
 

@@ -1731,3 +1731,24 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 ### How it was verified
 - `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 24 file / 229 passed.
 - Smoke produksi `https://blog.artku.my.id/post/cara-deploy-blogku-di-vps`: panel "On this page" tampil dengan 11 heading; scroll ke `#comments` → `9%` berganti tombol Back to top.
+
+## [2026-11-03] — Tabel konten responsive (scroll horizontal) di post, preview editor, dan halaman statis
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/directives/responsiveTables.ts` (baru) — `wrapResponsiveTables()` + directive `v-responsive-tables`: membungkus setiap `<table>` hasil `v-html` dengan `<div class="nc-table-scroll">` (idempoten).
+- `frontend/src/styles/main.css` — `.nc-table-scroll { width:100%; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain }`.
+- Dipasang di `PostPage.vue` (`<article>`), `EditorPage.vue` (preview), dan `StaticPage.vue` (body halaman statis).
+- Tests: `frontend/src/directives/responsiveTables.test.ts` (4 test: wrap, idempoten, multi-tabel, root null).
+- Docs: bagian arsitektur `docs/features/20-editor-table-controls-and-rendering.md`.
+
+### Why
+- Permintaan pengguna: tabel di halaman post harus responsive seperti desain Ncmaz (wrapper `wp-block-table` dengan `overflow-x: auto`) agar tabel lebar bisa digeser di mobile tanpa membuat seluruh halaman melebar.
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 25 file / **233 passed**.
+- Smoke produksi viewport 390px pada post yang memiliki tabel: wrapper `.nc-table-scroll` ada, `document.documentElement.scrollWidth` tetap 390, tabel bisa digeser di dalam wrapper.
+
+### Handover notes
+- Directive bersifat idempoten; aman dipakai pada container `v-html` yang berubah (preview editor).
+- Tidak ada perubahan sanitizer/backend; wrapper dibuat di DOM klien.

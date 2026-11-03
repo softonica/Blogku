@@ -12,6 +12,7 @@ import { usePlayerStore } from '@/stores/player'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { trackViewIfNew } from '@/composables/useTrackView'
 import { usePostReading } from '@/composables/usePostReading'
+import { vResponsiveTables } from '@/directives/responsiveTables'
 import { useUiStore } from '@/stores/ui'
 import AudioPostHeader from '@/components/post/AudioPostHeader.vue'
 import CategoryBadgeList from '@/components/post/CategoryBadgeList.vue'
@@ -320,6 +321,7 @@ async function copyLink(): Promise<void> {
         <div>
           <article
             ref="articleRef"
+            v-responsive-tables
             :class="[
               'prose-ncmaz',
               isMagazineStyle ? 'mt-0 max-w-none' : ['mt-8 sm:mt-10 mx-auto', contentWidthClass],

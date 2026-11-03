@@ -61,6 +61,9 @@ Fitur ini menyelesaikan dua masalah tersebut:
   - `filterStyleAttribute()` hanya meloloskan `text-align`, `vertical-align`, `width`, `min-width`, dan `max-width` dengan nilai yang aman.
 - `frontend/src/styles/main.css`
   - Aturan `.prose-ncmaz` untuk tabel: border, padding, header, zebra row, dan dark mode.
+  - `.nc-table-scroll` — wrapper `overflow-x: auto` (pola yang sama dengan `wp-block-table` Ncmaz) agar tabel lebar bisa digeser horizontal di mobile tanpa membuat halaman ikut melebar.
+- `frontend/src/directives/responsiveTables.ts`
+  - `v-responsive-tables` membungkus setiap `<table>` hasil `v-html` dengan `<div class="nc-table-scroll">`; idempoten dan dipakai di `PostPage`, preview `EditorPage`, serta `StaticPage`.
 - `frontend/src/pages/PostPage.vue`
   - Artikel terbit memakai class `prose-ncmaz` agar gaya tabel sama dengan preview editor.
 - `backend/main.go`
