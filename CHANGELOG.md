@@ -1570,3 +1570,27 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 ### Handover notes
 - Rollback: kembalikan `/opt/blogku/blogku.prev-<timestamp>` lalu restart.
 - Suite kode tetap hijau (215/215) — tidak ada perubahan kode pada redeploy ini selain yang sudah ter-review.
+
+## [2026-11-03] — Perbaikan fidelity layout `PostHeaderInfo` terhadap referensi desain
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/components/post/PostHeaderInfo.vue` — restrukturisasi layout agar 1:1 dengan gambar referensi:
+  - Tanggal · reading time dipindah **di bawah** nama author (sebelumnya sejajar di samping nama); seluruh blok avatar+nama+meta menjadi satu `RouterLink` ke profil author.
+  - Jumlah komentar dan views dipindah **ke luar** lingkaran (sebelumnya di dalam circle 44px dan berdesakan); circle kini hanya ikon.
+  - Jarak baris author → baris aksi dinaikkan `gap-5 sm:gap-8`; jarak antar grup statistik `gap-4 sm:gap-6`; ikon → jumlah `gap-2 sm:gap-2.5`.
+  - Pemisah vertikal dinaikkan `h-6` dengan `mx-1 sm:mx-2`; grup bookmark+share memakai `gap-2.5 sm:gap-3`.
+  - Warna jumlah memakai `countClass` (default `neutral-700`/`dark:neutral-200`, on-image `white/90`).
+- `docs/features/23-post-header-info-component.md` — bagian struktur render diperbarui.
+
+### Why
+- Review pengguna: layout UI komponen header belum 1:1 dengan gambar referensi (meta sejajar nama, angka di dalam lingkaran, spacing terlalu rapat).
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 22 file / **215 passed** (termasuk 9 test `PostHeaderInfo`).
+- Perbandingan visual manual kode vs gambar: proporsi avatar 44px vs tombol 44px, nama `text-lg sm:text-xl`, meta `text-sm`, count `text-sm`; susunan vertikal nama→meta, horizontal avatar→teks, dan jumlah di luar circle sesuai referensi.
+
+### Handover notes
+- Tidak ada perubahan kontrak props/emit; test lama tetap valid.
+- Perbaikan ini belum di-deploy/push sampai diminta.
+- Selisih yang tersisa vs gambar: avatar referensi ≈52px (kita 44px, ukuran `md` AppAvatar) dan tombol `...` tidak ada (memang tidak diminta).

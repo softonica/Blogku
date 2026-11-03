@@ -80,7 +80,7 @@ const emit = defineEmits<{
 }>()
 ```
 
-Struktur render: baris atas = avatar + nama author + `<time>` + `·` + `{readingTime} min read`; baris aksi = `LikeButton` compact + tombol komentar bulat + stats views (non-interaktif) + pemisah vertikal + `SaveButton` ikon + tombol share. Semua tombol bulat 44px (`h-11 w-11`), ikon 20px, jumlah `text-sm font-semibold`. Baris aksi boleh wrap di mobile.
+Struktur render: baris atas = avatar (44px) + kolom teks (nama author di atas, lalu `<time>` + `·` + `{readingTime} min read` di bawahnya); baris aksi (jarak `gap-5`/`sm:gap-8` dari baris atas) = `LikeButton` compact (circle + jumlah), grup komentar (circle + jumlah di luar), grup views (circle non-interaktif + jumlah di luar), pemisah vertikal (`h-6`, margin `mx-1 sm:mx-2`), lalu grup bookmark + share. Semua tombol bulat 44px (`h-11 w-11`), ikon 20px, jumlah `text-sm font-semibold` di luar lingkaran; jarak antar grup `gap-4 sm:gap-6`. Baris aksi boleh wrap di mobile.
 
 ### Prop baru pada atom (opsional, default tidak berubah)
 
