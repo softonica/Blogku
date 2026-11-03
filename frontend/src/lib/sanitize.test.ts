@@ -29,9 +29,11 @@ describe('sanitizeHtml', () => {
 
   it('keeps allowlisted formatting tags', () => {
     const html =
-      '<h2>Title</h2><p><strong>bold</strong> <em>italic</em></p><ul><li>one</li></ul><blockquote><p>quote</p></blockquote><pre><code>code</code></pre>'
+      '<h2>Title</h2><h3>Sub</h3><h4>Sub-sub</h4><p><strong>bold</strong> <em>italic</em></p><ul><li>one</li></ul><blockquote><p>quote</p></blockquote><pre><code>code</code></pre>'
     const result = sanitizeHtml(html)
     expect(result).toContain('<h2>Title</h2>')
+    expect(result).toContain('<h3>Sub</h3>')
+    expect(result).toContain('<h4>Sub-sub</h4>')
     expect(result).toContain('<strong>bold</strong>')
     expect(result).toContain('<em>italic</em>')
     expect(result).toContain('<ul><li>one</li></ul>')

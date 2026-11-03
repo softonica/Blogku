@@ -35,6 +35,7 @@ const post: Post = {
 const headings = [
   { id: 'first-part', level: 2 as const, text: 'First part' },
   { id: 'nested-part', level: 3 as const, text: 'Nested part' },
+  { id: 'deep-part', level: 4 as const, text: 'Deep part' },
 ]
 
 function mountDock(props: Record<string, unknown> = {}) {
@@ -85,6 +86,8 @@ describe('PostActionDock', () => {
     expect(panel.text()).toContain('On this page')
     expect(panel.text()).toContain('First part')
     expect(panel.text()).toContain('Nested part')
+    expect(panel.text()).toContain('Deep part')
+    expect(panel.find('a[href="#deep-part"]').classes()).toContain('ps-8')
   })
 
   it('closes the table of contents on Escape', async () => {

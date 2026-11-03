@@ -20,7 +20,7 @@ menu** di bawah halaman post (mengikuti referensi Ncmaz) yang berisi:
 - **persentase progress baca** selama berada di area konten;
 - **tombol back-to-top** yang menggantikan persentase begitu section komentar
   tercapai/terlewati;
-- tombol **TOC "On this page"** berisi heading artikel (`h2`/`h3`, `h4` bila ada).
+- tombol **TOC "On this page"** berisi heading artikel `h2`–`h4` (H2, H3, H4).
 
 Karena back-to-top sudah tersedia di dock, komponen `BackToTop.vue` lama
 dihapus dari aplikasi.

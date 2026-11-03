@@ -13,6 +13,7 @@ const ALLOWED_TAGS = [
   'a',
   'h2',
   'h3',
+  'h4',
   'blockquote',
   'code',
   'pre',

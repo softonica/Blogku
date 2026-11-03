@@ -1685,3 +1685,23 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 - TOC memakai `h2`/`h3` (editor hanya menyediakan H2/H3) dan `h4` bila nanti ditambahkan; `id` heading dibuat client-side karena sanitizer tidak mengizinkan `id`.
 - `BackToTop.vue` sudah tidak ada; jangan menambah referensi baru ke file tersebut.
 - Belum di-deploy/push sampai langkah berikutnya.
+
+## [2026-11-03] — Dukungan heading H4 (editor, sanitizer, TOC)
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/lib/sanitize.ts` — `h4` ditambahkan ke `ALLOWED_TAGS` agar heading H4 dari konten tidak dibuang sanitizer.
+- `frontend/src/components/editor/EditorToolbar.vue` — tombol **Heading 4** (`Heading4`, `toggleHeading({ level: 4 })`) di grup heading bersama H2/H3.
+- `frontend/src/components/post/PostActionDock.vue` — indentasi TOC bertingkat: H2 rata, H3 `ps-4`, H4 `ps-8` (`headingIndentClass`).
+- Tests: `sanitize.test.ts` mempertahankan `<h4>`; `usePostReading.test.ts` mengumpulkan `h4`; `PostActionDock.test.ts` memeriksa item H4 dan kelas `ps-8`.
+- `docs/features/24-post-action-dock.md` — cakupan heading menjadi `h2`–`h4`.
+
+### Why
+- Permintaan pengguna: TOC/heading mendukung sampai H4.
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → **24 file / 229 passed**.
+
+### Handover notes
+- H4 kini aman dirender di artikel publik dan muncul di TOC dengan indentasi level 3.
+- Belum di-deploy/push sampai langkah berikutnya.

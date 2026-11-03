@@ -33,7 +33,7 @@ afterEach(() => {
 describe('usePostReading', () => {
   it('collects h2/h3/h4 and assigns unique slug ids', () => {
     const article = makeArticle(
-      '<h2>Hello World</h2><h3>Hello World</h3><h2>Code should look okay</h2>',
+      '<h2>Hello World</h2><h3>Hello World</h3><h2>Code should look okay</h2><h4>Deep Dive</h4>',
     )
     const { api, wrapper } = mountReading(article)
 
@@ -43,9 +43,10 @@ describe('usePostReading', () => {
       'hello-world',
       'hello-world-2',
       'code-should-look-okay',
+      'deep-dive',
     ])
-    expect(api.headings.value.map((item) => item.level)).toEqual([2, 3, 2])
-    const headings = article.querySelectorAll('h2, h3')
+    expect(api.headings.value.map((item) => item.level)).toEqual([2, 3, 2, 4])
+    const headings = article.querySelectorAll('h2, h3, h4')
     expect(headings[0].id).toBe('hello-world')
     expect(headings[1].id).toBe('hello-world-2')
     wrapper.unmount()

@@ -11,6 +11,7 @@ import {
   Code,
   Heading2,
   Heading3,
+  Heading4,
   Image,
   Italic,
   Link2,
@@ -298,6 +299,16 @@ async function onFileSelected(event: Event): Promise<void> {
         @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
       >
         <Heading3 class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        title="Heading 4"
+        aria-label="Heading 4"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }"
+        @click="editor.chain().focus().toggleHeading({ level: 4 }).run()"
+      >
+        <Heading4 class="h-4 w-4" aria-hidden="true" />
       </button>
     </template>
 

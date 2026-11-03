@@ -50,6 +50,12 @@ function backToTop(): void {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+function headingIndentClass(level: 2 | 3 | 4): string {
+  if (level === 4) return 'ps-8'
+  if (level === 3) return 'ps-4'
+  return ''
+}
+
 onMounted(() => {
   document.addEventListener('pointerdown', onPointerDown)
   document.addEventListener('keydown', onKeydown)
@@ -155,7 +161,7 @@ onBeforeUnmount(() => {
                 <a
                   :href="`#${heading.id}`"
                   class="inline-flex gap-2 text-neutral-700 hover:text-neutral-900 dark:text-neutral-200 dark:hover:text-white"
-                  :class="heading.level > 2 ? 'ps-4' : ''"
+                  :class="headingIndentClass(heading.level)"
                   @click.prevent="goToHeading(heading.id)"
                 >
                   <span aria-hidden="true" class="shrink-0 self-center">→</span>
