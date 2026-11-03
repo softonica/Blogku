@@ -1,11 +1,11 @@
 ﻿<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Clock, Eye, Link2, PenLine, Share2, X } from 'lucide-vue-next'
+import { Link2, PenLine, X } from 'lucide-vue-next'
 import { Facebook, Linkedin, MessageCircle, Send, Twitter } from 'lucide-vue-next'
 import type { Category, Comment, Post, Tag } from '@/api/types'
 import { getDataSource } from '@/api'
-import { formatDate, formatNumber, getErrorMessage } from '@/lib/format'
+import { formatNumber, getErrorMessage } from '@/lib/format'
 import { sanitizeHtml } from '@/lib/sanitize'
 import { getEmbedUrl } from '@/lib/video'
 import { canManagePost } from '@/lib/permissions'
@@ -14,13 +14,11 @@ import { usePlayerStore } from '@/stores/player'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { trackViewIfNew } from '@/composables/useTrackView'
 import { useUiStore } from '@/stores/ui'
-import AppAvatar from '@/components/ui/AppAvatar.vue'
 import AudioPostHeader from '@/components/post/AudioPostHeader.vue'
 import CategoryBadgeList from '@/components/post/CategoryBadgeList.vue'
 import TagBadge from '@/components/post/TagBadge.vue'
-import LikeButton from '@/components/post/LikeButton.vue'
-import SaveButton from '@/components/post/SaveButton.vue'
 import PostCard from '@/components/post/PostCard.vue'
+import PostHeaderInfo from '@/components/post/PostHeaderInfo.vue'
 
 import CommentList from '@/components/comments/CommentList.vue'
 import CommentForm from '@/components/comments/CommentForm.vue'
@@ -197,18 +195,28 @@ async function copyLink(): Promise<void> {
     </EmptyState>
 
     <template v-else>
-      <nav class="mb-4 sm:mb-6 flex flex-wrap items-center gap-2 text-xs font-medium text-neutral-400">
-        <RouterLink to="/" class="hover:text-primary-600 dark:hover:text-primary-300">Home</RouterLink>
-        <span>/</span>
+      <nav class="mb-4 sm:mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2 text-xs font-medium text-neutral-400">
+          <RouterLink to="/" class="hover:text-primary-600 dark:hover:text-primary-300">Home</RouterLink>
+          <span>/</span>
+          <RouterLink
+            v-if="post.categories[0]"
+            :to="`/category/${post.categories[0].slug}`"
+            class="hover:text-primary-600 dark:hover:text-primary-300"
+          >
+            {{ post.categories[0].name }}
+          </RouterLink>
+          <span>/</span>
+          <span class="line-clamp-1 text-neutral-500 dark:text-neutral-400">{{ post.title }}</span>
+        </div>
         <RouterLink
-          v-if="post.categories[0]"
-          :to="`/category/${post.categories[0].slug}`"
-          class="hover:text-primary-600 dark:hover:text-primary-300"
+          v-if="canManagePost(auth.user?.role, auth.user?.id, post.author.id)"
+          :to="`/editor/${post.id}`"
+          class="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-200 px-3 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
         >
-          {{ post.categories[0].name }}
+          <PenLine class="h-3.5 w-3.5" aria-hidden="true" />
+          Edit post
         </RouterLink>
-        <span>/</span>
-        <span class="line-clamp-1 text-neutral-500 dark:text-neutral-400">{{ post.title }}</span>
       </nav>
 
       <!-- Audio post header: Ncmaz-style vinyl + compact actions -->
@@ -236,14 +244,8 @@ async function copyLink(): Promise<void> {
           <p class="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
             {{ post.excerpt }}
           </p>
-          <div class="mt-4 sm:mt-5 flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-medium text-white/80">
-            <RouterLink :to="`/author/${post.author.username}`" class="font-semibold text-white hover:underline">
-              {{ post.author.name }}
-            </RouterLink>
-            <span>·</span>
-            <span>{{ formatDate(post.createdAt) }}</span>
-            <span>·</span>
-            <span>{{ post.readingTime }} min read</span>
+          <div class="mt-4 sm:mt-5">
+            <PostHeaderInfo tone="on-image" :post="post" @comments="scrollToComments" @share="openShare" />
           </div>
         </div>
       </div>
@@ -269,69 +271,15 @@ async function copyLink(): Promise<void> {
           {{ post.excerpt }}
         </p>
 
-        <div :class="['mt-5 sm:mt-7 flex flex-wrap items-center gap-4 sm:gap-5', isCenteredStyle ? 'justify-center' : 'justify-start']">
-          <div class="flex items-center gap-3">
-            <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
-            <div class="text-start text-sm">
-              <RouterLink
-                :to="`/author/${post.author.username}`"
-                class="font-semibold text-neutral-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-300"
-              >
-                {{ post.author.name }}
-              </RouterLink>
-              <p class="text-xs text-neutral-500 dark:text-neutral-400">
-                {{ formatDate(post.createdAt) }}
-              </p>
-            </div>
-          </div>
-          <span class="h-8 w-px bg-neutral-200 dark:bg-neutral-800"></span>
-          <span class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400">
-            <Clock class="h-4 w-4" aria-hidden="true" />
-            {{ post.readingTime }} min read
-          </span>
-          <span class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400">
-            <Eye class="h-4 w-4" aria-hidden="true" />
-            {{ formatNumber(post.viewCount) }} views
-          </span>
+        <div :class="isCenteredStyle ? 'mt-5 sm:mt-7 flex justify-center' : 'mt-5 sm:mt-7'">
+          <PostHeaderInfo
+            :post="post"
+            :align="isCenteredStyle ? 'center' : 'start'"
+            @comments="scrollToComments"
+            @share="openShare"
+          />
         </div>
       </header>
-
-      <div
-        v-if="!isAudioPost"
-        :class="[
-          'mt-5 sm:mt-7 flex flex-wrap items-center gap-2',
-          isCenteredStyle || isHeroStyle ? 'justify-center' : 'justify-start',
-        ]"
-      >
-        <RouterLink
-          v-if="canManagePost(auth.user?.role, auth.user?.id, post.author.id)"
-          :to="`/editor/${post.id}`"
-          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 sm:px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
-        >
-          <PenLine class="h-4 w-4" aria-hidden="true" />
-          Edit post
-        </RouterLink>
-        <LikeButton :post="post" />
-        <SaveButton :post-id="post.id" :post-title="post.title" show-label />
-        <button
-          type="button"
-          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 px-3 sm:px-4 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
-          :aria-label="`Comments (${post.commentCount})`"
-          @click="scrollToComments"
-        >
-          <MessageCircle class="h-4 w-4" aria-hidden="true" />
-          <span>{{ formatNumber(post.commentCount) }}</span>
-        </button>
-        <button
-          type="button"
-          class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 px-3 sm:px-4 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
-          aria-label="Share post"
-          @click="openShare"
-        >
-          <Share2 class="h-4 w-4" aria-hidden="true" />
-          Share
-        </button>
-      </div>
 
       <!-- Styles 2 & 3 show the cover as a wide banner -->
       <div
@@ -386,38 +334,6 @@ async function copyLink(): Promise<void> {
         <aside v-if="isMagazineStyle" class="hidden space-y-4 sm:space-y-5 lg:block lg:sticky lg:top-24 lg:self-start">
           <div class="rounded-xl sm:rounded-3xl border border-neutral-200 p-4 sm:p-5 dark:border-neutral-800">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Written by
-            </p>
-            <div class="mt-3 flex items-center gap-3">
-              <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
-              <div>
-                <RouterLink
-                  :to="`/author/${post.author.username}`"
-                  class="text-sm font-bold text-neutral-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-300"
-                >
-                  {{ post.author.name }}
-                </RouterLink>
-                <p class="text-xs text-neutral-500 dark:text-neutral-400">
-                  {{ formatDate(post.createdAt) }}
-                </p>
-              </div>
-            </div>
-            <div class="mt-3 sm:mt-4 flex flex-wrap items-center gap-2">
-              <LikeButton :post="post" />
-              <SaveButton :post-id="post.id" :post-title="post.title" show-label />
-            </div>
-            <button
-              type="button"
-              class="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-full border border-neutral-200 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
-              @click="openShare"
-            >
-              <Share2 class="h-4 w-4" aria-hidden="true" />
-              Share
-            </button>
-          </div>
-
-          <div class="rounded-xl sm:rounded-3xl border border-neutral-200 p-4 sm:p-5 dark:border-neutral-800">
-            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
               Post details
             </p>
             <p class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
@@ -425,30 +341,6 @@ async function copyLink(): Promise<void> {
             </p>
           </div>
         </aside>
-      </div>
-
-      <div
-        v-if="!isMagazineStyle && !isAudioPost"
-        class="mt-8 sm:mt-10 hidden sm:flex flex-wrap items-center justify-between gap-3 rounded-xl sm:rounded-3xl border border-neutral-200 p-4 sm:p-5 dark:border-neutral-800"
-      >
-        <div class="flex items-center gap-3">
-          <AppAvatar :src="post.author.avatar" :name="post.author.name" size="md" />
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Written by
-            </p>
-            <RouterLink
-              :to="`/author/${post.author.username}`"
-              class="text-sm font-bold text-neutral-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-300"
-            >
-              {{ post.author.name }}
-            </RouterLink>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <LikeButton :post="post" />
-          <SaveButton :post-id="post.id" :post-title="post.title" show-label />
-        </div>
       </div>
 
       <div class="mt-12">
