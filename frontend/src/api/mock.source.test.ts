@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { MockSource } from './mock.source'
+import { AUDIO_MAX_BYTES } from '@/lib/media-limits'
 
 describe('MockSource', () => {
   beforeEach(() => {
@@ -470,5 +471,84 @@ describe('MockSource', () => {
     const result = await source.listOrphanMedia()
     expect(result.total).toBe(1)
     expect(result.items[0].url).toBe(uploaded.url)
+  })
+
+  it('uploads audio to session memory without persisting to localStorage', async () => {
+    const source = new MockSource()
+    const mediaBefore = localStorage.getItem('ncmaz.mock.media.v1')
+
+    const audio = new File(
+      [new Uint8Array([1, 2, 3])],
+      'podcast.mp3',
+      { type: 'audio/mpeg' },
+    )
+    const result = await source.uploadFile(audio)
+    expect(result.url).toBeDefined()
+    expect(result.name).toBe('podcast.mp3')
+
+    const list = await source.listMedia({ page: 1, perPage: 100, search: 'podcast' })
+    expect(list.items.some((item) => item.url === result.url)).toBe(true)
+
+    expect(localStorage.getItem('ncmaz.mock.media.v1')).toBe(mediaBefore)
+  })
+
+  it('clears session audio after publishing a post', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+    const audio = new File(
+      [new Uint8Array([4, 5, 6])],
+      'episode.mp3',
+      { type: 'audio/mpeg' },
+    )
+    const uploaded = await source.uploadFile(audio)
+
+    const listBefore = await source.listMedia({ page: 1, perPage: 100, search: 'episode' })
+    expect(listBefore.items.some((item) => item.url === uploaded.url)).toBe(true)
+
+    await source.createPost({
+      title: 'Audio post',
+      excerpt: 'An excerpt that is long enough for the mock post.',
+      content: '<p>Body</p>',
+      status: 'published',
+      postType: 'audio',
+      audioUrl: uploaded.url,
+    })
+
+    const listAfter = await source.listMedia({ page: 1, perPage: 100, search: 'episode' })
+    expect(listAfter.items.some((item) => item.url === uploaded.url)).toBe(false)
+  })
+
+  it('does not report referenced audio as orphan media', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+    const audio = new File(
+      [new Uint8Array([7, 8, 9])],
+      'track.mp3',
+      { type: 'audio/mpeg' },
+    )
+    const uploaded = await source.uploadFile(audio)
+
+    await source.createPost({
+      title: 'Audio post',
+      excerpt: 'An excerpt that is long enough for the mock post.',
+      content: '<p>Body</p>',
+      status: 'published',
+      postType: 'audio',
+      audioUrl: uploaded.url,
+    })
+
+    const result = await source.listOrphanMedia()
+    expect(result.total).toBe(0)
+    expect(result.items.some((item) => item.url === uploaded.url)).toBe(false)
+  })
+
+  it('rejects non-audio/non-image types and oversized audio', async () => {
+    const source = new MockSource()
+    const pdf = new File(['bad'], 'doc.pdf', { type: 'application/pdf' })
+    await expect(source.uploadFile(pdf)).rejects.toThrow('Only image files')
+
+    const big = new File(['x'], 'big.mp3', { type: 'audio/mpeg' })
+    Object.defineProperty(big, 'size', { value: AUDIO_MAX_BYTES + 1 })
+    await expect(source.uploadFile(big)).rejects.toThrow(/20 MB/)
   })
 })

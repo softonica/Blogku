@@ -3,6 +3,12 @@ import { getPb } from '@/lib/pb'
 import { slugify } from '@/lib/format'
 import { sanitizeEmail, sanitizeHtml, sanitizePlainText, sanitizeUrl } from '@/lib/sanitize'
 import { clampImageMaxDimension, clampImageQuality } from '@/lib/imageMeta'
+import {
+  AUDIO_MAX_BYTES,
+  AUDIO_MIME_TYPES,
+  IMAGE_MAX_BYTES,
+  IMAGE_MIME_TYPES,
+} from '@/lib/media-limits'
 import { getStatus, toAppError } from './errors'
 import type { DataSource } from './source'
 import type {
@@ -884,12 +890,18 @@ export class PocketBaseSource implements DataSource {
 
   async uploadFile(file: File): Promise<{ url: string; name: string }> {
     return this.wrap(async () => {
-      const allowedMime = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
-      if (!allowedMime.includes(file.type)) {
-        throw new Error('Only image files (JPEG, PNG, WebP, GIF, AVIF) are allowed.')
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('File size exceeds the 5 MB limit.')
+      if (IMAGE_MIME_TYPES.includes(file.type)) {
+        if (file.size > IMAGE_MAX_BYTES) {
+          throw new Error('File size exceeds the 5 MB limit.')
+        }
+      } else if (AUDIO_MIME_TYPES.includes(file.type)) {
+        if (file.size > AUDIO_MAX_BYTES) {
+          throw new Error('File size exceeds the 20 MB limit.')
+        }
+      } else {
+        throw new Error(
+          'Only image files (JPEG, PNG, WebP, GIF, AVIF) or audio files (MP3, MP4, WAV, OGG, WebM) are allowed.',
+        )
       }
       const formData = new FormData()
       formData.append('file', file)

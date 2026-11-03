@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { PocketBaseSource } from './pocketbase.source'
 import { AppError, RateLimitError, toAppError } from './errors'
+import { AUDIO_MAX_BYTES } from '@/lib/media-limits'
 
 interface FakeCollection {
   getList?: ReturnType<typeof vi.fn>
@@ -546,5 +547,34 @@ describe('PocketBaseSource', () => {
     } finally {
       globalThis.fetch = originalFetch
     }
+  })
+
+  it('accepts audio uploads and posts FormData', async () => {
+    const { pb, collections } = makePb({
+      collections: {
+        media: { create: vi.fn().mockResolvedValue({ id: 'm1', file: 'a.mp3' }) },
+      },
+    })
+    const source = new PocketBaseSource(pb as never)
+    const file = new File(['x'], 'a.mp3', { type: 'audio/mpeg' })
+    const result = await source.uploadFile(file)
+    expect(result.url).toContain('/api/files/x/y')
+    expect(result.name).toBe('a.mp3')
+    const [formData] = collections.media.create!.mock.calls[0]
+    expect(formData.get('file')).toBe(file)
+  })
+
+  it('rejects non-audio/non-image types and oversized audio', async () => {
+    const { pb } = makePb({
+      collections: { media: { create: vi.fn() } },
+    })
+    const source = new PocketBaseSource(pb as never)
+
+    const pdf = new File(['x'], 'doc.pdf', { type: 'application/pdf' })
+    await expect(source.uploadFile(pdf)).rejects.toThrow('Only image files')
+
+    const big = new File(['x'], 'big.mp3', { type: 'audio/mpeg' })
+    Object.defineProperty(big, 'size', { value: AUDIO_MAX_BYTES + 1 })
+    await expect(source.uploadFile(big)).rejects.toThrow(/20 MB/)
   })
 })
