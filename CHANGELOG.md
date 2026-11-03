@@ -1532,3 +1532,23 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 - Manual smoke (dev server): all post styles, dark mode, 375px + 1440px, like/bookmark/share/comments, login redirect.
 ### Handover notes
 - No API/backend changes; stores untouched. If a future design wants a "..." menu, add it inside `PostHeaderInfo` and re-introduce Edit there.
+
+## [2026-11-03] — Deploy post header info component ke server 64
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- Rebuild single-binary Linux amd64 dari working tree yang memuat fitur Post header info (commit `6728a13`..`9910e43`): `VITE_USE_POCKETBASE=true` + `VITE_PB_URL=` + `vite build` → `backend/dist`, lalu `go build -trimpath -ldflags="-s -w"` (`CGO_ENABLED=0 GOOS=linux GOARCH=amd64`) → `backend/blogku` (28.176.544 byte).
+- Deploy ke server 64 (`64.235.45.122`, SSH 2232): binary di-upload ke `/tmp/blogku-upload`, backup `/opt/blogku/blogku.prev-<timestamp>`, swap, `systemctl restart blogku` → `active`. Binary baru: `md5sum 08273b3734a36a9d5062a988533e7fea`.
+
+### Why
+- Permintaan pengguna: rebuild & deploy perubahan frontend (PostHeaderInfo reusable di semua tipe post) ke server 64.
+
+### How it was verified
+- Quality gate sebelum deploy: `npm run typecheck` & `npm run lint` bersih; `npm run test` → 22 file / 211 passed; `go test ./...` → `ok ncmaz.backend`.
+- Produksi: `https://blog.artku.my.id/` → `spa:200`; `/api/health` → `health:200`; index.html menyajikan asset build baru (`index-BT7SN_Bp.js`, `api-C-1W1ugX.js` — cocok dgn output `vite build` lokal).
+- Log service: `journalctl -u blogku -n 8` → "Server started at http://0.0.0.0:8090", REST API + Dashboard OK.
+
+### Handover notes
+- Rollback: kembalikan `/opt/blogku/blogku.prev-<timestamp>` lalu `systemctl restart blogku`.
+- Build artefak (`frontend/dist`, `backend/dist`, `backend/blogku`) tidak di-commit.
+- Smoke visual manual hero/magazine/wide (mock tanpa seed style 2-4) tetap disarankan di produksi.
