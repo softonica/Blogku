@@ -84,15 +84,19 @@ onBeforeUnmount(() => {
     >
       <button
         type="button"
-        class="absolute -top-3 right-0 z-30 flex h-6 w-[26px] items-center justify-center rounded-full bg-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 lg:hidden dark:bg-neutral-800"
+        class="absolute -top-5 right-0 z-30 flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 lg:hidden dark:text-neutral-300"
         :aria-label="expanded ? 'Collapse player' : 'Expand player'"
         @click="expanded = !expanded"
       >
-        <ChevronUp
-          class="h-4 w-4 text-neutral-600 transition-transform duration-200 dark:text-neutral-300"
-          :class="{ 'rotate-180': expanded }"
-          aria-hidden="true"
-        />
+        <span
+          class="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm dark:bg-neutral-800"
+        >
+          <ChevronUp
+            class="h-4 w-4 transition-transform duration-200"
+            :class="{ 'rotate-180': expanded }"
+            aria-hidden="true"
+          />
+        </span>
       </button>
 
       <PlayerProgressBar
@@ -179,6 +183,8 @@ onBeforeUnmount(() => {
           />
         </div>
       </div>
+
+      <p v-if="player.error" class="sr-only" role="alert">{{ player.error }}</p>
     </div>
   </div>
 </template>

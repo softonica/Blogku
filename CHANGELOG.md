@@ -18,6 +18,7 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 - `frontend/src/components/layout/BackToTop.vue` + `ToastHost.vue` — offset mengikuti `--player-dock-height` (ResizeObserver) agar tidak menutupi dock.
 - `frontend/src/pages/PostPage.vue` — memakai `AudioPostHeader`; baris aksi lama dan kartu “Written by” disembunyikan untuk audio.
 - `frontend/src/styles/main.css` — animasi `nc-animation-spin` 20 detik + reduced motion.
+- Review fixes: focus ring pada slider (peer focus), touch target chevron/mute ≥40 px, `role="alert"` untuk error, left dock `xl:basis-80` agar judul tidak kolaps, dan `stop()` melepas `src` + `load()`.
 - `frontend/e2e/audio-player.spec.ts` (baru) — header/dock, speed, close, BackToTop desktop/mobile, post non-audio.
 - `docs/superpowers/specs/2026-11-02-audio-player-ncmaz-parity-design.md` + `docs/superpowers/plans/2026-11-02-audio-player-ncmaz-parity.md` (baru); `docs/features/22-audio-player-and-upload.md` diperbarui.
 
@@ -28,11 +29,11 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 ### How it was verified
 - `npm run typecheck` (dari `frontend/`) → `vue-tsc --noEmit` bersih.
 - `npm run lint` → `eslint .` bersih.
-- `npm test` → **19 file / 199 test passed**.
+- `npm test` → **19 file / 200 test passed**.
 - `npx playwright test e2e/audio-player.spec.ts` → **3 passed** (header/dock, BackToTop gap desktop + mobile 390 collapsed/expanded, post standard tanpa dock).
-- Build produksi: `VITE_USE_POCKETBASE=true VITE_PB_URL=` + `vite build` sukses; cross-compile Linux amd64 `backend/blogku` (28.176.544 byte).
-- Deploy: binary baru ke `/opt/blogku/blogku` (backup `blogku.bak-ncmaz-parity`), `systemctl restart blogku` → `active`; `spa:200`, `health:200`.
-- Smoke produksi `https://blog.artku.my.id/post/snap-cracle` via Playwright: dock 80 px desktop, 64/128 px mobile, BackToTop gap 24 px di ketiga state, speed 1.0x→1.5x, mute `aria-pressed=true`, close menghilangkan dock, `scrollWidth <= clientWidth`, tidak ada console error.
+- Build produksi: `VITE_USE_POCKETBASE=true VITE_PB_URL=` + `vite build` sukses; cross-compile Linux amd64 `backend/blogku` (28.180.640 byte).
+- Deploy: binary baru ke `/opt/blogku/blogku` (backup `blogku.bak-ncmaz-parity-2`), `systemctl restart blogku` → `active`; `spa:200`, `health:200`.
+- Smoke produksi final `https://blog.artku.my.id/post/snap-cracle` via Playwright: dock 80 px desktop, 64/128 px mobile, BackToTop gap 24 px di ketiga state, speed 1.0x→1.5x, mute `aria-pressed=true`, close menghilangkan dock, `scrollWidth <= clientWidth`, tidak ada console error.
 
 ### Handover notes
 - Tidak ada perubahan schema/PocketBase; tidak perlu migrasi data.

@@ -32,6 +32,9 @@ class MockAudio {
   play = vi.fn(async () => {})
   pause = vi.fn(() => {})
   load = vi.fn(() => {})
+  removeAttribute = vi.fn((name: string) => {
+    if (name === 'src') this.src = ''
+  })
 
   constructor() {
     MockAudio.instances.push(this)
@@ -59,6 +62,8 @@ beforeEach(() => {
   for (const audio of MockAudio.instances) {
     audio.play.mockClear()
     audio.pause.mockClear()
+    audio.load.mockClear()
+    audio.removeAttribute.mockClear()
   }
 })
 
@@ -109,8 +114,9 @@ describe('getAudioEngine', () => {
     expect(engine.getState().playing).toBe(false)
   })
 
-  it('stores an error on the error event', () => {
+  it('stores an error on the error event for an active track', () => {
     const engine = getAudioEngine()
+    engine.load(sampleTrack)
     MockAudio.instances[0].onerror!()
     expect(engine.getState().error).toBeTruthy()
   })
@@ -249,5 +255,18 @@ describe('getAudioEngine', () => {
     expect(state.buffered).toBe(0)
     expect(state.volume).toBe(0.5)
     expect(state.playbackRate).toBe(2)
+  })
+
+  it('stop() releases the media source', () => {
+    const engine = getAudioEngine()
+    const audio = MockAudio.instances[0]
+    engine.load(sampleTrack)
+    expect(audio.src).toBe(sampleTrack.audioUrl)
+
+    engine.stop()
+
+    expect(audio.src).toBe('')
+    expect(audio.removeAttribute).toHaveBeenCalledWith('src')
+    expect(audio.load).toHaveBeenCalled()
   })
 })

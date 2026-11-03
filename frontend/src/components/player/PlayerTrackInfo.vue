@@ -10,7 +10,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="mr-2 flex grow items-center overflow-hidden lg:shrink-0 lg:basis-52">
+  <div class="mr-2 flex grow items-center overflow-hidden lg:shrink-0 lg:basis-52 xl:basis-80">
     <RouterLink
       :to="`/post/${track.slug}`"
       class="relative flex h-14 items-center space-x-2 overflow-hidden ps-12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 sm:h-16 sm:space-x-3"

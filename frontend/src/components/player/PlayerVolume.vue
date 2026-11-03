@@ -23,7 +23,7 @@ function onInput(event: Event): void {
   <div class="hidden items-center justify-end text-neutral-500 lg:flex dark:text-neutral-300">
     <button
       type="button"
-      class="rounded-full p-1 transition hover:text-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:text-white"
+      class="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-neutral-100 hover:text-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:bg-neutral-700/60 dark:hover:text-white"
       :aria-label="muted ? 'Unmute audio' : 'Mute audio'"
       :aria-pressed="muted"
       @click="emit('toggleMute')"
@@ -33,7 +33,7 @@ function onInput(event: Event): void {
     </button>
     <div class="relative ms-3.5 w-24 shrink-0">
       <input
-        class="absolute inset-0 z-20 h-4 w-full -translate-y-1/2 cursor-pointer opacity-0"
+        class="peer absolute inset-0 z-20 h-4 w-full -translate-y-1/2 cursor-pointer opacity-0"
         type="range"
         min="0"
         max="1"
@@ -44,7 +44,7 @@ function onInput(event: Event): void {
         @input="onInput"
       />
       <div
-        class="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-neutral-300 dark:bg-neutral-500"
+        class="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-neutral-300 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2 dark:bg-neutral-500 dark:peer-focus-visible:ring-offset-neutral-800"
       >
         <div
           class="absolute inset-y-0 start-0 rounded-full bg-primary-500"

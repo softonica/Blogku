@@ -110,6 +110,7 @@ function ensureAudio(): HTMLAudioElement {
   }
 
   el.onerror = () => {
+    if (!state.track) return
     state.error = 'Audio playback error'
     emit()
   }
@@ -211,6 +212,9 @@ const engine: AudioEngine = {
     state.buffered = 0
     state.error = null
     el.pause()
+    el.removeAttribute('src')
+    el.load()
+    el.currentTime = 0
     emit()
   },
 

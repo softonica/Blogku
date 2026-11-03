@@ -31,7 +31,7 @@ function onInput(event: Event): void {
 <template>
   <div class="absolute inset-x-0 bottom-full h-3 w-full">
     <input
-      class="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-0"
+      class="peer absolute inset-0 z-20 h-full w-full cursor-pointer opacity-0"
       type="range"
       min="0"
       :max="safeDuration"
@@ -42,7 +42,7 @@ function onInput(event: Event): void {
       @input="onInput"
     />
     <div
-      class="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-visible rounded-full bg-primary-500/30"
+      class="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-visible rounded-full bg-primary-500/30 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2 dark:peer-focus-visible:ring-offset-neutral-800"
     >
       <div
         class="absolute inset-y-0 start-0 rounded-full bg-primary-500/40"

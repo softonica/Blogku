@@ -215,7 +215,7 @@ unmute memulihkan `lastVolume`. `LikeButton` mendapat varian `compact` dan mener
 ### 7.5 Verifikasi redesign
 - `npm run typecheck` — bersih.
 - `npm run lint` — bersih.
-- `npm test` — 19 file / 199 test passed.
+- `npm test` — 19 file / 200 test passed.
 - `npx playwright test e2e/audio-player.spec.ts` — 3 passed (header/dock, BackToTop desktop/mobile, post non-audio).
 - Build produksi + deploy ke server 64; smoke test `https://blog.artku.my.id/post/snap-cracle`:
   dock 80 px desktop, 64/128 px mobile, BackToTop gap 24 px, speed/mute/close bekerja,
