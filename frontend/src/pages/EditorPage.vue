@@ -27,6 +27,7 @@ import {
   isAllowedImageDomain,
 } from '@/lib/image-domains'
 import { canManagePost } from '@/lib/permissions'
+import { AUDIO_MAX_BYTES, AUDIO_MIME_TYPES } from '@/lib/media-limits'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { useRateLimit } from '@/composables/useRateLimit'
 import { uploadProcessedImage } from '@/composables/useImageUpload'
@@ -102,6 +103,36 @@ useDocumentTitle(pageTitle)
 
 const uploadingCover = ref(false)
 const allowedDomains = ref<string[]>([...DEFAULT_ALLOWED_IMAGE_DOMAINS])
+
+const uploadingAudio = ref(false)
+
+async function onAudioUpload(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  if (!AUDIO_MIME_TYPES.includes(file.type)) {
+    ui.notify('Only audio files (MP3, MP4, WAV, OGG, WebM) are allowed.', 'error')
+    input.value = ''
+    return
+  }
+  if (file.size > AUDIO_MAX_BYTES) {
+    ui.notify('Audio file exceeds the 20 MB limit.', 'error')
+    input.value = ''
+    return
+  }
+  uploadingAudio.value = true
+  try {
+    const { url } = await getDataSource().uploadFile(file)
+    audioUrl.value = url
+    ui.notify('Audio uploaded.')
+  } catch (err) {
+    startRateLimit(err)
+    ui.notify(err instanceof Error ? err.message : 'Upload failed', 'error')
+  } finally {
+    uploadingAudio.value = false
+    input.value = ''
+  }
+}
 
 async function onCoverUpload(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement
@@ -800,17 +831,46 @@ async function publishStory(): Promise<void> {
               />
             </div>
 
-            <!-- Audio URL (if audio) -->
-            <div v-if="postType === 'audio'">
-              <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
-                Audio Stream URL (MP3 / SoundCloud)
+            <!-- Audio (if audio) -->
+            <div v-if="postType === 'audio'" class="space-y-3">
+              <div>
+                <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+                  Audio Stream URL (MP3 / SoundCloud)
+                </label>
+                <input
+                  v-model="audioUrl"
+                  type="url"
+                  placeholder="https://example.com/audio.mp3"
+                  class="h-10 w-full rounded-lg sm:rounded-xl border border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                />
+              </div>
+
+              <div v-if="audioUrl" class="flex items-center gap-2">
+                <audio :src="audioUrl" controls class="w-full"></audio>
+                <button
+                  type="button"
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-white"
+                  aria-label="Remove audio"
+                  title="Remove audio"
+                  @click="audioUrl = ''"
+                >
+                  <X class="h-4 w-4" />
+                </button>
+              </div>
+
+              <label
+                class="inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-full bg-white px-3.5 text-xs font-semibold text-neutral-700 shadow-xs ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700"
+              >
+                <Upload class="h-3.5 w-3.5" />
+                <span>{{ uploadingAudio ? 'Uploading…' : audioUrl ? 'Change audio' : 'Upload audio' }}</span>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  class="sr-only"
+                  :disabled="uploadingAudio"
+                  @change="onAudioUpload"
+                />
               </label>
-              <input
-                v-model="audioUrl"
-                type="url"
-                placeholder="https://example.com/audio.mp3"
-                class="h-10 w-full rounded-lg sm:rounded-xl border border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-              />
             </div>
 
             <!-- Categories -->
