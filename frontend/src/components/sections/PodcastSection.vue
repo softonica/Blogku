@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { Play } from 'lucide-vue-next'
+import { Play, Pause } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 import type { Post } from '@/api/types'
 import { formatDate } from '@/lib/format'
+import { usePlayerStore } from '@/stores/player'
 import PostImage from '@/components/ui/PostImage.vue'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import CategoryBadgeList from '@/components/post/CategoryBadgeList.vue'
@@ -9,6 +11,26 @@ import LikeButton from '@/components/post/LikeButton.vue'
 import SaveButton from '@/components/post/SaveButton.vue'
 
 defineProps<{ posts: Post[] }>()
+
+const router = useRouter()
+const player = usePlayerStore()
+
+function navigateToPost(slug: string): void {
+  void router.push(`/post/${slug}`)
+}
+
+function isPlayingThis(post: Post): boolean {
+  return player.isCurrentPost(post.id) && player.playing
+}
+
+function handlePlayClick(post: Post): void {
+  if (!post.audioUrl) return
+  if (isPlayingThis(post)) {
+    player.toggle()
+  } else {
+    player.play(post)
+  }
+}
 </script>
 
 <template>
@@ -42,17 +64,27 @@ defineProps<{ posts: Post[] }>()
           <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 
           <!-- Center Play Button -->
-          <RouterLink
-            :to="`/post/${post.slug}`"
+          <div
             class="absolute inset-0 flex items-center justify-center"
-            aria-label="Play podcast"
+            role="link"
+            tabindex="0"
+            :aria-label="`View post: ${post.title}`"
+            @click="navigateToPost(post.slug)"
+            @keydown.enter="navigateToPost(post.slug)"
+            @keydown.space.prevent="navigateToPost(post.slug)"
           >
-            <span
+            <button
+              type="button"
               class="flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-xl backdrop-blur-sm transition duration-300 group-hover:scale-110 group-hover:bg-primary-500"
+              :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
+              :disabled="!post.audioUrl"
+              :aria-label="isPlayingThis(post) ? 'Pause podcast' : 'Play podcast'"
+              @click.stop="handlePlayClick(post)"
             >
-              <Play class="ms-1 h-6 w-6 fill-current" aria-hidden="true" />
-            </span>
-          </RouterLink>
+              <Pause v-if="isPlayingThis(post)" class="h-6 w-6 fill-current" aria-hidden="true" />
+              <Play v-else class="ms-1 h-6 w-6 fill-current" aria-hidden="true" />
+            </button>
+          </div>
 
           <div class="absolute inset-x-4 top-4 flex items-center justify-between gap-2">
             <CategoryBadgeList :categories="post.categories" overlay />
@@ -89,13 +121,17 @@ defineProps<{ posts: Post[] }>()
           class="nc-Card17Podcast relative flex items-center justify-between gap-3 rounded-full bg-neutral-100/80 p-2.5 transition duration-200 hover:shadow-md dark:bg-neutral-800/40 dark:hover:bg-neutral-800/70"
         >
           <div class="flex items-center gap-3 min-w-0 flex-1">
-            <RouterLink
-              :to="`/post/${post.slug}`"
+            <button
+              type="button"
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-primary-600 shadow-xs transition hover:scale-105 hover:bg-primary-50 dark:bg-neutral-700 dark:text-primary-300"
-              aria-label="Play podcast"
+              :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
+              :disabled="!post.audioUrl"
+              :aria-label="isPlayingThis(post) ? 'Pause podcast' : 'Play podcast'"
+              @click="handlePlayClick(post)"
             >
-              <Play class="ms-0.5 h-4 w-4 fill-current" aria-hidden="true" />
-            </RouterLink>
+              <Pause v-if="isPlayingThis(post)" class="h-4 w-4 fill-current" aria-hidden="true" />
+              <Play v-else class="ms-0.5 h-4 w-4 fill-current" aria-hidden="true" />
+            </button>
             <div class="min-w-0 flex-1">
               <h4 class="truncate text-xs sm:text-sm font-semibold text-neutral-900 dark:text-neutral-100">
                 <RouterLink :to="`/post/${post.slug}`" class="hover:text-primary-600 dark:hover:text-primary-400">

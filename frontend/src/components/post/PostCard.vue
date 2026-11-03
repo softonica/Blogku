@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Clock, Headphones, Layers, Play } from 'lucide-vue-next'
+import { Clock, Layers, Play, Pause } from 'lucide-vue-next'
 import type { Post } from '@/api/types'
 import { formatDate } from '@/lib/format'
+import { usePlayerStore } from '@/stores/player'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 import PostImage from '@/components/ui/PostImage.vue'
 import CategoryBadgeList from './CategoryBadgeList.vue'
@@ -32,6 +33,21 @@ const props = withDefaults(
 )
 
 const postLink = computed(() => `/post/${props.post.slug}`)
+
+const player = usePlayerStore()
+
+function isPlayingThis(post: Post): boolean {
+  return player.isCurrentPost(post.id) && player.playing
+}
+
+function handlePlayClick(post: Post): void {
+  if (!post.audioUrl) return
+  if (isPlayingThis(post)) {
+    player.toggle()
+  } else {
+    player.play(post)
+  }
+}
 </script>
 
 <template>
@@ -57,7 +73,18 @@ const postLink = computed(() => `/post/${props.post.slug}`)
           class="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-md backdrop-blur-sm transition duration-300 group-hover:scale-110 dark:bg-neutral-900/90 dark:text-white"
         >
           <Play v-if="post.postType === 'video'" class="ms-0.5 h-5 w-5 fill-current" aria-hidden="true" />
-          <Headphones v-else-if="post.postType === 'audio'" class="h-5 w-5" aria-hidden="true" />
+          <button
+            v-else-if="post.postType === 'audio'"
+            type="button"
+            class="pointer-events-auto flex h-full w-full items-center justify-center"
+            :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
+            :disabled="!post.audioUrl"
+            :aria-label="isPlayingThis(post) ? 'Pause audio' : 'Play audio'"
+            @click.stop="handlePlayClick(post)"
+          >
+            <Pause v-if="isPlayingThis(post)" class="h-5 w-5 fill-current" aria-hidden="true" />
+            <Play v-else class="ms-0.5 h-5 w-5 fill-current" aria-hidden="true" />
+          </button>
           <Layers v-else-if="post.postType === 'gallery'" class="h-5 w-5" aria-hidden="true" />
           <span class="sr-only">{{ post.postType }}</span>
         </span>
@@ -102,17 +129,15 @@ const postLink = computed(() => `/post/${props.post.slug}`)
     class="group flex gap-3 sm:gap-4"
     :class="showStats ? 'items-start' : ''"
   >
-    <RouterLink
-      :to="postLink"
-      class="relative w-28 shrink-0 overflow-hidden rounded-lg sm:rounded-2xl sm:w-36"
-      tabindex="-1"
-    >
-      <PostImage
-        :src="post.cover"
-        :alt="post.title"
-        aspect="aspect-square"
-        sizes="160px"
-      />
+    <div class="relative w-28 shrink-0 overflow-hidden rounded-lg sm:rounded-2xl sm:w-36">
+      <RouterLink :to="postLink" class="block" tabindex="-1">
+        <PostImage
+          :src="post.cover"
+          :alt="post.title"
+          aspect="aspect-square"
+          sizes="160px"
+        />
+      </RouterLink>
       <div
         v-if="post.postType && post.postType !== 'standard'"
         class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10"
@@ -121,12 +146,23 @@ const postLink = computed(() => `/post/${props.post.slug}`)
           class="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-sm backdrop-blur-sm dark:bg-neutral-900/90 dark:text-white"
         >
           <Play v-if="post.postType === 'video'" class="ms-0.5 h-3.5 w-3.5 fill-current" aria-hidden="true" />
-          <Headphones v-else-if="post.postType === 'audio'" class="h-3.5 w-3.5" aria-hidden="true" />
+          <button
+            v-else-if="post.postType === 'audio'"
+            type="button"
+            class="pointer-events-auto flex h-full w-full items-center justify-center"
+            :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
+            :disabled="!post.audioUrl"
+            :aria-label="isPlayingThis(post) ? 'Pause audio' : 'Play audio'"
+            @click.stop="handlePlayClick(post)"
+          >
+            <Pause v-if="isPlayingThis(post)" class="h-3.5 w-3.5 fill-current" aria-hidden="true" />
+            <Play v-else class="ms-0.5 h-3.5 w-3.5 fill-current" aria-hidden="true" />
+          </button>
           <Layers v-else-if="post.postType === 'gallery'" class="h-3.5 w-3.5" aria-hidden="true" />
           <span class="sr-only">{{ post.postType }}</span>
         </span>
       </div>
-    </RouterLink>
+    </div>
     <div class="min-w-0 flex-1">
       <CategoryBadgeList :categories="post.categories" :limit="1" />
       <h3 class="mt-1.5 text-sm font-semibold leading-snug">
@@ -205,7 +241,18 @@ const postLink = computed(() => `/post/${props.post.slug}`)
         class="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-lg backdrop-blur-sm transition duration-300 group-hover:scale-110 dark:bg-neutral-900/90 dark:text-white"
       >
         <Play v-if="post.postType === 'video'" class="ms-0.5 h-5 w-5 fill-current" aria-hidden="true" />
-        <Headphones v-else-if="post.postType === 'audio'" class="h-5 w-5" aria-hidden="true" />
+        <button
+          v-else-if="post.postType === 'audio'"
+          type="button"
+          class="pointer-events-auto flex h-full w-full items-center justify-center"
+          :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
+          :disabled="!post.audioUrl"
+          :aria-label="isPlayingThis(post) ? 'Pause audio' : 'Play audio'"
+          @click.stop="handlePlayClick(post)"
+        >
+          <Pause v-if="isPlayingThis(post)" class="h-5 w-5 fill-current" aria-hidden="true" />
+          <Play v-else class="ms-0.5 h-5 w-5 fill-current" aria-hidden="true" />
+        </button>
         <Layers v-else-if="post.postType === 'gallery'" class="h-5 w-5" aria-hidden="true" />
         <span class="sr-only">{{ post.postType }}</span>
       </span>
