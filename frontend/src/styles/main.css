@@ -9,6 +9,15 @@
   animation-play-state: paused;
 }
 
+.nc-no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.nc-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .nc-animation-spin.playing {
   animation-play-state: running;
 }

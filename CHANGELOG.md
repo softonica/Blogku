@@ -1639,3 +1639,23 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 - Prop tetap `post` + `tone`; tidak ada dependensi `postType`/`postStyle` di komponen.
 - Ukuran mengikuti Ncmaz (36px/18px), menggantikan 44px/22px sebelumnya.
 - Belum di-deploy/push sampai langkah berikutnya dijalankan.
+
+## [2026-11-03] — Hapus Edit dari breadcrumb + breadcrumb 1 baris scroll-samping (mobile)
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/pages/PostPage.vue` — tombol/tautan "Edit post" di kanan breadcrumb dihapus (edit sepenuhnya lewat menu `...` di `PostHeaderInfo`). Breadcrumb kini `flex flex-nowrap overflow-x-auto` satu baris dengan item `shrink-0 whitespace-nowrap`; judul tidak lagi `line-clamp-1`, sehingga bisa digeser ke samping di mobile. Di `sm:` kembali `flex-wrap` / `overflow-visible`.
+- Import `PenLine`, `canManagePost`, `useAuthStore`, dan `const auth` dihapus dari `PostPage.vue` (tidak lagi dipakai).
+- `frontend/src/styles/main.css` — utility `.nc-no-scrollbar` (`scrollbar-width: none`, `::-webkit-scrollbar { display: none }`) untuk menyembunyikan kontrol scroll.
+- `docs/features/23-post-header-info-component.md` — RBAC, alur, dan matriks integrasi diperbarui (edit hanya via menu `...`; breadcrumb tanpa aksi edit).
+
+### Why
+- Permintaan pengguna: tombol Edit di breadcrumb belum dihapus setelah dipindah ke menu; breadcrumb harus satu baris di mobile dan bisa digeser tanpa menampilkan scrollbar.
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 22 file / **219 passed**.
+- Smoke produksi: halaman post dibuka pada viewport 390px dan 1280px.
+
+### Handover notes
+- Akses edit sekarang HANYA lewat menu `...` (admin/penulis pemilik). Pastikan tidak ada rute lain yang bergantung pada link breadcrumb lama.
+- Breadcrumb memakai scroll horizontal hanya di bawah `sm`; desktop tetap wrap.

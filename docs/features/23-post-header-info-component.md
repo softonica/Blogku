@@ -4,7 +4,7 @@
 | :--- | :--- |
 | **Status** | Stable |
 | **Fase Arsitektur** | Fase 2 (PocketBase) — frontend-only, tanpa perubahan backend |
-| **Izin Minimum (RBAC)** | Publik (tampilan) / Penulis & Admin (link Edit via breadcrumb) |
+| **Izin Minimum (RBAC)** | Publik (tampilan) / Penulis & Admin (menu Edit di tombol `...`) |
 | **Komponen Utama** | [PostHeaderInfo.vue](frontend/src/components/post/PostHeaderInfo.vue) · [AppAvatar.vue](frontend/src/components/ui/AppAvatar.vue) · [LikeButton.vue](frontend/src/components/post/LikeButton.vue) · [SaveButton.vue](frontend/src/components/post/SaveButton.vue) · [AudioPostHeader.vue](frontend/src/components/post/AudioPostHeader.vue) · [PostPage.vue](frontend/src/pages/PostPage.vue) |
 | **Tanggal Ditambahkan** | 2026-11-03 |
 
@@ -25,7 +25,7 @@ Non-goals: tidak ada menu `...`, tidak mengubah store/DataSource/backend, tidak 
 1. Pengguna membuka halaman post apa pun (`postType = audio/standard/video`, style 1–4).
 2. Di bawah excerpt (atau di dalam overlay untuk hero style 4) tampil `PostHeaderInfo`: avatar + nama author (link ke `/author/:username`), tanggal · reading time, lalu baris aksi bulat.
 3. Klik **Like** → toggle like (wajib login; jika belum login redirect ke halaman login lalu kembali). Klik **Bookmark** → simpan/lepas bookmark. Klik **Comments** → emit `comments` dan `PostPage` scroll ke `#comments`. Klik **Share** → emit `share` dan membuka modal share.
-4. Penulis/admin: menu aksi tidak lagi mengandung tombol Edit; tautan kecil "Edit post" tersedia di sisi kanan breadcrumb (hanya bila `canManagePost`).
+4. Penulis/admin: tombol Edit tidak lagi berada di baris aksi maupun breadcrumb; akses edit ada di menu `...` (paling kanan baris aksi) → "Edit post". Breadcrumb hanya menampilkan Home / kategori / judul, satu baris yang bisa digeser ke samping di mobile tanpa scrollbar terlihat.
 
 ---
 
@@ -55,7 +55,7 @@ Tidak ada perubahan pada `stores/reaction.ts`, `stores/bookmark.ts`, `DataSource
 | `PostPage.vue` — standard, video & gallery (style 1–3) | Baris author/tanggal dan action row pill diganti satu `<PostHeaderInfo>` di bawah excerpt. |
 | `PostPage.vue` — hero (style 4) | Meta author di dalam overlay diganti `<PostHeaderInfo tone="on-image">`; action row pill di bawah hero dihapus agar tidak duplikat. |
 | `PostPage.vue` — magazine (style 3) | Sidebar "Written by" tidak lagi merender author + Like/Save/Share (duplikat); hanya menyisakan kartu "Post details". |
-| Breadcrumb `PostPage.vue` | Tautan kecil "Edit post" (hanya `canManagePost`) dipindah ke sisi kanan breadcrumb agar akses edit tidak hilang setelah tombol edit dihapus dari action row. |
+| Breadcrumb `PostPage.vue` | Hanya Home / kategori / judul; satu baris `flex-nowrap overflow-x-auto` dengan scrollbar disembunyikan (`.nc-no-scrollbar`) di mobile, wrap normal di `sm:`. |
 
 **Reusability semua tipe post:** komponen tidak bergantung pada `postType`/`postStyle` — hanya menerima `post` dan `tone`. Jalur render:
 
@@ -110,7 +110,7 @@ Tidak ada perubahan schema Zod/API/backend.
 
 ## 5. Keamanan & Otorisasi
 
-- **RBAC**: Komponen bersifat publik (tampilan). Aksi like/bookmark memakai store yang sudah ada dengan redirect login bila belum autentikasi. Link "Edit post" di breadcrumb hanya dirender bila `canManagePost` (role `admin` atau penulis pemilik post) — akses edit tidak hilang setelah tombol edit dihapus dari action row.
+- **RBAC**: Komponen bersifat publik (tampilan). Aksi like/bookmark memakai store yang sudah ada dengan redirect login bila belum autentikasi. Menu `...` dan item "Edit post" hanya dirender bila `canManagePost` (role `admin` atau penulis pemilik post); breadcrumb tidak memuat aksi edit.
 - **Sanitasi / Anti-XSS**: Komponen tidak merender HTML kaya; semua teks dirender sebagai teks Vue (escaped). Nama author, judul (untuk `aria-label` bookmark) dan tanggal dilewatkan sebagai binding data, bukan `v-html`. Tidak ada `eval()`/`new Function()`.
 - **Aksesibilitas / Dark mode**: Nilai `aria-label` pada tombol komentar/share/views, `<time datetime>`, focus ring (`focus-visible:ring-2`), dan varian `dark:` pada semua kelas; `tone="on-image"` memakai teks putih di atas cover hero.
 

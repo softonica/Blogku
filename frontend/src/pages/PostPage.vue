@@ -1,15 +1,13 @@
 ﻿<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Link2, PenLine, X } from 'lucide-vue-next'
+import { Link2, X } from 'lucide-vue-next'
 import { Facebook, Linkedin, MessageCircle, Send, Twitter } from 'lucide-vue-next'
 import type { Category, Comment, Post, Tag } from '@/api/types'
 import { getDataSource } from '@/api'
 import { formatNumber, getErrorMessage } from '@/lib/format'
 import { sanitizeHtml } from '@/lib/sanitize'
 import { getEmbedUrl } from '@/lib/video'
-import { canManagePost } from '@/lib/permissions'
-import { useAuthStore } from '@/stores/auth'
 import { usePlayerStore } from '@/stores/player'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { trackViewIfNew } from '@/composables/useTrackView'
@@ -27,7 +25,6 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const route = useRoute()
 const ui = useUiStore()
-const auth = useAuthStore()
 const slug = computed(() => String(route.params.slug ?? ''))
 const post = ref<Post | null>(null)
 const comments = ref<Comment[]>([])
@@ -195,28 +192,21 @@ async function copyLink(): Promise<void> {
     </EmptyState>
 
     <template v-else>
-      <nav class="mb-4 sm:mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-2 text-xs font-medium text-neutral-400">
-          <RouterLink to="/" class="hover:text-primary-600 dark:hover:text-primary-300">Home</RouterLink>
-          <span>/</span>
-          <RouterLink
-            v-if="post.categories[0]"
-            :to="`/category/${post.categories[0].slug}`"
-            class="hover:text-primary-600 dark:hover:text-primary-300"
-          >
-            {{ post.categories[0].name }}
-          </RouterLink>
-          <span>/</span>
-          <span class="line-clamp-1 text-neutral-500 dark:text-neutral-400">{{ post.title }}</span>
-        </div>
+      <nav
+        class="nc-no-scrollbar mb-4 flex flex-nowrap items-center gap-2 overflow-x-auto text-xs font-medium text-neutral-400 sm:mb-6 sm:flex-wrap sm:overflow-visible"
+        aria-label="Breadcrumb"
+      >
+        <RouterLink to="/" class="shrink-0 whitespace-nowrap hover:text-primary-600 dark:hover:text-primary-300">Home</RouterLink>
+        <span class="shrink-0">/</span>
         <RouterLink
-          v-if="canManagePost(auth.user?.role, auth.user?.id, post.author.id)"
-          :to="`/editor/${post.id}`"
-          class="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-200 px-3 text-xs font-semibold text-neutral-600 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          v-if="post.categories[0]"
+          :to="`/category/${post.categories[0].slug}`"
+          class="shrink-0 whitespace-nowrap hover:text-primary-600 dark:hover:text-primary-300"
         >
-          <PenLine class="h-3.5 w-3.5" aria-hidden="true" />
-          Edit post
+          {{ post.categories[0].name }}
         </RouterLink>
+        <span class="shrink-0">/</span>
+        <span class="whitespace-nowrap text-neutral-500 dark:text-neutral-400">{{ post.title }}</span>
       </nav>
 
       <!-- Audio post header: Ncmaz-style vinyl + compact actions -->
