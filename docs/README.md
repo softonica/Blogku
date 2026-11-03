@@ -46,6 +46,7 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **21** | **Post Status: Publish, Draft & Private** | 📝 Spec (review) | [21-post-status-draft-private.md](./features/21-post-status-draft-private.md) |
 | **22** | **Audio Post Player & Upload** | ✅ Stable | [22-audio-player-and-upload.md](./features/22-audio-player-and-upload.md) |
 | **23** | **Post Header Info Component (Reusable)** | ✅ Stable | [23-post-header-info-component.md](./features/23-post-header-info-component.md) |
+| **24** | **Post Action Dock (Floating Control Menu)** | ✅ Stable | [24-post-action-dock.md](./features/24-post-action-dock.md) |
 
 ---
 

@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Link2, X } from 'lucide-vue-next'
 import { Facebook, Linkedin, MessageCircle, Send, Twitter } from 'lucide-vue-next'
@@ -11,12 +11,14 @@ import { getEmbedUrl } from '@/lib/video'
 import { usePlayerStore } from '@/stores/player'
 import { useDocumentTitle } from '@/composables/useDocumentTitle'
 import { trackViewIfNew } from '@/composables/useTrackView'
+import { usePostReading } from '@/composables/usePostReading'
 import { useUiStore } from '@/stores/ui'
 import AudioPostHeader from '@/components/post/AudioPostHeader.vue'
 import CategoryBadgeList from '@/components/post/CategoryBadgeList.vue'
 import TagBadge from '@/components/post/TagBadge.vue'
 import PostCard from '@/components/post/PostCard.vue'
 import PostHeaderInfo from '@/components/post/PostHeaderInfo.vue'
+import PostActionDock from '@/components/post/PostActionDock.vue'
 
 import CommentList from '@/components/comments/CommentList.vue'
 import CommentForm from '@/components/comments/CommentForm.vue'
@@ -40,6 +42,19 @@ useDocumentTitle(title)
 const cleanContent = computed(() => sanitizeHtml(post.value?.content ?? ''))
 const videoEmbedUrl = computed(() =>
   post.value?.postType === 'video' ? getEmbedUrl(post.value.videoUrl) : null,
+)
+
+const articleRef = ref<HTMLElement | null>(null)
+const { headings, progress, showBackToTop, collectHeadings, update } = usePostReading({
+  articleRef,
+})
+watch(
+  () => [post.value?.id, cleanContent.value] as const,
+  async () => {
+    await nextTick()
+    collectHeadings()
+    update()
+  },
 )
 
 const player = usePlayerStore()
@@ -166,7 +181,7 @@ async function copyLink(): Promise<void> {
 </script>
 
 <template>
-  <div class="page-shell pb-20">
+  <div class="page-shell pb-28 sm:pb-32">
     <div v-if="loading" class="flex justify-center py-24">
       <LoadingSpinner />
     </div>
@@ -304,6 +319,7 @@ async function copyLink(): Promise<void> {
       <div :class="isMagazineStyle ? 'mt-8 sm:mt-10 grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_300px]' : ''">
         <div>
           <article
+            ref="articleRef"
             :class="[
               'prose-ncmaz',
               isMagazineStyle ? 'mt-0 max-w-none' : ['mt-8 sm:mt-10 mx-auto', contentWidthClass],
@@ -358,6 +374,17 @@ async function copyLink(): Promise<void> {
       </div>
     </section>
   </div>
+
+  <Teleport to="body">
+    <PostActionDock
+      v-if="post"
+      :post="post"
+      :headings="headings"
+      :progress="progress"
+      :show-back-to-top="showBackToTop"
+      @comments="scrollToComments"
+    />
+  </Teleport>
 
   <Teleport to="body">
     <div

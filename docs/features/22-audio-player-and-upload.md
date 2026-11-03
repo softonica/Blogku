@@ -208,9 +208,11 @@ unmute memulihkan `lastVolume`. `LikeButton` mendapat varian `compact` dan mener
 ### 7.4 BackToTop & Toast
 - Dock mengukur tinggi aktual via `ResizeObserver` dan menulis
   `--player-dock-height` ke `<html>`; reset 0 saat track null/unmount.
-- `BackToTop` memakai `bottom: calc(var(--player-dock-height, 0px) + 1.5rem)`.
+- `BackToTop.vue` **dihapus** (2026-11-03) dan diganti tombol back-to-top di
+  [`PostActionDock`](./24-post-action-dock.md), yang memakai offset
+  `bottom: calc(var(--player-dock-height, 0px) + 1rem)` sehingga tetap berada
+  di atas dock audio.
 - `ToastHost` memakai offset yang sama (`+ 1rem`) agar tidak menutupi kontrol dock.
-- Hasil e2e: gap BackToTop ke dock = 24 px pada desktop, mobile collapsed, dan mobile expanded.
 
 ### 7.5 Verifikasi redesign
 - `npm run typecheck` — bersih.

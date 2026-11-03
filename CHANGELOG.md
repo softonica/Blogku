@@ -1659,3 +1659,29 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 ### Handover notes
 - Akses edit sekarang HANYA lewat menu `...` (admin/penulis pemilik). Pastikan tidak ada rute lain yang bergantung pada link breadcrumb lama.
 - Breadcrumb memakai scroll horizontal hanya di bawah `sm`; desktop tetap wrap.
+
+## [2026-11-03] — Post Action Dock (floating control menu) + hapus BackToTop lama
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/components/post/PostActionDock.vue` (baru) — dock floating di bawah halaman post, dua pill:
+  - Pill aksi: like + jumlah, komentar + jumlah, bookmark, lalu satu slot yang menampilkan **progress `NN%`** saat di area konten dan berganti menjadi **tombol back-to-top** (ArrowUp) saat section komentar tercapai.
+  - Pill TOC: tombol ikon daftar → popover "On this page" berisi heading `h2`/`h3` (`h4` bila ada), indentasi level, ikon panah; tutup via klik luar/`Escape`; `role="dialog"`, `aria-expanded`.
+  - Offset `bottom: calc(var(--player-dock-height, 0px) + 1rem)` sehingga pada post audio berada di atas player dock.
+- `frontend/src/composables/usePostReading.ts` (baru) — slug + dedupe `id` heading, hitung progress artikel (0–100), deteksi `#comments` masuk viewport, `backToTop()`.
+- `frontend/src/pages/PostPage.vue` — `articleRef` pada `<article>`, `usePostReading`, render `<Teleport><PostActionDock></Teleport>` untuk semua tipe post; `pb-20` → `pb-28 sm:pb-32`.
+- `frontend/src/App.vue` + `frontend/src/components/layout/BackToTop.vue` — import/render dihapus; file komponen lama dihapus.
+- Tests: `usePostReading.test.ts` (4) dan `PostActionDock.test.ts` (6).
+- Docs: `docs/features/24-post-action-dock.md`, indeks `docs/README.md`, update §7.4 `docs/features/22-audio-player-and-upload.md`.
+
+### Why
+- Permintaan pengguna: floating control menu seperti demo Ncmaz di semua halaman post; persentase tampil saat membaca konten dan berganti back-to-top saat sampai section komentar; back-to-top lama dihapus.
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 24 file / **229 passed**.
+- Unit test mencakup slug/dedupe heading, clamp progress, deteksi komentar, perilaku dock, TOC, dan back-to-top.
+
+### Handover notes
+- TOC memakai `h2`/`h3` (editor hanya menyediakan H2/H3) dan `h4` bila nanti ditambahkan; `id` heading dibuat client-side karena sanitizer tidak mengizinkan `id`.
+- `BackToTop.vue` sudah tidak ada; jangan menambah referensi baru ke file tersebut.
+- Belum di-deploy/push sampai langkah berikutnya.
