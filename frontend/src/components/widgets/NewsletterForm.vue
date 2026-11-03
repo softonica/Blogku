@@ -45,7 +45,7 @@ function submit(): void {
         type="email"
         autocomplete="email"
         placeholder="you@example.com"
-        class="h-11 flex-1 rounded-full border px-3 sm:px-4 text-sm outline-none transition focus:ring-2"
+        class="h-11 min-w-0 flex-1 rounded-full border px-3 sm:px-4 text-sm outline-none transition focus:ring-2"
         :class="
           inverted
             ? 'border-white/20 bg-white/10 text-white placeholder:text-neutral-400 focus:border-white/40 focus:ring-white/20'
@@ -54,7 +54,7 @@ function submit(): void {
       />
       <button
         type="submit"
-        class="inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 sm:px-5 text-sm font-semibold transition"
+        class="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-4 sm:px-5 text-sm font-semibold transition"
         :class="
           inverted
             ? 'bg-white text-neutral-900 hover:bg-neutral-100'

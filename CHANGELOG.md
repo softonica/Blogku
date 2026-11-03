@@ -1752,3 +1752,16 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 ### Handover notes
 - Directive bersifat idempoten; aman dipakai pada container `v-html` yang berubah (preview editor).
 - Tidak ada perubahan sanitizer/backend; wrapper dibuat di DOM klien.
+
+## [2026-11-03] — Fix overflow horizontal footer (tombol Subscribe)
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/components/widgets/NewsletterForm.vue` — input email diberi `min-w-0` agar bisa menyusut, tombol subscribe diberi `shrink-0`.
+
+### Why
+- Smoke test halaman `https://blog.artku.my.id/post/lorem-ipsum-style-3` menemukan `document.scrollWidth = 1327` pada viewport 1280. Penyebab: pada breakpoint `xl` form menjadi `flex-row`; input (flex item) memakai `min-width:auto` sehingga tidak menyusut dan mendorong tombol Subscribe 79px keluar kolom footer (274px).
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 25 file / 233 passed.
+- Akan diverifikasi ulang lewat smoke test produksi setelah deploy (`scrollWidth == viewport`).
