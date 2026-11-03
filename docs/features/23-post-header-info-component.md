@@ -52,10 +52,19 @@ Tidak ada perubahan pada `stores/reaction.ts`, `stores/bookmark.ts`, `DataSource
 | Lokasi | Perubahan |
 | :--- | :--- |
 | `AudioPostHeader.vue` | Blok author + meta + action row diganti `<PostHeaderInfo>`; emit `comments`/`share` diteruskan ke `PostPage`. |
-| `PostPage.vue` — standard & video (style 1–3) | Baris author/tanggal dan action row pill diganti satu `<PostHeaderInfo>` di bawah excerpt. |
+| `PostPage.vue` — standard, video & gallery (style 1–3) | Baris author/tanggal dan action row pill diganti satu `<PostHeaderInfo>` di bawah excerpt. |
 | `PostPage.vue` — hero (style 4) | Meta author di dalam overlay diganti `<PostHeaderInfo tone="on-image">`; action row pill di bawah hero dihapus agar tidak duplikat. |
 | `PostPage.vue` — magazine (style 3) | Sidebar "Written by" tidak lagi merender author + Like/Save/Share (duplikat); hanya menyisakan kartu "Post details". |
 | Breadcrumb `PostPage.vue` | Tautan kecil "Edit post" (hanya `canManagePost`) dipindah ke sisi kanan breadcrumb agar akses edit tidak hilang setelah tombol edit dihapus dari action row. |
+
+**Reusability semua tipe post:** komponen tidak bergantung pada `postType`/`postStyle` — hanya menerima `post` dan `tone`. Jalur render:
+
+- `audio` → `AudioPostHeader.vue` (header vinyl) → `PostHeaderInfo` (tone default).
+- `standard`, `video`, `gallery` (style 1–3) → `<header>` standar `PostPage.vue` → `PostHeaderInfo` (tone default).
+- `style4` (hero) → overlay cover → `PostHeaderInfo` (`tone="on-image"`).
+- Post audio tanpa `audioUrl` atau style tak dikenal → jatuh ke header standar, tetap memakai `PostHeaderInfo`.
+
+Ada unit test yang merender komponen untuk keempat nilai `PostType` (`standard`, `video`, `audio`, `gallery`) dan memastikan author + tombol komentar/share tetap muncul.
 
 ---
 
@@ -79,7 +88,7 @@ const emit = defineEmits<{
 }>()
 ```
 
-Struktur render: baris atas (selalu rata kiri) = avatar (44px) + kolom teks (nama author di atas, lalu `<time>` + `·` + `{readingTime} min read` di bawahnya); baris aksi (jarak `gap-5`/`sm:gap-8` dari baris atas) = `LikeButton` compact (circle + jumlah), grup komentar (circle + jumlah di luar), grup views (circle non-interaktif + jumlah di luar), pemisah vertikal (`h-6`, margin `mx-1 sm:mx-2`), lalu grup bookmark + share + menu `...`. Semua tombol bulat 44px (`h-11 w-11`), ikon 22px, jumlah `text-sm font-semibold` di luar lingkaran; jarak antar grup `gap-4 sm:gap-6`. Baris aksi boleh wrap di mobile.
+Struktur render mengikuti markup/class Ncmaz (`nc-SingleHeader`): root `flex flex-wrap justify-between gap-5 sm:items-end` — author di kiri, aksi di kanan; di layar sempit aksi wrap ke bawah dan rata kiri. Author: avatar `h-10 w-10 sm:h-11 sm:w-11` (`ring-1 ring-white`), nama `block font-semibold` (inherits `text-base`), meta `mt-[6px] text-xs` dengan pemisah `mx-2 font-semibold`. Baris aksi: grup statistik `gap-2 sm:gap-2.5`; circle `h-9 w-9`, ikon 18px (views & menu 20px), jumlah `ms-2 min-w-4.5 text-xs`; divider `h-5 sm:h-6`; grup kanan `grow justify-end gap-2 sm:gap-2.5`; bookmark/share/menu `h-9 w-9`.
 
 Menu `...` hanya dirender bila `canManagePost` (admin atau penulis pemilik post). Klik membuka popup `role="menu"` berisi satu item `role="menuitem"` "Edit post" → `/editor/:id` (ikon pensil). Popup tertutup saat klik di luar atau tombol `Escape` (fokus kembali ke trigger); di `tone="on-image"` popup terbuka ke atas agar tidak terpotong `overflow-hidden` cover hero.
 
@@ -114,7 +123,8 @@ Tidak ada perubahan schema Zod/API/backend.
 - Menampilkan jumlah views/komentar terformat (`formatNumber`), stub `LikeButton`/`SaveButton` hadir.
 - Emit `comments` (klik tombol `aria-label^="Comments"`) dan `share` (klik `aria-label="Share post"`).
 - Kelas `tone="on-image"` diterapkan (`text-white`).
-- Blok author selalu `items-start` (tidak pernah center).
+- Komponen dirender untuk keempat `PostType` (`standard`, `video`, `audio`, `gallery`) dan tetap menampilkan author + komentar/share.
+- Blok author dan aksi memakai layout Ncmaz (`justify-between`, bukan center).
 - Menu `...` tidak muncul untuk pengunjung; untuk penulis/admin, klik membuka `role="menu"` dengan item "Edit post" menuju `/editor/:id`; `Escape` menutup menu.
 
 **Perintah otomatis** (dari `frontend/`):

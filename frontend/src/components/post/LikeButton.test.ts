@@ -17,10 +17,10 @@ describe('LikeButton compact variants', () => {
     expect(wrapper.classes()).toContain('h-9')
   })
 
-  it('applies md size for compact variant', () => {
+  it('applies the Ncmaz md count spacing for compact variant', () => {
     setActivePinia(createPinia())
     const wrapper = mountLike({ variant: 'compact', size: 'md' })
-    expect(wrapper.classes()).toContain('h-11')
+    expect(wrapper.html()).toContain('min-w-4.5')
   })
 
   it('applies on-image tone classes to compact variant', () => {

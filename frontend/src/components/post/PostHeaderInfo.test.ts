@@ -98,7 +98,8 @@ function mountInfo(
 describe('PostHeaderInfo', () => {
   it('renders author avatar link, name, formatted date and reading time', () => {
     const wrapper = mountInfo()
-    expect(wrapper.find('a[href="/author/john"]').text()).toContain('John Doe')
+    expect(wrapper.findAll('a[href="/author/john"]').length).toBeGreaterThan(0)
+    expect(wrapper.text()).toContain('John Doe')
     expect(wrapper.text()).toContain(formatDate(post.createdAt))
     expect(wrapper.text()).toContain('4 min read')
   })
@@ -152,10 +153,19 @@ describe('PostHeaderInfo', () => {
     expect(wrapper.classes()).toContain('text-white')
   })
 
-  it('keeps the author info left-aligned', () => {
+  it('keeps the author info left-aligned beside the actions', () => {
     const wrapper = mountInfo()
-    expect(wrapper.classes()).toContain('items-start')
+    expect(wrapper.classes()).toContain('justify-between')
     expect(wrapper.classes()).not.toContain('items-center')
+  })
+
+  it('renders the same header for every post type', () => {
+    for (const postType of ['standard', 'video', 'audio', 'gallery'] as const) {
+      const wrapper = mountInfo(undefined, { postType })
+      expect(wrapper.text()).toContain('John Doe')
+      expect(wrapper.find('button[aria-label^="Comments"]').exists()).toBe(true)
+      expect(wrapper.find('button[aria-label="Share post"]').exists()).toBe(true)
+    }
   })
 
   it('hides the actions menu for visitors who cannot edit', () => {

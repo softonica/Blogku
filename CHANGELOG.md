@@ -1614,3 +1614,28 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 ### Handover notes
 - Halaman post style 1 (centered) kini menampilkan header info rata kiri; judul/excerpt tetap mengikuti style masing-masing.
 - Popup menu belum di-deploy/push sampai langkah berikutnya dijalankan.
+
+## [2026-11-03] — Parity class Ncmaz untuk `PostHeaderInfo` + verifikasi reusable semua post type
+**Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
+
+### What changed
+- `frontend/src/components/post/PostHeaderInfo.vue` — markup/class disalin dari referensi Ncmaz (`nc-SingleHeader`):
+  - Root `flex flex-wrap justify-between gap-5 sm:items-end`: author kiri, aksi kanan; di layar sempit aksi wrap ke bawah rata kiri.
+  - Author: avatar `h-10 w-10 sm:h-11 sm:w-11` + `ring-1 ring-white dark:ring-neutral-900`, nama `block font-semibold` (text-base), meta `mt-[6px] text-xs` dengan dot `mx-2 font-semibold`.
+  - Aksi: grup statistik `gap-2 sm:gap-2.5`; circle `h-9 w-9`; ikon 18px (views & menu 20px); jumlah `ms-2 min-w-4.5 shrink-0 text-start text-xs`; divider `h-5 sm:h-6`; grup kanan `grow justify-end gap-2 sm:gap-2.5`; bookmark/share/menu `h-9 w-9`.
+  - Menu `...` tetap tersedia (admin/penulis) dengan popup Edit.
+- `LikeButton.vue` — varian `compact` + `size="md"` disamakan dengan Ncmaz (circle `h-9 w-9`, ikon 18px, jumlah `ms-2 min-w-4.5`); `base` dipisah untuk compact.
+- `SaveButton.vue` — `size="md"` kini `h-9 w-9` tanpa border, ikon 18px, state default `bg-neutral-50 dark:bg-neutral-800` (sesuai Ncmaz).
+- Test: `PostHeaderInfo` merender untuk keempat `PostType` (`standard`, `video`, `audio`, `gallery`); ekspektasi `LikeButton`/`SaveButton` disesuaikan ke ukuran Ncmaz.
+
+### Why
+- Permintaan pengguna: copy class dari `https://ncmaz-faust-delta.vercel.app/...` agar header 100% identik, dan memastikan komponen reusable untuk semua post type.
+
+### How it was verified
+- `npm run typecheck` → bersih; `npm run lint` → bersih; `npm run test` → 22 file / **219 passed**.
+- Audit jalur render: audio → `AudioPostHeader` → `PostHeaderInfo`; standard/video/gallery (style 1–3) → header `PostPage` → `PostHeaderInfo`; style4 → overlay `tone="on-image"`; audio tanpa `audioUrl`/style tak dikenal → header standar (tetap `PostHeaderInfo`).
+
+### Handover notes
+- Prop tetap `post` + `tone`; tidak ada dependensi `postType`/`postStyle` di komponen.
+- Ukuran mengikuti Ncmaz (36px/18px), menggantikan 44px/22px sebelumnya.
+- Belum di-deploy/push sampai langkah berikutnya dijalankan.

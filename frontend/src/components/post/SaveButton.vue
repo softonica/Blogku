@@ -33,12 +33,15 @@ const sizeClass = computed(() => {
     return 'h-10 px-3 sm:px-4 text-sm gap-2 rounded-full border'
   }
   return props.size === 'md'
-    ? 'h-11 w-11 rounded-full border shadow-sm backdrop-blur-md'
+    ? 'h-9 w-9 rounded-full'
     : 'h-9 w-9 sm:h-10 sm:w-10 rounded-full border shadow-sm backdrop-blur-md'
 })
 
 const toneClass = computed(() => {
   if (props.tone !== 'on-image') {
+    if (props.size === 'md' && !saved.value) {
+      return 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700'
+    }
     return saved.value
       ? 'border-primary-300 bg-primary-50 text-primary-600 hover:bg-primary-100 hover:border-primary-400 dark:border-primary-700 dark:bg-primary-950/80 dark:text-primary-300 dark:hover:bg-primary-900'
       : 'border-neutral-200/90 bg-white/95 text-neutral-700 hover:bg-white hover:text-neutral-900 hover:border-neutral-300 dark:border-neutral-700/90 dark:bg-neutral-900/95 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:hover:text-white'
@@ -49,7 +52,7 @@ const toneClass = computed(() => {
 })
 
 const iconClass = computed(() =>
-  props.size === 'md' ? 'h-[22px] w-[22px]' : 'h-4 w-4',
+  props.size === 'md' ? 'h-[18px] w-[18px]' : 'h-4 w-4',
 )
 
 const savedStateClass = computed(() => {

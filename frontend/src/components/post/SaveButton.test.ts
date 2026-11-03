@@ -10,10 +10,11 @@ describe('SaveButton sizes', () => {
     expect(wrapper.classes()).toContain('h-9')
   })
 
-  it('applies md size', () => {
+  it('applies the Ncmaz md size', () => {
     setActivePinia(createPinia())
     const wrapper = mount(SaveButton, { props: { postId: 'p1', size: 'md' } })
-    expect(wrapper.classes()).toContain('h-11')
+    expect(wrapper.classes()).toContain('h-9')
+    expect(wrapper.classes()).not.toContain('border')
   })
 
   it('applies on-image tone classes', () => {
