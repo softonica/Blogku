@@ -24,13 +24,25 @@ const ui = useUiStore()
 const router = useRouter()
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
+const triggerBtn = ref<HTMLButtonElement | null>(null)
 
 onClickOutside(root, () => {
   open.value = false
 })
 
-async function logout(): Promise<void> {
+function closeMenu(restoreFocus = false): void {
   open.value = false
+  if (restoreFocus) triggerBtn.value?.focus()
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && open.value) {
+    closeMenu(true)
+  }
+}
+
+async function logout(): Promise<void> {
+  closeMenu(false)
   await auth.logout()
   ui.notify('Signed out.')
   await router.push({ name: 'home' })
@@ -41,17 +53,21 @@ async function logout(): Promise<void> {
   <RouterLink
     v-if="!auth.isAuthenticated"
     to="/login"
-    class="inline-flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+    class="inline-flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-300 dark:hover:bg-neutral-800"
     aria-label="Sign in"
   >
     <User class="h-6 w-6" aria-hidden="true" />
   </RouterLink>
-  <div v-else ref="root" class="relative">
+  <div v-else ref="root" class="relative" @keydown="onKeydown">
     <button
+      id="user-menu-button"
+      ref="triggerBtn"
       type="button"
-      class="flex items-center gap-2 rounded-full py-1 pe-2 ps-1 transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
+      class="flex items-center gap-2 rounded-full py-1 pe-2 ps-1 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:bg-neutral-800"
+      :aria-label="auth.user?.name ? `${auth.user.name}'s account menu` : 'User account menu'"
       :aria-expanded="open"
       aria-haspopup="menu"
+      aria-controls="user-menu-dropdown"
       @click="open = !open"
     >
       <AppAvatar
@@ -68,8 +84,10 @@ async function logout(): Promise<void> {
     </button>
     <div
       v-if="open"
+      id="user-menu-dropdown"
       class="absolute end-0 z-50 mt-2 w-64 overflow-hidden rounded-lg sm:rounded-2xl border border-neutral-200 bg-white py-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
       role="menu"
+      aria-labelledby="user-menu-button"
     >
       <div class="border-b border-neutral-100 px-3 sm:px-4 pb-3 pt-1 dark:border-neutral-800">
         <div class="flex items-center justify-between gap-2">
@@ -92,18 +110,18 @@ async function logout(): Promise<void> {
       <template v-if="can(auth.user?.role, 'write_post')">
         <RouterLink
           to="/dashboard"
-          class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
-          @click="open = false"
+          @click="closeMenu(false)"
         >
           <LayoutDashboard class="h-4 w-4" aria-hidden="true" />
           Dashboard
         </RouterLink>
         <RouterLink
           to="/editor"
-          class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
-          @click="open = false"
+          @click="closeMenu(false)"
         >
           <PenLine class="h-4 w-4" aria-hidden="true" />
           Write Post
@@ -113,18 +131,18 @@ async function logout(): Promise<void> {
       <!-- Subscriber+ actions -->
       <RouterLink
         to="/profile"
-        class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:bg-neutral-800"
         role="menuitem"
-        @click="open = false"
+        @click="closeMenu(false)"
       >
         <User class="h-4 w-4" aria-hidden="true" />
         My Profile
       </RouterLink>
       <RouterLink
         to="/bookmarks"
-        class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        class="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:bg-neutral-800"
         role="menuitem"
-        @click="open = false"
+        @click="closeMenu(false)"
       >
         <Bookmark class="h-4 w-4" aria-hidden="true" />
         Bookmarks
@@ -137,27 +155,27 @@ async function logout(): Promise<void> {
         </div>
         <RouterLink
           to="/admin/settings"
-          class="flex items-center gap-3 px-3 sm:px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
-          @click="open = false"
+          @click="closeMenu(false)"
         >
           <Settings class="h-4 w-4" aria-hidden="true" />
           Site Settings
         </RouterLink>
         <RouterLink
           to="/admin/users"
-          class="flex items-center gap-3 px-3 sm:px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
-          @click="open = false"
+          @click="closeMenu(false)"
         >
           <Users class="h-4 w-4" aria-hidden="true" />
           Users & Roles
         </RouterLink>
         <RouterLink
           to="/admin/moderation"
-          class="flex items-center gap-3 px-3 sm:px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="flex items-center gap-3 px-3 sm:px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:bg-neutral-800"
           role="menuitem"
-          @click="open = false"
+          @click="closeMenu(false)"
         >
           <MessageSquareOff class="h-4 w-4" aria-hidden="true" />
           Moderation
@@ -166,7 +184,7 @@ async function logout(): Promise<void> {
 
       <button
         type="button"
-        class="flex w-full items-center gap-3 border-t border-neutral-100 px-3 sm:px-4 py-2.5 text-start text-sm font-medium text-rose-600 hover:bg-rose-50 dark:border-neutral-800 dark:text-rose-300 dark:hover:bg-rose-950/40"
+        class="flex w-full items-center gap-3 border-t border-neutral-100 px-3 sm:px-4 py-2.5 text-start text-sm font-medium text-rose-600 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 dark:border-neutral-800 dark:text-rose-300 dark:hover:bg-rose-950/40"
         role="menuitem"
         @click="logout"
       >

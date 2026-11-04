@@ -16,6 +16,7 @@ const auth = useAuthStore()
 const categories = ref<Category[]>([])
 const categoriesOpen = ref(false)
 const categoryRoot = ref<HTMLElement | null>(null)
+const categoryBtn = ref<HTMLButtonElement | null>(null)
 
 onMounted(async () => {
   categories.value = await getDataSource().listCategories()
@@ -25,21 +26,34 @@ onClickOutside(categoryRoot, () => {
   categoriesOpen.value = false
 })
 
+function closeCategories(restoreFocus = false): void {
+  categoriesOpen.value = false
+  if (restoreFocus) categoryBtn.value?.focus()
+}
+
+function onCategoriesKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && categoriesOpen.value) {
+    closeCategories(true)
+  }
+}
+
 const linkClass =
-  'relative inline-flex h-10 items-center px-3 py-1.5 text-sm font-medium text-neutral-800 transition hover:text-black focus:outline-none sm:h-12 dark:text-neutral-300 dark:hover:text-white'
+  'relative inline-flex h-10 items-center px-3 py-1.5 text-sm font-medium text-neutral-800 transition hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg sm:h-12 dark:text-neutral-300 dark:hover:text-white'
 </script>
 
 <template>
   <header class="sticky top-0 z-30 w-full">
     <div class="relative z-10 border-b border-neutral-200/70 bg-white dark:border-transparent dark:bg-neutral-900">
-      <div class="px-3 sm:px-4 xl:container">
+      <div class="mx-auto max-w-8xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 justify-between sm:h-20">
           <!-- Left (mobile): menu toggle -->
           <div class="flex flex-1 items-center gap-2 lg:hidden">
             <button
               type="button"
-              class="inline-flex h-10 w-10 -ms-2 items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-              aria-label="Open menu"
+              class="inline-flex h-10 w-10 -ms-2 items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              :aria-label="ui.mobileNavOpen ? 'Close menu' : 'Open menu'"
+              :aria-expanded="ui.mobileNavOpen"
+              aria-controls="mobile-nav"
               @click="ui.toggleMobileNav()"
             >
               <Menu class="h-5 w-5" aria-hidden="true" />
@@ -56,7 +70,8 @@ const linkClass =
             <div class="hidden w-64 max-w-xs sm:block xl:w-80">
               <button
                 type="button"
-                class="group relative flex h-[42px] w-full items-center justify-between rounded-full border border-neutral-200 bg-white px-3 sm:px-4 py-3 text-left text-sm font-normal text-neutral-400 transition hover:border-neutral-300 hover:ring-3 hover:ring-primary-200/50 focus:border-primary-300 focus:ring-3 focus:ring-primary-200/50 dark:border-neutral-600 dark:bg-transparent dark:placeholder:text-neutral-400 dark:hover:border-neutral-400 dark:hover:ring-primary-500/30 dark:focus:ring-primary-500/30"
+                class="group relative flex h-[42px] w-full items-center justify-between rounded-full border border-neutral-200 bg-white px-3 sm:px-4 py-3 text-left text-sm font-normal text-neutral-400 transition hover:border-neutral-300 hover:ring-3 hover:ring-primary-200/50 focus-visible:outline-none focus-visible:border-primary-400 focus-visible:ring-3 focus-visible:ring-primary-200/50 dark:border-neutral-600 dark:bg-transparent dark:placeholder:text-neutral-400 dark:hover:border-neutral-400 dark:hover:ring-primary-500/30 dark:focus-visible:ring-primary-500/30"
+                aria-label="Search posts"
                 @click="ui.openSearch()"
               >
                 <span class="truncate">Type to search...</span>
@@ -67,18 +82,18 @@ const linkClass =
             </div>
           </div>
 
-
-
           <!-- Right group -->
           <div class="flex flex-1 items-center justify-end gap-1.5 sm:gap-2.5">
             <nav class="hidden items-center lg:flex" aria-label="Main navigation">
               <RouterLink to="/" :class="linkClass">Home</RouterLink>
-              <div ref="categoryRoot" class="relative">
+              <div ref="categoryRoot" class="relative" @keydown="onCategoriesKeydown">
                 <button
+                  ref="categoryBtn"
                   type="button"
                   :class="[linkClass, 'gap-1']"
                   :aria-expanded="categoriesOpen"
                   aria-haspopup="menu"
+                  aria-controls="categories-dropdown"
                   @click="categoriesOpen = !categoriesOpen"
                 >
                   Categories
@@ -86,16 +101,18 @@ const linkClass =
                 </button>
                 <div
                   v-if="categoriesOpen"
+                  id="categories-dropdown"
                   class="absolute start-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg sm:rounded-2xl border border-neutral-200 bg-white p-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
                   role="menu"
+                  aria-label="Categories"
                 >
                   <RouterLink
                     v-for="category in categories"
                     :key="category.id"
                     :to="`/category/${category.slug}`"
-                    class="flex items-center justify-between rounded-lg sm:rounded-xl px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:hover:text-primary-300"
+                    class="flex items-center justify-between rounded-lg sm:rounded-xl px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:hover:text-primary-300"
                     role="menuitem"
-                    @click="categoriesOpen = false"
+                    @click="closeCategories(false)"
                   >
                     {{ category.name }}
                     <span class="text-xs text-neutral-400">
@@ -125,8 +142,8 @@ const linkClass =
 
             <button
               type="button"
-              class="inline-flex h-10 w-10 lg:hidden items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-              aria-label="Open search"
+              class="inline-flex h-10 w-10 lg:hidden items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              aria-label="Open search dialog"
               @click="ui.openSearch()"
             >
               <Search class="h-5 w-5" aria-hidden="true" />

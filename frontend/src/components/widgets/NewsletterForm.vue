@@ -45,7 +45,9 @@ function submit(): void {
         type="email"
         autocomplete="email"
         placeholder="you@example.com"
-        class="h-11 min-w-0 flex-1 rounded-full border px-3 sm:px-4 text-sm outline-none transition focus:ring-2"
+        :aria-invalid="Boolean(error)"
+        :aria-describedby="error ? `newsletter-error-${compact ? 'compact' : 'full'}` : undefined"
+        class="h-11 min-w-0 flex-1 rounded-full border px-3 sm:px-4 text-sm outline-none transition focus:ring-2 focus-visible:ring-2"
         :class="
           inverted
             ? 'border-white/20 bg-white/10 text-white placeholder:text-neutral-400 focus:border-white/40 focus:ring-white/20'
@@ -54,7 +56,7 @@ function submit(): void {
       />
       <button
         type="submit"
-        class="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-4 sm:px-5 text-sm font-semibold transition"
+        class="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-4 sm:px-5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         :class="
           inverted
             ? 'bg-white text-neutral-900 hover:bg-neutral-100'
@@ -66,10 +68,15 @@ function submit(): void {
         {{ subscribed ? 'Subscribed' : 'Subscribe' }}
       </button>
     </div>
-    <p v-if="error" class="mt-2 text-xs font-medium text-rose-500">
+    <p
+      v-if="error"
+      :id="`newsletter-error-${compact ? 'compact' : 'full'}`"
+      role="alert"
+      class="mt-2 text-xs font-medium text-rose-500"
+    >
       {{ error }}
     </p>
-    <p v-else-if="subscribed" class="mt-2 text-xs text-emerald-500">
+    <p v-else-if="subscribed" role="status" class="mt-2 text-xs text-emerald-500">
       Thanks — this is a phase 1 mock.
     </p>
   </form>

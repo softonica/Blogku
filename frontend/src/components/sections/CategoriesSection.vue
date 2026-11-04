@@ -42,26 +42,29 @@ const colorClasses = [
       <div class="flex items-center gap-2">
         <button
           type="button"
-          class="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-xs transition hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+          class="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-xs transition hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
           aria-label="Previous categories"
           @click="scrollLeft"
         >
-          <ChevronLeft class="h-4 w-4" />
+          <ChevronLeft class="h-4 w-4" aria-hidden="true" />
         </button>
         <button
           type="button"
-          class="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-xs transition hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+          class="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-xs transition hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
           aria-label="Next categories"
           @click="scrollRight"
         >
-          <ChevronRight class="h-4 w-4" />
+          <ChevronRight class="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
     </div>
 
     <div
       ref="sliderRef"
-      class="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-3 sm:px-4 py-2 sm:gap-6"
+      role="region"
+      aria-label="Trending categories carousel"
+      tabindex="0"
+      class="no-scrollbar -mx-4 sm:-mx-6 lg:mx-0 flex snap-x snap-mandatory gap-4 sm:gap-6 overflow-x-auto px-4 sm:px-6 lg:px-0 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-2xl"
     >
       <div
         v-for="(category, index) in categories"
@@ -70,7 +73,7 @@ const colorClasses = [
       >
         <RouterLink
           :to="`/category/${category.slug}`"
-          class="nc-CardCategory4 group flex flex-col"
+          class="nc-CardCategory4 group flex flex-col rounded-xl sm:rounded-3xl p-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
           <div
             class="relative aspect-[7/5] w-full shrink-0 overflow-hidden rounded-xl sm:rounded-3xl ring-2 ring-white shadow-sm dark:ring-neutral-900"
@@ -98,6 +101,7 @@ const colorClasses = [
                 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-xs',
                 colorClasses[index % colorClasses.length],
               ]"
+              aria-hidden="true"
             >
               {{ category.name[0] }}
             </div>

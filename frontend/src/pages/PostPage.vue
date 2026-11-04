@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Link2, X } from 'lucide-vue-next'
@@ -38,6 +38,7 @@ const loading = ref(true)
 const error = ref('')
 const title = ref('Post')
 const shareOpen = ref(false)
+const previousActiveElement = ref<HTMLElement | null>(null)
 useDocumentTitle(title)
 
 const cleanContent = computed(() => sanitizeHtml(post.value?.content ?? ''))
@@ -163,11 +164,13 @@ function scrollToComments(): void {
 }
 
 function openShare(): void {
+  previousActiveElement.value = document.activeElement as HTMLElement | null
   shareOpen.value = true
 }
 
 function closeShare(): void {
   shareOpen.value = false
+  previousActiveElement.value?.focus()
 }
 
 async function copyLink(): Promise<void> {
@@ -189,6 +192,7 @@ async function copyLink(): Promise<void> {
 
     <p
       v-else-if="error"
+      role="alert"
       class="rounded-lg sm:rounded-2xl border border-rose-200 bg-rose-50 p-3 sm:p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
     >
       {{ error }}
@@ -201,7 +205,7 @@ async function copyLink(): Promise<void> {
     >
       <RouterLink
         to="/"
-        class="inline-flex h-11 items-center rounded-full bg-primary-600 px-4 sm:px-5 text-sm font-semibold text-white"
+        class="inline-flex h-11 items-center rounded-full bg-primary-600 px-4 sm:px-5 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
       >
         Back home
       </RouterLink>
@@ -212,17 +216,17 @@ async function copyLink(): Promise<void> {
         class="nc-no-scrollbar mb-4 flex flex-nowrap items-center gap-2 overflow-x-auto text-xs font-medium text-neutral-400 sm:mb-6 sm:flex-wrap sm:overflow-visible"
         aria-label="Breadcrumb"
       >
-        <RouterLink to="/" class="shrink-0 whitespace-nowrap hover:text-primary-600 dark:hover:text-primary-300">Home</RouterLink>
-        <span class="shrink-0">/</span>
+        <RouterLink to="/" class="shrink-0 whitespace-nowrap hover:text-primary-600 dark:hover:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xs">Home</RouterLink>
+        <span class="shrink-0" aria-hidden="true">/</span>
         <RouterLink
           v-if="post.categories[0]"
           :to="`/category/${post.categories[0].slug}`"
-          class="shrink-0 whitespace-nowrap hover:text-primary-600 dark:hover:text-primary-300"
+          class="shrink-0 whitespace-nowrap hover:text-primary-600 dark:hover:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xs"
         >
           {{ post.categories[0].name }}
         </RouterLink>
-        <span class="shrink-0">/</span>
-        <span class="whitespace-nowrap text-neutral-500 dark:text-neutral-400">{{ post.title }}</span>
+        <span class="shrink-0" aria-hidden="true">/</span>
+        <span class="whitespace-nowrap text-neutral-500 dark:text-neutral-400" aria-current="page">{{ post.title }}</span>
       </nav>
 
       <!-- Audio post header: Ncmaz-style vinyl + compact actions -->
@@ -302,7 +306,7 @@ async function copyLink(): Promise<void> {
         <div class="aspect-[16/9] w-full bg-black">
           <iframe
             :src="videoEmbedUrl"
-            :title="post.title"
+            :title="post.title + ' video player'"
             class="h-full w-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
@@ -312,7 +316,7 @@ async function copyLink(): Promise<void> {
 
       <div v-else-if="post.postType === 'video' && post.videoUrl" class="mx-auto mt-8 sm:mt-10 max-w-5xl overflow-hidden rounded-xl sm:rounded-[2rem] shadow-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
         <div class="aspect-[16/9] w-full bg-black">
-          <video :src="post.videoUrl" controls class="h-full w-full object-cover"></video>
+          <video :src="post.videoUrl" controls :aria-label="post.title + ' video'" class="h-full w-full object-cover"></video>
         </div>
       </div>
 
@@ -366,7 +370,7 @@ async function copyLink(): Promise<void> {
         <RouterLink
           v-if="post?.categories?.[0]"
           :to="`/category/${post.categories[0].slug}`"
-          class="text-sm font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-300"
+          class="text-sm font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xs"
         >
           More in {{ post.categories[0].name }}
         </RouterLink>
@@ -394,17 +398,17 @@ async function copyLink(): Promise<void> {
       class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/60 p-3 sm:p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label="Share post"
+      aria-labelledby="share-dialog-title"
       @click.self="closeShare"
       @keydown.esc="closeShare"
     >
       <div class="w-full max-w-md rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-float dark:border-neutral-800 dark:bg-neutral-950">
         <div class="flex items-center justify-between gap-3">
-          <h2 class="text-lg font-bold text-neutral-900 dark:text-white">Share this post</h2>
+          <h2 id="share-dialog-title" class="text-lg font-bold text-neutral-900 dark:text-white">Share this post</h2>
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
-            aria-label="Close share"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            aria-label="Close share dialog"
             @click="closeShare"
           >
             <X class="h-4 w-4" aria-hidden="true" />
@@ -416,50 +420,55 @@ async function copyLink(): Promise<void> {
             :href="twitterShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            aria-label="Share on X (opens in new window)"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <Twitter class="h-4 w-4" aria-hidden="true" />
-            X
+            <span>X</span>
           </a>
           <a
             :href="facebookShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            aria-label="Share on Facebook (opens in new window)"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <Facebook class="h-4 w-4" aria-hidden="true" />
-            Facebook
+            <span>Facebook</span>
           </a>
           <a
             :href="linkedinShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            aria-label="Share on LinkedIn (opens in new window)"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <Linkedin class="h-4 w-4" aria-hidden="true" />
-            LinkedIn
+            <span>LinkedIn</span>
           </a>
           <a
             :href="whatsappShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            aria-label="Share on WhatsApp (opens in new window)"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <MessageCircle class="h-4 w-4" aria-hidden="true" />
-            WhatsApp
+            <span>WhatsApp</span>
           </a>
           <a
             :href="telegramShareUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            aria-label="Share on Telegram (opens in new window)"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <Send class="h-4 w-4" aria-hidden="true" />
-            Telegram
+            <span>Telegram</span>
           </a>
           <button
             type="button"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl bg-primary-600 px-3 sm:px-4 text-sm font-semibold text-white transition hover:bg-primary-700"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg sm:rounded-2xl bg-primary-600 px-3 sm:px-4 text-sm font-semibold text-white transition hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             @click="copyLink"
           >
             <Link2 class="h-4 w-4" aria-hidden="true" />
@@ -470,4 +479,3 @@ async function copyLink(): Promise<void> {
     </div>
   </Teleport>
 </template>
-

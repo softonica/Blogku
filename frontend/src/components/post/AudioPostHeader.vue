@@ -45,12 +45,12 @@ const emit = defineEmits<{
             />
             <button
               type="button"
-              class="absolute inset-0 m-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-neutral-300 bg-black/50 text-white transition hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              class="absolute inset-0 m-auto flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-full border-2 border-neutral-300 bg-black/50 text-white transition hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               :aria-label="playing ? 'Pause audio' : 'Play audio'"
               @click="emit('toggle')"
             >
-              <PlayingEqualizer v-if="playing" class="h-7 w-7" />
-              <Play v-else class="h-11 w-11 fill-current" aria-hidden="true" />
+              <PlayingEqualizer v-if="playing" class="h-5 w-5 sm:h-7 sm:w-7" />
+              <Play v-else class="h-7 w-7 sm:h-11 sm:w-11 fill-current" aria-hidden="true" />
             </button>
           </div>
         </div>

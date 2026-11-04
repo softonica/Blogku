@@ -39,6 +39,13 @@ function setMode(next: 'login' | 'register'): void {
   error.value = ''
 }
 
+function handleTabKeydown(e: KeyboardEvent, current: 'login' | 'register'): void {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+    e.preventDefault()
+    setMode(current === 'login' ? 'register' : 'login')
+  }
+}
+
 async function submitLogin(): Promise<void> {
   error.value = ''
   const parsed = loginSchema.safeParse({
@@ -118,9 +125,12 @@ const tabClass =
       aria-label="Authentication mode"
     >
       <button
+        id="login-tab"
         type="button"
         role="tab"
         :aria-selected="mode === 'login'"
+        aria-controls="login-panel"
+        :tabindex="mode === 'login' ? 0 : -1"
         :class="[
           tabClass,
           mode === 'login'
@@ -128,13 +138,17 @@ const tabClass =
             : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
         ]"
         @click="setMode('login')"
+        @keydown="handleTabKeydown($event, 'login')"
       >
         Log in
       </button>
       <button
+        id="register-tab"
         type="button"
         role="tab"
         :aria-selected="mode === 'register'"
+        aria-controls="register-panel"
+        :tabindex="mode === 'register' ? 0 : -1"
         :class="[
           tabClass,
           mode === 'register'
@@ -142,128 +156,185 @@ const tabClass =
             : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
         ]"
         @click="setMode('register')"
+        @keydown="handleTabKeydown($event, 'register')"
       >
         Sign up
       </button>
     </div>
 
-    <form v-if="mode === 'login'" class="space-y-3 sm:space-y-4" novalidate @submit.prevent="submitLogin">
-      <div>
-        <label for="login-identifier" :class="labelClass">Username or email</label>
-        <input
-          id="login-identifier"
-          v-model="identifier"
-          type="text"
-          autocomplete="username"
-          :class="inputClass"
-        />
-      </div>
-
-      <div>
-        <div class="mb-1.5 flex items-center justify-between">
-          <label for="login-password" :class="labelClass">Password</label>
-          <RouterLink
-            to="/reset-password"
-            class="text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-300"
-          >
-            Forgot?
-          </RouterLink>
-        </div>
-        <div class="relative">
-          <input
-            id="login-password"
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            autocomplete="current-password"
-            :class="[inputClass, 'pe-11']"
-          />
-          <button
-            type="button"
-            class="absolute inset-y-0 end-0 flex w-11 items-center justify-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
-            :aria-label="showPassword ? 'Hide password' : 'Show password'"
-            @click="showPassword = !showPassword"
-          >
-            <EyeOff v-if="showPassword" class="h-4 w-4" aria-hidden="true" />
-            <Eye v-else class="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-
-      <p v-if="error" class="text-sm font-medium text-rose-500">{{ error }}</p>
-
-      <BaseButton
-        type="submit"
-        block
-        size="lg"
-        :disabled="auth.loading || isLimited"
-      >
-        <LogIn class="h-4 w-4" aria-hidden="true" />
-        {{
-          auth.loading
-            ? 'Signing in…'
-            : isLimited
-              ? `Try again in ${retryAfter}s`
-              : 'Sign in'
-        }}
-      </BaseButton>
-    </form>
-
-    <form v-else class="space-y-3 sm:space-y-4" novalidate @submit.prevent="submitRegister">
-      <div>
-        <label for="signup-name" :class="labelClass">Name</label>
-        <input id="signup-name" v-model="name" type="text" autocomplete="name" :class="inputClass" />
-      </div>
-      <div>
-        <label for="signup-username" :class="labelClass">Username</label>
-        <input
-          id="signup-username"
-          v-model="username"
-          type="text"
-          autocomplete="username"
-          placeholder="lowercase-with-dashes"
-          :class="inputClass"
-        />
-      </div>
-      <div>
-        <label for="signup-email" :class="labelClass">Email</label>
-        <input id="signup-email" v-model="email" type="email" autocomplete="email" :class="inputClass" />
-      </div>
-      <div class="grid gap-3 sm:gap-4 sm:grid-cols-2">
+    <div
+      v-if="mode === 'login'"
+      id="login-panel"
+      role="tabpanel"
+      aria-labelledby="login-tab"
+    >
+      <form class="space-y-3 sm:space-y-4" novalidate @submit.prevent="submitLogin">
         <div>
-          <label for="signup-password" :class="labelClass">Password</label>
+          <label for="login-identifier" :class="labelClass">Username or email</label>
           <input
-            id="signup-password"
-            v-model="regPassword"
-            type="password"
-            autocomplete="new-password"
+            id="login-identifier"
+            v-model="identifier"
+            type="text"
+            autocomplete="username"
+            :aria-invalid="Boolean(error)"
+            :aria-describedby="error ? 'login-error' : undefined"
+            :class="inputClass"
+          />
+        </div>
+
+        <div>
+          <div class="mb-1.5 flex items-center justify-between">
+            <label for="login-password" :class="labelClass">Password</label>
+            <RouterLink
+              to="/reset-password"
+              class="text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xs"
+            >
+              Forgot?
+            </RouterLink>
+          </div>
+          <div class="relative">
+            <input
+              id="login-password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              autocomplete="current-password"
+              :aria-invalid="Boolean(error)"
+              :aria-describedby="error ? 'login-error' : undefined"
+              :class="[inputClass, 'pe-11']"
+            />
+            <button
+              type="button"
+              class="absolute inset-y-0 end-0 flex w-11 items-center justify-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg"
+              :aria-label="showPassword ? 'Hide password' : 'Show password'"
+              @click="showPassword = !showPassword"
+            >
+              <EyeOff v-if="showPassword" class="h-4 w-4" aria-hidden="true" />
+              <Eye v-else class="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
+        <p
+          v-if="error"
+          id="login-error"
+          role="alert"
+          aria-live="assertive"
+          class="text-sm font-medium text-rose-500"
+        >
+          {{ error }}
+        </p>
+
+        <BaseButton
+          type="submit"
+          block
+          size="lg"
+          :disabled="auth.loading || isLimited"
+        >
+          <LogIn class="h-4 w-4" aria-hidden="true" />
+          {{
+            auth.loading
+              ? 'Signing in…'
+              : isLimited
+                ? `Try again in ${retryAfter}s`
+                : 'Sign in'
+          }}
+        </BaseButton>
+      </form>
+    </div>
+
+    <div
+      v-else
+      id="register-panel"
+      role="tabpanel"
+      aria-labelledby="register-tab"
+    >
+      <form class="space-y-3 sm:space-y-4" novalidate @submit.prevent="submitRegister">
+        <div>
+          <label for="signup-name" :class="labelClass">Name</label>
+          <input
+            id="signup-name"
+            v-model="name"
+            type="text"
+            autocomplete="name"
+            :aria-invalid="Boolean(error)"
+            :aria-describedby="error ? 'register-error' : undefined"
             :class="inputClass"
           />
         </div>
         <div>
-          <label for="signup-confirm" :class="labelClass">Confirm</label>
+          <label for="signup-username" :class="labelClass">Username</label>
           <input
-            id="signup-confirm"
-            v-model="confirm"
-            type="password"
-            autocomplete="new-password"
+            id="signup-username"
+            v-model="username"
+            type="text"
+            autocomplete="username"
+            placeholder="lowercase-with-dashes"
+            :aria-invalid="Boolean(error)"
+            :aria-describedby="error ? 'register-error' : undefined"
             :class="inputClass"
           />
         </div>
-      </div>
+        <div>
+          <label for="signup-email" :class="labelClass">Email</label>
+          <input
+            id="signup-email"
+            v-model="email"
+            type="email"
+            autocomplete="email"
+            :aria-invalid="Boolean(error)"
+            :aria-describedby="error ? 'register-error' : undefined"
+            :class="inputClass"
+          />
+        </div>
+        <div class="grid gap-3 sm:gap-4 sm:grid-cols-2">
+          <div>
+            <label for="signup-password" :class="labelClass">Password</label>
+            <input
+              id="signup-password"
+              v-model="regPassword"
+              type="password"
+              autocomplete="new-password"
+              :aria-invalid="Boolean(error)"
+              :aria-describedby="error ? 'register-error' : undefined"
+              :class="inputClass"
+            />
+          </div>
+          <div>
+            <label for="signup-confirm" :class="labelClass">Confirm</label>
+            <input
+              id="signup-confirm"
+              v-model="confirm"
+              type="password"
+              autocomplete="new-password"
+              :aria-invalid="Boolean(error)"
+              :aria-describedby="error ? 'register-error' : undefined"
+              :class="inputClass"
+            />
+          </div>
+        </div>
 
-      <p v-if="error" class="text-sm font-medium text-rose-500">{{ error }}</p>
+        <p
+          v-if="error"
+          id="register-error"
+          role="alert"
+          aria-live="assertive"
+          class="text-sm font-medium text-rose-500"
+        >
+          {{ error }}
+        </p>
 
-      <BaseButton type="submit" block size="lg" :disabled="auth.loading || isLimited">
-        <UserPlus class="h-4 w-4" aria-hidden="true" />
-        {{
-          auth.loading
-            ? 'Creating account…'
-            : isLimited
-              ? `Try again in ${retryAfter}s`
-              : 'Create account'
-        }}
-      </BaseButton>
-    </form>
+        <BaseButton type="submit" block size="lg" :disabled="auth.loading || isLimited">
+          <UserPlus class="h-4 w-4" aria-hidden="true" />
+          {{
+            auth.loading
+              ? 'Creating account…'
+              : isLimited
+                ? `Try again in ${retryAfter}s`
+                : 'Create account'
+          }}
+        </BaseButton>
+      </form>
+    </div>
 
     <div
       v-if="mode === 'login' && !usingPocketBase"
@@ -273,21 +344,21 @@ const tabClass =
       <div class="mt-2 flex flex-wrap gap-2">
         <button
           type="button"
-          class="rounded-lg sm:rounded-xl bg-white px-2.5 py-1 text-xs font-semibold shadow-xs hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
+          class="rounded-lg sm:rounded-xl bg-white px-2.5 py-1 text-xs font-semibold shadow-xs hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           @click="identifier = 'demo'; password = 'demo'"
         >
           demo <span class="text-neutral-400 font-normal">(Penulis demo/demo)</span>
         </button>
         <button
           type="button"
-          class="rounded-lg sm:rounded-xl bg-white px-2.5 py-1 text-xs font-semibold shadow-xs hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
+          class="rounded-lg sm:rounded-xl bg-white px-2.5 py-1 text-xs font-semibold shadow-xs hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           @click="identifier = 'admin'; password = 'password'"
         >
           admin <span class="text-neutral-400 font-normal">(Admin)</span>
         </button>
         <button
           type="button"
-          class="rounded-lg sm:rounded-xl bg-white px-2.5 py-1 text-xs font-semibold shadow-xs hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
+          class="rounded-lg sm:rounded-xl bg-white px-2.5 py-1 text-xs font-semibold shadow-xs hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           @click="identifier = 'subscriber'; password = 'password'"
         >
           subscriber <span class="text-neutral-400 font-normal">(Reader)</span>

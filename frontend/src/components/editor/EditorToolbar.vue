@@ -247,12 +247,16 @@ async function onFileSelected(event: Event): Promise<void> {
   <div
     v-if="editor"
     class="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-t-2xl border-b border-neutral-200 bg-neutral-50/95 p-2 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/95"
+    role="toolbar"
+    aria-label="Rich text editor toolbar"
+    @keydown.esc="tableMenuOpen = false; emojiOpen = false"
   >
     <input
       ref="fileInput"
       type="file"
       accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
       class="sr-only"
+      aria-label="Upload image"
       :disabled="uploading"
       @change="onFileSelected"
     />
@@ -284,6 +288,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Heading 2"
         aria-label="Heading 2"
+        :aria-pressed="editor.isActive('heading', { level: 2 })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
         @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
@@ -294,6 +299,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Heading 3"
         aria-label="Heading 3"
+        :aria-pressed="editor.isActive('heading', { level: 3 })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
         @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
@@ -304,6 +310,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Heading 4"
         aria-label="Heading 4"
+        :aria-pressed="editor.isActive('heading', { level: 4 })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }"
         @click="editor.chain().focus().toggleHeading({ level: 4 }).run()"
@@ -318,6 +325,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Bold"
         aria-label="Bold"
+        :aria-pressed="editor.isActive('bold')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('bold') }"
         @click="editor.chain().focus().toggleBold().run()"
@@ -328,6 +336,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Italic"
         aria-label="Italic"
+        :aria-pressed="editor.isActive('italic')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('italic') }"
         @click="editor.chain().focus().toggleItalic().run()"
@@ -338,6 +347,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Strikethrough"
         aria-label="Strikethrough"
+        :aria-pressed="editor.isActive('strike')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('strike') }"
         @click="editor.chain().focus().toggleStrike().run()"
@@ -348,6 +358,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Inline Code"
         aria-label="Inline Code"
+        :aria-pressed="editor.isActive('code')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('code') }"
         @click="editor.chain().focus().toggleCode().run()"
@@ -362,6 +373,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Bullet List"
         aria-label="Bullet List"
+        :aria-pressed="editor.isActive('bulletList')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('bulletList') }"
         @click="editor.chain().focus().toggleBulletList().run()"
@@ -372,6 +384,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Numbered List"
         aria-label="Numbered List"
+        :aria-pressed="editor.isActive('orderedList')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('orderedList') }"
         @click="editor.chain().focus().toggleOrderedList().run()"
@@ -386,6 +399,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Blockquote"
         aria-label="Blockquote"
+        :aria-pressed="editor.isActive('blockquote')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('blockquote') }"
         @click="editor.chain().focus().toggleBlockquote().run()"
@@ -414,6 +428,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         :title="editor.isActive('link') ? 'Remove Link' : 'Add Link'"
         :aria-label="editor.isActive('link') ? 'Remove Link' : 'Add Link'"
+        :aria-pressed="editor.isActive('link')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('link') }"
         @click="toggleLink"
@@ -447,6 +462,7 @@ async function onFileSelected(event: Event): Promise<void> {
           type="button"
           title="Insert Emoji"
           aria-label="Insert Emoji"
+          :aria-expanded="emojiOpen"
           class="toolbar-btn"
           :class="{ 'is-active': emojiOpen }"
           @click="emojiOpen = !emojiOpen"
@@ -461,7 +477,7 @@ async function onFileSelected(event: Event): Promise<void> {
             v-for="emoji in emojis"
             :key="emoji"
             type="button"
-            class="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            class="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             @click="insertEmoji(emoji)"
           >
             {{ emoji }}
@@ -476,6 +492,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Align Left"
         aria-label="Align Left"
+        :aria-pressed="editor.isActive({ textAlign: 'left' })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }"
         @click="setAlign('left')"
@@ -486,6 +503,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Align Center"
         aria-label="Align Center"
+        :aria-pressed="editor.isActive({ textAlign: 'center' })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }"
         @click="setAlign('center')"
@@ -496,6 +514,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Align Right"
         aria-label="Align Right"
+        :aria-pressed="editor.isActive({ textAlign: 'right' })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }"
         @click="setAlign('right')"
@@ -557,7 +576,7 @@ async function onFileSelected(event: Event): Promise<void> {
               type="button"
               :title="`${tableRowFor(cell)} rows × ${tableColFor(cell)} columns`"
               :aria-label="`Insert ${tableRowFor(cell)} rows by ${tableColFor(cell)} columns table`"
-              class="h-5 w-5 rounded border transition"
+              class="h-5 w-5 rounded border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               :class="
                 tableRowFor(cell) <= hoveredRows && tableColFor(cell) <= hoveredCols
                   ? 'border-primary-500 bg-primary-500'
@@ -645,7 +664,7 @@ async function onFileSelected(event: Event): Promise<void> {
 @reference "../../styles/main.css";
 
 .toolbar-btn {
-  @apply flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 transition hover:bg-neutral-200 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-white;
+  @apply flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 transition hover:bg-neutral-200 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
 }
 
 .toolbar-btn.is-active {
@@ -657,7 +676,7 @@ async function onFileSelected(event: Event): Promise<void> {
 }
 
 .table-menu-btn {
-  @apply rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800;
+  @apply rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
 }
 
 .table-menu-btn:disabled {

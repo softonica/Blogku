@@ -8,13 +8,21 @@ const ui = useUiStore()
 const router = useRouter()
 const query = ref('')
 const input = ref<HTMLInputElement | null>(null)
+let previousActiveElement: HTMLElement | null = null
 
 watch(
   () => ui.searchOpen,
   async (open) => {
-    if (!open) return
-    await nextTick()
-    input.value?.focus()
+    if (open) {
+      previousActiveElement = document.activeElement as HTMLElement | null
+      await nextTick()
+      input.value?.focus()
+    } else {
+      if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+        previousActiveElement.focus()
+      }
+      previousActiveElement = null
+    }
   },
 )
 
@@ -42,7 +50,7 @@ function onKeydown(event: KeyboardEvent): void {
       class="fixed inset-0 z-50 flex items-start justify-center bg-neutral-950/60 px-3 sm:px-4 pt-24 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label="Search posts"
+      aria-label="Search posts dialog"
       @click.self="close"
       @keydown="onKeydown"
     >
@@ -61,7 +69,7 @@ function onKeydown(event: KeyboardEvent): void {
           />
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:bg-neutral-800"
             aria-label="Close search"
             @click="close"
           >
@@ -74,7 +82,7 @@ function onKeydown(event: KeyboardEvent): void {
           <span>Press Enter to search</span>
           <button
             type="button"
-            class="font-medium text-primary-600 dark:text-primary-300"
+            class="rounded-md font-medium text-primary-600 transition hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-primary-300 dark:hover:text-primary-200"
             @click="submit"
           >
             Search

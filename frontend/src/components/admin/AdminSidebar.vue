@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref, type Component } from 'vue'
+import { onBeforeUnmount, onMounted, ref, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useMediaQuery } from '@vueuse/core'
 import {
   ChevronDown,
   ExternalLink,
@@ -23,8 +24,10 @@ import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import AppAvatar from '@/components/ui/AppAvatar.vue'
 
-defineProps<{ open: boolean }>()
+const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
+
+const isLgScreen = useMediaQuery('(min-width: 1024px)')
 
 interface NavItem {
   name: string
@@ -109,13 +112,24 @@ async function logout(): Promise<void> {
   await router.push({ name: 'home' })
 }
 
+function onKeydown(e: KeyboardEvent): void {
+  if (e.key === 'Escape' && props.open && !isLgScreen.value) {
+    emit('close')
+  }
+}
+
 onMounted(async () => {
+  window.addEventListener('keydown', onKeydown)
   try {
     const settings = await getDataSource().getSiteSettings()
     if (settings.siteName) siteName.value = settings.siteName
   } catch {
     /* keep the fallback brand name */
   }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
 })
 </script>
 
@@ -129,10 +143,16 @@ onMounted(async () => {
   <aside
     class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-e border-neutral-200/80 bg-white transition-transform duration-300 dark:border-neutral-800 dark:bg-neutral-900"
     :class="open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+    :inert="!open && !isLgScreen ? true : undefined"
+    :aria-hidden="!open && !isLgScreen ? 'true' : undefined"
     aria-label="Admin sidebar"
   >
     <div class="flex h-20 shrink-0 items-center justify-between px-4 sm:px-5">
-      <RouterLink to="/admin" class="flex min-w-0 items-center gap-2.5" @click="emit('close')">
+      <RouterLink
+        to="/admin"
+        class="flex min-w-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+        @click="emit('close')"
+      >
         <span
           class="grid h-9 w-9 shrink-0 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-500 via-indigo-500 to-sky-500 text-white shadow-lg shadow-indigo-500/30"
         >
@@ -144,7 +164,7 @@ onMounted(async () => {
       </RouterLink>
       <button
         type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 lg:hidden dark:text-neutral-400 dark:hover:bg-neutral-800"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 lg:hidden dark:text-neutral-400 dark:hover:bg-neutral-800"
         aria-label="Close sidebar"
         @click="emit('close')"
       >
@@ -156,7 +176,7 @@ onMounted(async () => {
       <div v-for="group in groups" :key="group.id">
         <button
           type="button"
-          class="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-400 transition hover:text-neutral-600 dark:hover:text-neutral-200"
+          class="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-neutral-400 transition hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:text-neutral-200"
           :aria-expanded="openGroups[group.id]"
           @click="toggleGroup(group.id)"
         >
@@ -171,7 +191,7 @@ onMounted(async () => {
           <li v-for="item in group.items" :key="item.to">
             <RouterLink
               :to="item.to"
-              class="flex items-center gap-3 rounded-lg sm:rounded-xl px-3 py-2.5 text-sm transition"
+              class="flex items-center gap-3 rounded-lg sm:rounded-xl px-3 py-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
               :class="
                 isActive(item)
                   ? 'bg-violet-50 font-semibold text-violet-700 dark:bg-violet-500/10 dark:text-violet-200'
@@ -196,7 +216,7 @@ onMounted(async () => {
     <div class="shrink-0 space-y-1 border-t border-neutral-200/80 p-3 dark:border-neutral-800">
       <RouterLink
         to="/"
-        class="flex items-center gap-3 rounded-lg sm:rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800/70 dark:hover:text-white"
+        class="flex items-center gap-3 rounded-lg sm:rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 dark:text-neutral-300 dark:hover:bg-neutral-800/70 dark:hover:text-white"
         @click="emit('close')"
       >
         <ExternalLink class="h-[18px] w-[18px]" aria-hidden="true" />
@@ -205,7 +225,7 @@ onMounted(async () => {
       <div class="flex items-center gap-2 rounded-lg sm:rounded-xl px-2 py-2">
         <RouterLink
           to="/profile"
-          class="flex min-w-0 flex-1 items-center gap-3 rounded-lg"
+          class="flex min-w-0 flex-1 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           @click="emit('close')"
         >
           <AppAvatar :src="auth.user?.avatar" :name="auth.user?.name ?? 'Admin'" size="sm" />
@@ -220,7 +240,7 @@ onMounted(async () => {
         </RouterLink>
         <button
           type="button"
-          class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
+          class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
           aria-label="Sign out"
           title="Sign out"
           @click="logout"

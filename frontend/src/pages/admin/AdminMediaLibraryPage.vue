@@ -211,7 +211,7 @@ watch(search, onSearchInput)
           <button
             v-if="orphans === null"
             type="button"
-            class="inline-flex h-9 items-center justify-center rounded-full border border-neutral-300 px-3 sm:px-4 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800"
+            class="inline-flex h-9 items-center justify-center rounded-full border border-neutral-300 px-3 sm:px-4 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             :disabled="scanning"
             @click="scanOrphans"
           >
@@ -223,7 +223,7 @@ watch(search, onSearchInput)
             </span>
             <button
               type="button"
-              class="inline-flex h-9 items-center justify-center rounded-full bg-rose-600 px-3 sm:px-4 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
+              class="inline-flex h-9 items-center justify-center rounded-full bg-rose-600 px-3 sm:px-4 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
               :disabled="cleaning || orphanTotal === 0"
               @click="cleanupOrphans"
             >
@@ -231,7 +231,7 @@ watch(search, onSearchInput)
             </button>
             <button
               type="button"
-              class="inline-flex h-9 items-center justify-center rounded-full border border-neutral-300 px-3 text-xs font-semibold text-neutral-500 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800"
+              class="inline-flex h-9 items-center justify-center rounded-full border border-neutral-300 px-3 text-xs font-semibold text-neutral-500 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               @click="orphans = null"
             >
               Batal
@@ -337,31 +337,30 @@ watch(search, onSearchInput)
               :key="item.id"
               class="group overflow-hidden rounded-lg sm:rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900"
             >
-              <div
-                class="relative aspect-square cursor-pointer overflow-hidden bg-neutral-100 dark:bg-neutral-800"
-                role="button"
-                tabindex="0"
-                :aria-label="`Lihat detail ${mediaDisplayName(item.name)}`"
-                @click="openDetail(item)"
-                @keydown.enter="openDetail(item)"
-                @keydown.space.prevent="openDetail(item)"
-              >
-                <img
-                  :src="item.url"
-                  :alt="mediaDisplayName(item.name)"
-                  loading="lazy"
-                  decoding="async"
-                  class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                />
+              <div class="relative aspect-square overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                <button
+                  type="button"
+                  class="h-full w-full block text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  :aria-label="`Lihat detail ${mediaDisplayName(item.name)}`"
+                  @click="openDetail(item)"
+                >
+                  <img
+                    :src="item.url"
+                    :alt="mediaDisplayName(item.name)"
+                    loading="lazy"
+                    decoding="async"
+                    class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                </button>
                 <div
-                  class="absolute inset-0 flex items-center justify-center gap-2 bg-neutral-950/60 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100"
+                  class="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 bg-neutral-950/60 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100"
                 >
                   <button
                     type="button"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-800 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    class="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-800 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     :title="`Copy URL: ${item.name}`"
                     :aria-label="`Copy URL ${item.name}`"
-                    @click.stop="copyUrl(item)"
+                    @click="copyUrl(item)"
                   >
                     <Copy class="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -369,10 +368,9 @@ watch(search, onSearchInput)
                     :href="item.url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-800 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    class="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-800 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     :title="`Open ${item.name}`"
                     :aria-label="`Open ${item.name} in a new tab`"
-                    @click.stop
                   >
                     <ExternalLink class="h-4 w-4" aria-hidden="true" />
                   </a>
@@ -397,7 +395,7 @@ watch(search, onSearchInput)
       <div v-if="page < totalPages" class="flex justify-center pt-2">
         <button
           type="button"
-          class="inline-flex h-11 w-full items-center justify-center rounded-full border border-neutral-300 px-4 sm:px-6 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:opacity-50 sm:w-auto dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800"
+          class="inline-flex h-11 w-full items-center justify-center rounded-full border border-neutral-300 px-4 sm:px-6 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:opacity-50 sm:w-auto dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           :disabled="loadingMore"
           @click="load(false)"
         >
@@ -412,18 +410,18 @@ watch(search, onSearchInput)
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
     role="dialog"
     aria-modal="true"
-    :aria-label="`Detail ${mediaDisplayName(selected.name)}`"
+    aria-labelledby="media-detail-dialog-title"
     @click.self="closeDetail"
   >
     <div
       class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl sm:rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
     >
       <div class="flex items-center justify-between border-b border-neutral-100 px-4 sm:px-6 py-3 sm:py-4 dark:border-neutral-800">
-        <h2 class="text-lg font-bold text-neutral-900 dark:text-neutral-100">Detail Gambar</h2>
+        <h2 id="media-detail-dialog-title" class="text-lg font-bold text-neutral-900 dark:text-neutral-100">Detail Gambar</h2>
         <button
           type="button"
-          class="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
-          aria-label="Tutup detail"
+          class="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          aria-label="Tutup detail dialog"
           @click="closeDetail"
         >
           <X class="h-4 w-4" />
@@ -484,7 +482,7 @@ watch(search, onSearchInput)
         <div class="flex flex-wrap items-center gap-2 pt-1">
           <button
             type="button"
-            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-3 sm:px-4 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800"
+            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-3 sm:px-4 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             @click="copyUrl(selected)"
           >
             <Copy class="h-4 w-4" aria-hidden="true" />
@@ -494,14 +492,14 @@ watch(search, onSearchInput)
             :href="selected.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-3 sm:px-4 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800"
+            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-3 sm:px-4 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <ExternalLink class="h-4 w-4" aria-hidden="true" />
             Buka
           </a>
           <button
             type="button"
-            class="ms-auto inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-rose-600 px-3 sm:px-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
+            class="ms-auto inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-rose-600 px-3 sm:px-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
             :disabled="deleting"
             @click="deleteSelected"
           >

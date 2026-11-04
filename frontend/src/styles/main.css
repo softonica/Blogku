@@ -133,10 +133,12 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
+    overflow-x: clip;
   }
 
   body {
     @apply font-sans antialiased;
+    overflow-x: clip;
   }
 
   ::selection {
@@ -162,6 +164,8 @@
 @layer components {
   .page-shell {
     margin-inline: auto;
+    max-width: var(--max-width-8xl, 90rem);
+    width: 100%;
     padding-inline: 1rem;
     padding-block: 2.5rem;
   }

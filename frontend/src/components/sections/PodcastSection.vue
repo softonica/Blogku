@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Play, Pause } from 'lucide-vue-next'
-import { useRouter } from 'vue-router'
 import type { Post } from '@/api/types'
 import { formatDate } from '@/lib/format'
 import { usePlayerStore } from '@/stores/player'
@@ -12,12 +11,7 @@ import SaveButton from '@/components/post/SaveButton.vue'
 
 defineProps<{ posts: Post[] }>()
 
-const router = useRouter()
 const player = usePlayerStore()
-
-function navigateToPost(slug: string): void {
-  void router.push(`/post/${slug}`)
-}
 
 function isPlayingThis(post: Post): boolean {
   return player.isCurrentPost(post.id) && player.playing
@@ -54,34 +48,38 @@ function handlePlayClick(post: Post): void {
         class="nc-Card16Podcast relative flex flex-col sm:col-span-3 lg:col-span-2 group"
       >
         <div class="relative block w-full shrink-0 overflow-hidden rounded-xl sm:rounded-3xl aspect-[4/3] bg-neutral-900 shadow-md">
-          <PostImage
-            :src="post.cover"
-            :alt="post.title"
-            aspect="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-            width="500"
-            height="375"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          <RouterLink
+            :to="`/post/${post.slug}`"
+            class="absolute inset-0 z-0"
+            tabindex="-1"
+            aria-hidden="true"
+          >
+            <PostImage
+              :src="post.cover"
+              :alt="post.title"
+              aspect="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+              width="500"
+              height="375"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          </RouterLink>
 
           <!-- Center Play Button -->
-          <div
-            class="absolute inset-0 flex items-center justify-center"
-            @click="navigateToPost(post.slug)"
-          >
+          <div class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
             <button
               type="button"
-              class="flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-xl backdrop-blur-sm transition duration-300 group-hover:scale-110 group-hover:bg-primary-500"
+              class="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-xl backdrop-blur-sm transition duration-300 group-hover:scale-110 group-hover:bg-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
               :disabled="!post.audioUrl"
-              :aria-label="isPlayingThis(post) ? 'Pause podcast' : 'Play podcast'"
-              @click.stop="handlePlayClick(post)"
+              :aria-label="isPlayingThis(post) ? 'Pause podcast: ' + post.title : 'Play podcast: ' + post.title"
+              @click="handlePlayClick(post)"
             >
               <Pause v-if="isPlayingThis(post)" class="h-6 w-6 fill-current" aria-hidden="true" />
               <Play v-else class="ms-1 h-6 w-6 fill-current" aria-hidden="true" />
             </button>
           </div>
 
-          <div class="absolute inset-x-4 top-4 flex items-center justify-between gap-2">
+          <div class="absolute inset-x-4 top-4 z-10 flex items-center justify-between gap-2">
             <CategoryBadgeList :categories="post.categories" overlay />
             <SaveButton :post-id="post.id" :post-title="post.title" />
           </div>
@@ -91,7 +89,7 @@ function handlePlayClick(post: Post): void {
           <h3 class="nc-card-title text-base sm:text-lg font-semibold leading-snug">
             <RouterLink
               :to="`/post/${post.slug}`"
-              class="line-clamp-2 text-neutral-900 hover:text-primary-600 dark:text-neutral-100 dark:hover:text-primary-300"
+              class="line-clamp-2 text-neutral-900 hover:text-primary-600 dark:text-neutral-100 dark:hover:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-sm"
             >
               {{ post.title }}
             </RouterLink>
@@ -109,7 +107,7 @@ function handlePlayClick(post: Post): void {
       </article>
 
       <!-- 4 Compact Pill Podcast Cards (nc-Card17Podcast) -->
-      <div class="sm:col-span-6 lg:col-span-2 flex flex-col justify-between gap-3">
+      <div class="sm:col-span-6 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-3">
         <article
           v-for="post in posts.slice(2, 6)"
           :key="post.id"
@@ -118,10 +116,10 @@ function handlePlayClick(post: Post): void {
           <div class="flex items-center gap-3 min-w-0 flex-1">
             <button
               type="button"
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-primary-600 shadow-xs transition hover:scale-105 hover:bg-primary-50 dark:bg-neutral-700 dark:text-primary-300"
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-primary-600 shadow-xs transition hover:scale-105 hover:bg-primary-50 dark:bg-neutral-700 dark:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
               :disabled="!post.audioUrl"
-              :aria-label="isPlayingThis(post) ? 'Pause podcast' : 'Play podcast'"
+              :aria-label="isPlayingThis(post) ? 'Pause podcast: ' + post.title : 'Play podcast: ' + post.title"
               @click="handlePlayClick(post)"
             >
               <Pause v-if="isPlayingThis(post)" class="h-4 w-4 fill-current" aria-hidden="true" />
@@ -129,7 +127,10 @@ function handlePlayClick(post: Post): void {
             </button>
             <div class="min-w-0 flex-1">
               <h4 class="truncate text-xs sm:text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                <RouterLink :to="`/post/${post.slug}`" class="hover:text-primary-600 dark:hover:text-primary-400">
+                <RouterLink
+                  :to="`/post/${post.slug}`"
+                  class="hover:text-primary-600 dark:hover:text-primary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-sm"
+                >
                   {{ post.title }}
                 </RouterLink>
               </h4>

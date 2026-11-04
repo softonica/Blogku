@@ -138,8 +138,9 @@ async function removeComment(comment: Comment): Promise<void> {
           <div class="flex shrink-0 items-center gap-2 sm:self-center">
             <button
               type="button"
-              class="inline-flex h-9 items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60"
+              class="inline-flex h-9 items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
               :disabled="deletingId === comment.id"
+              :aria-label="'Delete comment from ' + comment.author.name"
               @click="removeComment(comment)"
             >
               <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />

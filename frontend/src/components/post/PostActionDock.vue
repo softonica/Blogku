@@ -82,7 +82,7 @@ onBeforeUnmount(() => {
 
         <button
           type="button"
-          class="group/comment relative flex items-center text-xs leading-none transition-colors"
+          class="group/comment relative flex items-center rounded-full text-xs leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
           :class="'text-neutral-600 hover:text-teal-600 dark:text-neutral-200 dark:hover:text-teal-500'"
           :aria-label="`Comments (${formatNumber(post.commentCount)})`"
           title="Comments"
@@ -104,16 +104,15 @@ onBeforeUnmount(() => {
 
         <div class="h-4 border-s border-neutral-200 dark:border-neutral-700" />
 
-        <button
+        <span
           v-if="!showBackToTop"
-          type="button"
           class="flex h-9 min-w-9 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-semibold text-neutral-900 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-700"
+          role="status"
           :aria-label="`Reading progress ${progress}%`"
           :title="`Reading progress ${progress}%`"
-          tabindex="-1"
         >
           {{ progress }}%
-        </button>
+        </span>
         <button
           v-else
           type="button"
@@ -152,7 +151,7 @@ onBeforeUnmount(() => {
           aria-labelledby="post-toc-title"
           class="nc-no-scrollbar absolute bottom-full end-0 mb-3 max-h-[min(70vh,600px)] w-[min(90vw,20rem)] overflow-y-auto rounded-xl bg-white p-4 shadow-xl ring-1 ring-black/5 sm:p-6 dark:bg-neutral-800 dark:ring-neutral-600"
         >
-          <nav>
+          <nav aria-label="Table of contents navigation">
             <h2 id="post-toc-title" class="text-sm font-semibold text-neutral-900 dark:text-white">
               On this page
             </h2>
@@ -160,7 +159,7 @@ onBeforeUnmount(() => {
               <li v-for="heading in headings" :key="heading.id">
                 <a
                   :href="`#${heading.id}`"
-                  class="inline-flex gap-2 text-neutral-700 hover:text-neutral-900 dark:text-neutral-200 dark:hover:text-white"
+                  class="inline-flex gap-2 rounded text-neutral-700 transition hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:text-white"
                   :class="headingIndentClass(heading.level)"
                   @click.prevent="goToHeading(heading.id)"
                 >

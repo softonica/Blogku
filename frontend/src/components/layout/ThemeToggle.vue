@@ -8,7 +8,7 @@ const ui = useUiStore()
 <template>
   <button
     type="button"
-    class="inline-flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+    class="inline-flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-300 dark:hover:bg-neutral-800"
     :aria-label="ui.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
     @click="ui.toggleTheme()"
   >

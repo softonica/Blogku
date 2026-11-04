@@ -412,6 +412,7 @@ async function executeDeleteTag() {
       >
         <div class="overflow-x-auto">
           <table class="w-full text-start text-sm">
+            <caption class="sr-only">Categories List</caption>
             <thead class="border-b border-neutral-200 bg-neutral-50/70 text-xs uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950/50 dark:text-neutral-400">
               <tr>
                 <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4 font-semibold">Category</th>
@@ -488,6 +489,7 @@ async function executeDeleteTag() {
                       type="button"
                       class="flex h-8 w-8 items-center justify-center rounded-lg sm:rounded-xl border border-neutral-200 text-neutral-600 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-primary-600 dark:hover:bg-primary-950/60 dark:hover:text-primary-300"
                       title="Edit Category"
+                      :aria-label="'Edit category: ' + cat.name"
                       @click="openEditCategoryModal(cat)"
                     >
                       <Edit2 class="h-3.5 w-3.5" />
@@ -496,6 +498,7 @@ async function executeDeleteTag() {
                       type="button"
                       class="flex h-8 w-8 items-center justify-center rounded-lg sm:rounded-xl border border-neutral-200 text-neutral-600 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-rose-800 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
                       title="Delete Category"
+                      :aria-label="'Delete category: ' + cat.name"
                       @click="confirmDeleteCategory(cat)"
                     >
                       <Trash2 class="h-3.5 w-3.5" />
@@ -557,6 +560,7 @@ async function executeDeleteTag() {
               type="button"
               class="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-primary-600 dark:hover:bg-primary-950/60 dark:hover:text-primary-300"
               title="Edit Tag"
+              :aria-label="'Edit tag: ' + tag.name"
               @click="openEditTagModal(tag)"
             >
               <Edit2 class="h-3 w-3" />
@@ -565,6 +569,7 @@ async function executeDeleteTag() {
               type="button"
               class="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-rose-800 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
               title="Delete Tag"
+              :aria-label="'Delete tag: ' + tag.name"
               @click="confirmDeleteTag(tag)"
             >
               <Trash2 class="h-3 w-3" />
@@ -587,12 +592,14 @@ async function executeDeleteTag() {
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="category-modal-title"
+      @keydown.esc="categoryModalOpen = false"
     >
       <div
         class="w-full max-w-lg rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900 max-h-[90vh] overflow-y-auto"
       >
         <div class="flex items-center justify-between pb-3 sm:pb-4 border-b border-neutral-100 dark:border-neutral-800">
-          <h2 class="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+          <h2 id="category-modal-title" class="text-lg font-bold text-neutral-900 dark:text-neutral-100">
             {{ editingCategoryId ? 'Edit Category' : 'Create New Category' }}
           </h2>
           <button
@@ -750,13 +757,15 @@ async function executeDeleteTag() {
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="delete-category-modal-title"
+      @keydown.esc="deleteCategoryModalOpen = false"
     >
       <div
         class="w-full max-w-md rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="flex items-center gap-3 text-rose-600 dark:text-rose-400">
           <AlertTriangle class="h-6 w-6" />
-          <h2 class="text-lg font-bold">Delete Category?</h2>
+          <h2 id="delete-category-modal-title" class="text-lg font-bold">Delete Category?</h2>
         </div>
         <p class="mt-3 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
           Are you sure you want to delete
@@ -791,12 +800,14 @@ async function executeDeleteTag() {
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="tag-modal-title"
+      @keydown.esc="tagModalOpen = false"
     >
       <div
         class="w-full max-w-md rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="flex items-center justify-between pb-3 sm:pb-4 border-b border-neutral-100 dark:border-neutral-800">
-          <h2 class="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+          <h2 id="tag-modal-title" class="text-lg font-bold text-neutral-900 dark:text-neutral-100">
             {{ editingTagId ? 'Edit Tag' : 'Create New Tag' }}
           </h2>
           <button
@@ -875,13 +886,15 @@ async function executeDeleteTag() {
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="delete-tag-modal-title"
+      @keydown.esc="deleteTagModalOpen = false"
     >
       <div
         class="w-full max-w-md rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="flex items-center gap-3 text-rose-600 dark:text-rose-400">
           <AlertTriangle class="h-6 w-6" />
-          <h2 class="text-lg font-bold">Delete Tag?</h2>
+          <h2 id="delete-tag-modal-title" class="text-lg font-bold">Delete Tag?</h2>
         </div>
         <p class="mt-3 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
           Are you sure you want to delete

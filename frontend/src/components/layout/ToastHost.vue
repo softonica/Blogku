@@ -46,7 +46,7 @@ const ui = useUiStore()
           <p class="flex-1 text-sm font-medium">{{ toast.message }}</p>
           <button
             type="button"
-            class="rounded-full p-0.5 opacity-60 hover:opacity-100"
+            class="rounded-full p-0.5 opacity-60 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Dismiss notification"
             @click="ui.dismissToast(toast.id)"
           >

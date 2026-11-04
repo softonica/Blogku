@@ -111,6 +111,7 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
       >
         <div class="overflow-x-auto">
           <table class="w-full text-start text-sm">
+            <caption class="sr-only">User and Role Management List</caption>
             <thead class="border-b border-neutral-200 bg-neutral-50 text-xs font-bold uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/50 dark:text-neutral-400">
               <tr>
                 <th scope="col" class="px-4 sm:px-6 py-3 sm:py-4">User</th>
@@ -157,8 +158,8 @@ async function onRoleChange(user: User, newRole: Role): Promise<void> {
                   <select
                     :value="user.role"
                     :disabled="updatingId === user.id"
-                    aria-label="Select role"
-                    class="h-9 rounded-lg sm:rounded-xl border-neutral-300 bg-white px-3 text-xs font-semibold text-neutral-800 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:focus:border-primary-500 dark:focus:ring-primary-900"
+                    :aria-label="'Change role for ' + user.name"
+                    class="h-9 rounded-lg sm:rounded-xl border-neutral-300 bg-white px-3 text-xs font-semibold text-neutral-800 focus:border-primary-400 focus:ring-primary-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:focus:border-primary-500 dark:focus:ring-primary-900"
                     @change="onRoleChange(user, ($event.target as HTMLSelectElement).value as Role)"
                   >
                     <option v-for="r in roles" :key="r" :value="r">

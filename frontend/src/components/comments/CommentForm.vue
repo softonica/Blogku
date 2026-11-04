@@ -62,7 +62,7 @@ async function submit(): Promise<void> {
 
 <template>
   <section class="rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 dark:border-neutral-800 dark:bg-neutral-900">
-    <h3 class="text-lg font-bold text-neutral-900 dark:text-white">
+    <h3 class="text-lg font-bold text-neutral-900 dark:white">
       Leave a comment
     </h3>
 
@@ -93,6 +93,8 @@ async function submit(): Promise<void> {
             rows="4"
             :maxlength="5000"
             placeholder="Add a thoughtful note…"
+            :aria-invalid="Boolean(error)"
+            :aria-describedby="error ? 'comment-error' : undefined"
             class="w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
           ></textarea>
           <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -101,7 +103,7 @@ async function submit(): Promise<void> {
             </p>
             <button
               type="submit"
-              class="inline-flex h-10 items-center gap-2 rounded-full bg-primary-600 px-4 sm:px-5 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:opacity-60 dark:bg-primary-500 dark:text-neutral-950 dark:hover:bg-primary-400"
+              class="inline-flex h-10 items-center gap-2 rounded-full bg-primary-600 px-4 sm:px-5 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:opacity-60 dark:bg-primary-500 dark:text-neutral-950 dark:hover:bg-primary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               :disabled="working || isLimited"
             >
               <MessageCircle class="h-4 w-4" aria-hidden="true" />
@@ -128,7 +130,13 @@ async function submit(): Promise<void> {
         />
       </div>
 
-      <p v-if="error" class="mt-3 text-sm font-medium text-rose-500">
+      <p
+        v-if="error"
+        id="comment-error"
+        role="alert"
+        aria-live="assertive"
+        class="mt-3 text-sm font-medium text-rose-500"
+      >
         {{ error }}
       </p>
     </form>

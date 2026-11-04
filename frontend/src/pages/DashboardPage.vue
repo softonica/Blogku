@@ -179,7 +179,7 @@ async function deletePost(id: string): Promise<void> {
           </h2>
           <RouterLink
             to="/search"
-            class="text-sm font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-300"
+            class="text-sm font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xs"
           >
             Explore
           </RouterLink>
@@ -191,11 +191,13 @@ async function deletePost(id: string): Promise<void> {
           aria-label="Post status"
         >
           <button
+            id="published-tab"
             type="button"
             role="tab"
             :aria-selected="activeTab === 'published'"
+            aria-controls="posts-panel"
             :class="[
-              'whitespace-nowrap rounded-full px-3 sm:px-4 py-1.5 text-xs font-semibold transition',
+              'whitespace-nowrap rounded-full px-3 sm:px-4 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
               activeTab === 'published'
                 ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
@@ -205,11 +207,13 @@ async function deletePost(id: string): Promise<void> {
             Published <span class="hidden sm:inline-flex">({{ publishedPosts.length }})</span>
           </button>
           <button
+            id="draft-tab"
             type="button"
             role="tab"
             :aria-selected="activeTab === 'draft'"
+            aria-controls="posts-panel"
             :class="[
-              'whitespace-nowrap rounded-full px-3 sm:px-4 py-1.5 text-xs font-semibold transition',
+              'whitespace-nowrap rounded-full px-3 sm:px-4 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
               activeTab === 'draft'
                 ? 'bg-white text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
@@ -220,45 +224,49 @@ async function deletePost(id: string): Promise<void> {
           </button>
         </div>
 
-        <div v-if="loading" class="flex justify-center py-14">
-          <LoadingSpinner />
-        </div>
-        <EmptyState
-          v-else-if="!posts.length"
-          class="mt-4 sm:mt-5"
-          :title="activeTab === 'published' ? 'No published posts' : 'No drafts'"
-          :description="
-            activeTab === 'published'
-              ? 'Publish a story to see it here.'
-              : 'Server-side drafts will appear here when you save them.'
-          "
-        >
-          <BaseButton to="/editor" size="sm">Write a draft</BaseButton>
-        </EmptyState>
-        <div v-else class="mt-4 sm:mt-5 grid gap-4 sm:gap-6 sm:grid-cols-2">
-          <div v-for="post in posts" :key="post.id" class="flex flex-col">
-            <div class="flex-1">
-              <PostCard :post="post" />
-            </div>
-            <div
-              v-if="canManagePost(auth.user?.role, auth.user?.id, post.author.id)"
-              class="mt-2 flex items-center justify-end gap-2 px-1"
-            >
-              <RouterLink
-                :to="`/editor/${post.id}`"
-                class="inline-flex h-8 items-center gap-1 rounded-full border border-neutral-200 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        <div id="posts-panel" role="tabpanel" :aria-labelledby="activeTab === 'published' ? 'published-tab' : 'draft-tab'">
+          <div v-if="loading" class="flex justify-center py-14">
+            <LoadingSpinner />
+          </div>
+          <EmptyState
+            v-else-if="!posts.length"
+            class="mt-4 sm:mt-5"
+            :title="activeTab === 'published' ? 'No published posts' : 'No drafts'"
+            :description="
+              activeTab === 'published'
+                ? 'Publish a story to see it here.'
+                : 'Server-side drafts will appear here when you save them.'
+            "
+          >
+            <BaseButton to="/editor" size="sm">Write a draft</BaseButton>
+          </EmptyState>
+          <div v-else class="mt-4 sm:mt-5 grid gap-4 sm:gap-6 sm:grid-cols-2">
+            <div v-for="post in posts" :key="post.id" class="flex flex-col">
+              <div class="flex-1">
+                <PostCard :post="post" />
+              </div>
+              <div
+                v-if="canManagePost(auth.user?.role, auth.user?.id, post.author.id)"
+                class="mt-2 flex items-center justify-end gap-2 px-1"
               >
-                <PenLine class="h-3.5 w-3.5" aria-hidden="true" />
-                Edit
-              </RouterLink>
-              <button
-                type="button"
-                class="inline-flex h-8 items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60"
-                @click="deletePost(post.id)"
-              >
-                <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />
-                Delete
-              </button>
+                <RouterLink
+                  :to="`/editor/${post.id}`"
+                  :aria-label="'Edit post: ' + post.title"
+                  class="inline-flex h-8 items-center gap-1 rounded-full border border-neutral-200 px-3 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                >
+                  <PenLine class="h-3.5 w-3.5" aria-hidden="true" />
+                  Edit
+                </RouterLink>
+                <button
+                  type="button"
+                  :aria-label="'Delete post: ' + post.title"
+                  class="inline-flex h-8 items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                  @click="deletePost(post.id)"
+                >
+                  <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -286,7 +294,7 @@ async function deletePost(id: string): Promise<void> {
             >
               <RouterLink
                 :to="{ name: 'editor', query: { draft: draft.id } }"
-                class="line-clamp-2 text-sm font-semibold text-neutral-900 hover:text-primary-600 dark:text-neutral-100 dark:hover:text-primary-300"
+                class="line-clamp-2 text-sm font-semibold text-neutral-900 hover:text-primary-600 dark:text-neutral-100 dark:hover:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xs"
               >
                 {{ draft.title }}
               </RouterLink>
@@ -296,8 +304,8 @@ async function deletePost(id: string): Promise<void> {
                 </span>
                 <button
                   type="button"
-                  class="inline-flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
-                  aria-label="Delete draft"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                  :aria-label="'Delete draft: ' + (draft.title || 'Untitled')"
                   @click="removeDraft(draft.id)"
                 >
                   <Trash2 class="h-4 w-4" aria-hidden="true" />

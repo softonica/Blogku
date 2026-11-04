@@ -5,6 +5,103 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-04] — Perbaikan Layout Bertumpuk Hero Section & Truncation Playlist Video (Mobile & Desktop)
+**Author**: Antigravity · **Role**: Dev/QA/DevOps · **Status**: Done
+
+### What changed
+- `frontend/src/components/sections/HeroSection.vue`:
+  - Mengeliminasi kalkulasi auto-width CSS aspect-ratio mobile yang liar: mengubah banner menjadi `relative w-full max-w-full overflow-hidden aspect-[4/3] sm:aspect-[16/8] lg:aspect-[16/7]` tanpa `min-h-[320px]` yang sebelumnya memaksa lebar elemen membengkak menjadi `465.45px` pada layar `390px` (mengakibatkan horizontal overflow dan terpotongnya kata akhir judul hero serta border radius kanan).
+  - Menghilangkan negatif margin `md:-mt-20` (-80px) pada container 3 kartu sub-featured menjadi margin positif natural `mt-4 sm:mt-6 lg:mt-8`, mengeliminasi tabrakan fisik (*collision*) kartu di atas tombol CTA *"Read post"* pada layar tablet (`768px`: collision 24px) dan laptop (`1024px`: collision 16px).
+  - Menyederhanakan avatar author di hero menjadi satu elemen `size="xs"` dengan pembatas `max-w-[170px]` agar nama dan tanggal tidak meluap di mobile compact.
+- `frontend/src/components/sections/VideoSection.vue`:
+  - Mengganti class `truncate` pada judul item daftar putar (playlist queue) dengan `line-clamp-2 leading-snug`. Judul panjang seperti *"Cara Deploy Blogku di VPS: Panduan Lengkap untuk Pemula"* kini terbungkus rapi 2 baris tanpa terpotong elipsis di tengah kata pada mobile dan desktop.
+- `docs/features/26-responsive-layout-audit-and-enhancements.md`:
+  - Diperbarui mencakup dokumentasi perbaikan aspect-ratio hero mobile, peniadaan collision kartu di atas tombol CTA, dan pembungkusan judul 2 baris pada playlist video.
+
+### Why
+- Pengguna melaporkan bahwa kartu hero section bertumpuk di atas konten/tombol pada resolusi tertentu, judul hero terpotong di mobile, dan daftar video di section playlist 3 video terpotong teksnya.
+
+### How it was verified
+- `npm run typecheck` (`vue-tsc --noEmit`) → 0 error.
+- `npm run lint` (`eslint .`) → 0 error.
+- `npm run test` (`vitest run`) → 25 test file, 233 unit tests passed (100% green).
+- Rebuild bundle frontend produksi (`vue-tsc --noEmit && vite build`) & sinkronisasi ke `backend/dist`.
+- Rebuild binary Linux amd64 `backend/blogku` (28.2 MB).
+- Deploy ke server 64 (`64.235.45.122:2232`), service restart, status: `active`.
+- Verifikasi inspeksi Playwright live di server produksi (`https://blog.artku.my.id`):
+  - Mobile (390px): `bodyScrollWidth: 390px` (0px overflow), `titleText: "Snap Cracle the ncs free music for you"` utuh dan tidak terpotong.
+  - Desktop / Tablet: `overlapY: -96px` (bebas tabrakan / collision 0px, ruang napas 32px di bawah banner dan 96px di bawah CTA).
+  - Playlist video: `isTruncated: false` pada semua item mobile dan desktop.
+
+### Handover notes / follow-ups
+- Binary baru sudah live di server produksi 64 (`/opt/blogku/blogku`).
+- Backup otomatis tersimpan di server 64 pada `/opt/blogku/blogku.prev-<timestamp>`.
+
+
+## [2026-11-04] — Penyelarasan Layout Responsif Multi-Device (Mobile, Tablet, Desktop, Ultra-wide) & Deploy Server 64
+**Author**: Antigravity · **Role**: Dev/QA/DevOps · **Status**: Done
+
+### What changed
+- `frontend/src/styles/main.css` — menambahkan `max-width: var(--max-width-8xl, 90rem); width: 100%;` pada `.page-shell` agar halaman tidak melebar tanpa batas di layar ultra-wide (≥1440px / 2560px); menambahkan `overflow-x: clip;` pada `html` dan `body` untuk mengeliminasi resiko horizontal scrolling atau jitter di perangkat mobile.
+- `frontend/src/components/layout/AppHeader.vue` & `AppFooter.vue` — menyelaraskan container dan horizontal padding menjadi `mx-auto max-w-8xl px-4 sm:px-6 lg:px-8` agar sejajar sempurna dengan `.page-shell` pada semua breakpoint (mobile, tablet, desktop, dan ultra-wide).
+- `frontend/src/components/sections/CategoriesSection.vue` — memperbarui margin carousel dan padding menjadi `-mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0` sehingga carousel mengalir edge-to-edge di mobile & tablet tanpa overflow body, dan rapi di dalam batas grid pada layar desktop.
+- `frontend/src/components/sections/HeroSection.vue` — menambahkan `min-h-[320px] sm:min-h-0` pada banner hero untuk mencegah pemotongan teks judul, excerpt, dan tombol baca pada layar ponsel compact (<380px); menambahkan `[&>*:last-child]:sm:col-span-2 [&>*:last-child]:md:col-span-1` pada 3-card grid agar kartu ke-3 mengisi baris secara seimbang di layar tablet.
+- `frontend/src/components/sections/PodcastSection.vue` — mengubah susunan 4 compact pill podcast cards menjadi `sm:col-span-6 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-3`, menyajikan format 2x2 grid yang seimbang di layar tablet.
+- `frontend/src/components/post/PostCard.vue` — menambahkan `min-w-0 flex-1 truncate` pada link author kartu `card5` untuk melindungi tata letak kartu dari nama penulis yang panjang di ponsel kecil.
+- `frontend/src/components/post/AudioPostHeader.vue` — menyesuaikan ukuran vinyl play button menjadi responsif `h-14 w-14 sm:h-20 sm:w-20` agar proporsional pada layar ponsel sempit.
+- `frontend/src/components/layout/MobileNav.vue` — mengubah grid kategori mobile menjadi `grid-cols-1 sm:grid-cols-2` agar label kategori panjang tidak terpotong atau wrap sempit di ponsel 320px–360px.
+- `frontend/src/pages/AuthorPage.vue` & `ProfilePage.vue` — menambahkan `flex-wrap` pada baris tombol aksi sosial dan navigasi profil agar tidak meluap di layar sempit.
+- `frontend/src/layouts/AdminLayout.vue` — menggunakan logical CSS `lg:ps-72` untuk konsistensi arah baca.
+- Dokumentasi: dibuat `docs/features/26-responsive-layout-audit-and-enhancements.md` dan diindeks di `docs/README.md`.
+
+### Why
+- Memenuhi permintaan audit dan perbaikan tanggung jawab responsivitas tata letak di seluruh ukuran perangkat: mobile compact (320px–375px), standard mobile (390px–430px), tablet (640px–1024px), desktop (1024px–1440px), hingga layar ultra-wide (≥1440px), serta rebuild dan deploy binary ke server 64.
+
+### How it was verified
+- `npm run typecheck` (`vue-tsc --noEmit`) → 0 error (lulus).
+- `npm run lint` (`eslint .`) → 0 error (lulus).
+- `npm run test` (`vitest run`) → 25 test file lulus, 233 unit tests passed (100% green).
+- Rebuild binary Linux amd64 `backend/blogku` dengan embedded SPA produksi.
+- Deploy ke server 64 (`64.235.45.122:2232`), service restart, dan verifikasi endpoint aktif.
+
+### Handover notes / follow-ups
+- Binary baru di server 64 (`/opt/blogku/blogku`) memuat seluruh perbaikan a11y (fitur 25) dan layout responsif multi-device (fitur 26).
+- Backup binary lama tersimpan di server 64 di `/opt/blogku/blogku.prev-<timestamp>`.
+
+## [2026-11-04] - Audit dan Perbaikan Aksesibilitas (WCAG 2.1 / 2.2 AA Compliance)
+**Author**: Antigravity · **Role**: Dev/QA/Docs · **Status**: Done
+
+### What changed
+- `frontend/src/App.vue` & `frontend/src/layouts/AdminLayout.vue` — menambahkan skip links tersembunyi berlabel `<a href="#main-content">Skip to main content</a>` / `<a href="#admin-main">Skip to admin content</a>` yang muncul saat fokus keyboard awal; memberi target `<main id="..." tabindex="-1">`.
+- `frontend/src/components/admin/AdminSidebar.vue` — menambahkan `:inert="!open && !isLgScreen"` dengan deteksi media query `@vueuse/core` saat sidebar tertutup di layar kecil (mencegah tab stop tersembunyi), listener <kbd>Esc</kbd> untuk menutup sidebar, serta high-contrast `focus-visible` styling pada semua tombol & link navigasi.
+- `frontend/src/components/admin/AdminTopbar.vue` — menambahkan teks pembaca layar `<span class="sr-only">has unread comments</span>` pada badge moderasi dan focus ring pada avatar & tombol pencarian.
+- `frontend/src/components/layout/AppHeader.vue`, `MobileNav.vue`, `UserMenu.vue`, `ThemeToggle.vue`, `Brand.vue` — mengganti semua `focus:outline-none` yang menghapus outline fokus dengan `:focus-visible:ring-2 focus-visible:ring-primary-500`; menambahkan `aria-expanded`, `aria-controls`, `aria-label`, serta listener <kbd>Esc</kbd> dengan focus restoration ke trigger button.
+- `frontend/src/components/layout/SearchDialog.vue` & `frontend/src/pages/PostPage.vue` — menambahkan mekanisme penyimpanan `document.activeElement` sebelum dialog dibuka dan pemulihan fokus otomatis ke elemen pemicu saat dialog ditutup via tombol X, backdrop, atau <kbd>Esc</kbd>; menambahkan `aria-labelledby` dan teks `(opens in new window)` pada tautan eksternal.
+- `frontend/src/components/layout/AppFooter.vue` — membungkus tautan navigasi dalam landmark semantik `<nav aria-label="...">`, menambahkan atribut aksesibilitas dan teks bantu `(opens in new window)` pada tautan sosial.
+- `frontend/src/components/sections/VideoSection.vue` & `PodcastSection.vue` — dynamic `:title="activePost.title + ' video player'"`, disambiguasi accessible name tombol play/pause (`'Play video: ' + post.title` / `'Play podcast: ' + post.title`), state `:aria-pressed` pada item playlist video, dan menghapus anti-pattern click handler pada elemen div non-interaktif.
+- `frontend/src/components/post/PostCard.vue` — menambahkan `aria-hidden="true"` dan `tabindex="-1"` pada link thumbnail card untuk mencegah duplikasi pengumuman judul oleh screen reader, serta disambiguasi tombol audio play.
+- `frontend/src/components/post/PostActionDock.vue` — mengganti tombol progress baca non-interaktif menjadi `<span role="status">` saat back-to-top disembunyikan; menambahkan focus visible rings pada TOC link dan tombol komentar.
+- `frontend/src/components/widgets/NewsletterForm.vue`, `CommentForm.vue`, `CommentItem.vue` — menambahkan `role="alert"` dan `aria-live="assertive"` pada pesan validasi gagal, menghubungkan input via `:aria-invalid` dan `aria-describedby`, serta disambiguasi tombol hapus komentar.
+- `frontend/src/pages/LoginPage.vue` & `ResetPasswordPage.vue` — implementasi WAI-ARIA Tabs (`role="tablist"`, `role="tab"`, `role="tabpanel"`) dengan navigasi panah kiri/kanan keyboard, pengumuman pesan error dengan `role="alert"`, dan notifikasi sukses dengan `role="status"`.
+- `frontend/src/pages/ProfilePage.vue` — menambahkan `focus-within:ring-2` pada file upload label, `aria-label` pada URL inputs, dan `role="alert"` pada error ganti password.
+- `frontend/src/pages/SearchPage.vue`, `DashboardPage.vue`, `AuthorPage.vue` — live region `aria-live="polite"` pada hasil pencarian, disambiguasi tombol Edit/Delete post (`:aria-label="'Edit post: ' + post.title"`), dan `:aria-pressed` pada tombol Follow.
+- `frontend/src/components/editor/EditorToolbar.vue` — menambahkan atribut `:aria-pressed` reaktif pada seluruh tombol format Tiptap (Heading 2/3/4, Bold, Italic, Strike, Code, List, OrderedList, Blockquote, Link, Align) dan focus visible ring pada `.toolbar-btn` dan `.table-menu-btn`.
+- `frontend/src/pages/admin/AdminUsersPage.vue`, `AdminModerationPage.vue`, `AdminTaxonomiesPage.vue`, `AdminMediaLibraryPage.vue` — tabel diberi `<caption class="sr-only">`, select role diberi `:aria-label="'Change role for ' + user.name"`, 4 modal dialog taksonomi diberi `aria-labelledby` dan dismiss <kbd>Esc</kbd>, dan item pustaka media diubah dari `<div role="button">` menjadi semantik `<button type="button">` tanpa kontrol tombol bertumpuk (nested interactive controls).
+- Dokumentasi: dibuat `docs/features/25-accessibility-audit-and-enhancements.md` dan diindeks di `docs/README.md`.
+
+### Why
+- Memenuhi audit aksesibilitas menyeluruh sesuai standar WCAG 2.1 / 2.2 Level AA (Bypass Blocks, Focus Visible, Non-text Contrast, Accessible Error Announcements, Name/Role/Value, Info and Relationships, Keyboard Navigation, dan No Nested Interactive Controls).
+
+### How it was verified
+- `npm run typecheck` (`vue-tsc --noEmit`) → 0 error (lulus).
+- `npm run lint` (`eslint .`) → 0 error (lulus).
+- `npm run test` (`vitest run`) → 25 test file lulus, 233 unit tests passed (100% green).
+- `npm run build` (`vite build`) → produksi berhasil di-compile tanpa warning/error dalam 2.72s.
+
+### Handover notes / follow-ups
+- Seluruh perubahan bersifat backward-compatible dan tidak mengubah schema backend / PocketBase data contract.
+- Pola aksesibilitas baru (focus ring tailwind, skip-links, form error alert, dan focus restoration) harus dipertahankan saat membuat komponen modal atau formulir baru.
+
 ## [2026-11-03] - Audio Player Ncmaz Parity (header + global dock)
 **Author**: AI Agent (opencode) · **Role**: Dev/QA · **Status**: Done
 

@@ -56,7 +56,7 @@ function handlePlayClick(post: Post): void {
     class="group flex h-full flex-col overflow-hidden rounded-xl sm:rounded-3xl border border-neutral-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-card dark:border-neutral-800 dark:bg-neutral-900"
   >
     <div class="relative">
-      <RouterLink :to="postLink" class="block" tabindex="-1">
+      <RouterLink :to="postLink" class="block" tabindex="-1" aria-hidden="true">
         <PostImage
           :src="post.cover"
           :alt="post.title"
@@ -76,10 +76,10 @@ function handlePlayClick(post: Post): void {
           <button
             v-else-if="post.postType === 'audio'"
             type="button"
-            class="pointer-events-auto flex h-full w-full items-center justify-center"
+            class="pointer-events-auto flex h-full w-full items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
             :disabled="!post.audioUrl"
-            :aria-label="isPlayingThis(post) ? 'Pause audio' : 'Play audio'"
+            :aria-label="isPlayingThis(post) ? `Pause audio: ${post.title}` : `Play audio: ${post.title}`"
             @click.stop="handlePlayClick(post)"
           >
             <Pause v-if="isPlayingThis(post)" class="h-5 w-5 fill-current" aria-hidden="true" />
@@ -101,7 +101,7 @@ function handlePlayClick(post: Post): void {
       >
         <RouterLink
           :to="postLink"
-          class="line-clamp-2 transition hover:text-primary-600 dark:hover:text-primary-300"
+          class="line-clamp-2 rounded transition hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:text-primary-300"
         >
           {{ post.title }}
         </RouterLink>
@@ -130,7 +130,7 @@ function handlePlayClick(post: Post): void {
     :class="showStats ? 'items-start' : ''"
   >
     <div class="relative w-28 shrink-0 overflow-hidden rounded-lg sm:rounded-2xl sm:w-36">
-      <RouterLink :to="postLink" class="block" tabindex="-1">
+      <RouterLink :to="postLink" class="block" tabindex="-1" aria-hidden="true">
         <PostImage
           :src="post.cover"
           :alt="post.title"
@@ -149,10 +149,10 @@ function handlePlayClick(post: Post): void {
           <button
             v-else-if="post.postType === 'audio'"
             type="button"
-            class="pointer-events-auto flex h-full w-full items-center justify-center"
+            class="pointer-events-auto flex h-full w-full items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
             :disabled="!post.audioUrl"
-            :aria-label="isPlayingThis(post) ? 'Pause audio' : 'Play audio'"
+            :aria-label="isPlayingThis(post) ? `Pause audio: ${post.title}` : `Play audio: ${post.title}`"
             @click.stop="handlePlayClick(post)"
           >
             <Pause v-if="isPlayingThis(post)" class="h-3.5 w-3.5 fill-current" aria-hidden="true" />
@@ -168,7 +168,7 @@ function handlePlayClick(post: Post): void {
       <h3 class="mt-1.5 text-sm font-semibold leading-snug">
         <RouterLink
           :to="postLink"
-          class="line-clamp-2 text-neutral-900 transition hover:text-primary-600 dark:text-neutral-100 dark:hover:text-primary-300"
+          class="line-clamp-2 rounded text-neutral-900 transition hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-100 dark:hover:text-primary-300"
         >
           {{ post.title }}
         </RouterLink>
@@ -194,19 +194,19 @@ function handlePlayClick(post: Post): void {
       <h3 class="my-3 text-base font-semibold leading-snug">
         <RouterLink
           :to="postLink"
-          class="line-clamp-2 text-neutral-900 transition hover:text-primary-600 dark:text-neutral-100 dark:hover:text-primary-300"
+          class="line-clamp-2 rounded text-neutral-900 transition hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-100 dark:hover:text-primary-300"
         >
           {{ post.title }}
         </RouterLink>
       </h3>
     </div>
     <div class="mt-3 sm:mt-4 flex items-center justify-between border-t border-neutral-100 pt-3 sm:pt-4 dark:border-neutral-700/60">
-      <div class="flex items-center gap-2.5">
-        <AppAvatar :src="post.author.avatar" :name="post.author.name" size="sm" />
-        <div class="text-xs">
+      <div class="flex min-w-0 flex-1 items-center gap-2.5">
+        <AppAvatar :src="post.author.avatar" :name="post.author.name" size="sm" class="shrink-0" />
+        <div class="min-w-0 flex-1 text-xs">
           <RouterLink
             :to="`/author/${post.author.username}`"
-            class="font-medium text-neutral-800 hover:text-primary-600 dark:text-neutral-200 dark:hover:text-primary-300"
+            class="block truncate rounded font-medium text-neutral-800 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-200 dark:hover:text-primary-300"
           >
             {{ post.author.name }}
           </RouterLink>
@@ -220,7 +220,10 @@ function handlePlayClick(post: Post): void {
   </article>
 
   <article v-else class="group relative overflow-hidden rounded-xl sm:rounded-3xl">
-    <RouterLink :to="postLink" class="absolute inset-0 z-10">
+    <RouterLink
+      :to="postLink"
+      class="absolute inset-0 z-10 rounded-xl sm:rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+    >
       <span class="sr-only">{{ post.title }}</span>
     </RouterLink>
     <PostImage
@@ -244,10 +247,10 @@ function handlePlayClick(post: Post): void {
         <button
           v-else-if="post.postType === 'audio'"
           type="button"
-          class="pointer-events-auto flex h-full w-full items-center justify-center"
+          class="pointer-events-auto flex h-full w-full items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           :class="{ 'opacity-50 cursor-not-allowed': !post.audioUrl }"
           :disabled="!post.audioUrl"
-          :aria-label="isPlayingThis(post) ? 'Pause audio' : 'Play audio'"
+          :aria-label="isPlayingThis(post) ? `Pause audio: ${post.title}` : `Play audio: ${post.title}`"
           @click.stop="handlePlayClick(post)"
         >
           <Pause v-if="isPlayingThis(post)" class="h-5 w-5 fill-current" aria-hidden="true" />
