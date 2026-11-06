@@ -103,18 +103,18 @@ useIntersectionObserver(
 <template>
   <div class="page-shell space-y-20 pb-24">
     <!-- Skeleton Loading -->
-    <div v-if="loadingFeatured" class="space-y-6">
+    <div v-if="loadingFeatured" class="space-y-4 sm:space-y-6">
       <div class="h-96 animate-pulse rounded-[40px] bg-neutral-100 dark:bg-neutral-900"></div>
-      <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-        <div class="h-44 animate-pulse rounded-3xl bg-neutral-100 dark:bg-neutral-900"></div>
-        <div class="h-44 animate-pulse rounded-3xl bg-neutral-100 dark:bg-neutral-900"></div>
-        <div class="h-44 animate-pulse rounded-3xl bg-neutral-100 dark:bg-neutral-900"></div>
+      <div class="grid gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3">
+        <div class="h-44 animate-pulse rounded-xl sm:rounded-3xl bg-neutral-100 dark:bg-neutral-900"></div>
+        <div class="h-44 animate-pulse rounded-xl sm:rounded-3xl bg-neutral-100 dark:bg-neutral-900"></div>
+        <div class="h-44 animate-pulse rounded-xl sm:rounded-3xl bg-neutral-100 dark:bg-neutral-900"></div>
       </div>
     </div>
 
     <p
       v-else-if="featuredError"
-      class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
+      class="rounded-lg sm:rounded-2xl border border-rose-200 bg-rose-50 p-3 sm:p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
     >
       {{ featuredError }}
     </p>
@@ -136,8 +136,8 @@ useIntersectionObserver(
       <NewsletterSection />
 
       <!-- Section 6: Latest Articles Grid & Tabs (nc-SectionGridPosts) -->
-      <section class="nc-SectionGridPosts relative space-y-8">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <section class="nc-SectionGridPosts relative space-y-6 sm:space-y-8">
+        <div class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 class="text-2xl font-bold tracking-tight sm:text-3xl text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
               <span>Latest articles 🎈</span>
@@ -152,7 +152,7 @@ useIntersectionObserver(
             <button
               type="button"
               :class="[
-                'shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition',
+                'shrink-0 rounded-full px-3 sm:px-4 py-2 text-xs font-semibold transition',
                 selectedCategory === 'all'
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
                   : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700',
@@ -166,7 +166,7 @@ useIntersectionObserver(
               :key="cat.id"
               type="button"
               :class="[
-                'shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition',
+                'shrink-0 rounded-full px-3 sm:px-4 py-2 text-xs font-semibold transition',
                 selectedCategory === cat.slug
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
                   : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700',
@@ -180,7 +180,7 @@ useIntersectionObserver(
 
         <div
           v-if="latestError"
-          class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
+          class="rounded-lg sm:rounded-2xl border border-rose-200 bg-rose-50 p-3 sm:p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
         >
           {{ latestError }}
           <button type="button" class="ms-2 font-semibold underline" @click="reloadLatest">
@@ -189,10 +189,10 @@ useIntersectionObserver(
         </div>
 
         <!-- 2 Column Layout: Articles Grid + Sidebar -->
-        <div v-else class="grid gap-10 lg:grid-cols-3">
+        <div v-else class="grid gap-8 sm:gap-10 lg:grid-cols-3">
           <!-- Main Articles Grid (2 cols on tablet, 2 cols in column) -->
-          <div class="lg:col-span-2 space-y-6">
-            <div class="grid gap-6 sm:grid-cols-2">
+          <div class="lg:col-span-2 space-y-4 sm:space-y-6">
+            <div class="grid gap-4 sm:gap-6 sm:grid-cols-2">
               <PostCard
                 v-for="post in latestItems"
                 :key="post.id"
@@ -203,12 +203,12 @@ useIntersectionObserver(
 
             <div
               v-if="latestLoading && !latestItems.length"
-              class="flex justify-center py-10"
+              class="flex justify-center py-8 sm:py-10"
             >
               <LoadingSpinner />
             </div>
 
-            <div ref="sentinel" class="mt-8 flex flex-col items-center gap-3">
+            <div ref="sentinel" class="mt-6 sm:mt-8 flex flex-col items-center gap-3">
               <LoadingSpinner v-if="latestLoading && latestItems.length" />
               <BaseButton
                 v-else-if="latestHasMore"
@@ -227,16 +227,16 @@ useIntersectionObserver(
           </div>
 
           <!-- Sidebar on Right -->
-          <div class="space-y-8">
+          <div class="space-y-6 sm:space-y-8">
             <!-- Trending Authors Widget (nc-CardAuthor2) -->
             <div
               v-if="authors.length"
-              class="rounded-3xl border border-neutral-200/80 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 shadow-sm"
+              class="rounded-xl sm:rounded-3xl border border-neutral-200/80 bg-white p-4 sm:p-6 dark:border-neutral-800 dark:bg-neutral-900 shadow-sm"
             >
-              <h3 class="text-base font-bold text-neutral-900 dark:text-neutral-100 mb-4">
+              <h3 class="text-base font-bold text-neutral-900 dark:text-neutral-100 mb-3 sm:mb-4">
                 Top authors ✍️
               </h3>
-              <div class="space-y-4">
+              <div class="space-y-3 sm:space-y-4">
                 <AuthorCard v-for="author in authors" :key="author.id" :author="author" />
               </div>
             </div>
@@ -244,9 +244,9 @@ useIntersectionObserver(
             <!-- Popular Tags Cloud -->
             <div
               v-if="tags.length"
-              class="rounded-3xl border border-neutral-200/80 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 shadow-sm"
+              class="rounded-xl sm:rounded-3xl border border-neutral-200/80 bg-white p-4 sm:p-6 dark:border-neutral-800 dark:bg-neutral-900 shadow-sm"
             >
-              <h3 class="text-base font-bold text-neutral-900 dark:text-neutral-100 mb-4">
+              <h3 class="text-base font-bold text-neutral-900 dark:text-neutral-100 mb-3 sm:mb-4">
                 Popular tags 🏷️
               </h3>
               <div class="flex flex-wrap gap-2">

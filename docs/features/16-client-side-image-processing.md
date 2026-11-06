@@ -31,12 +31,14 @@ Tujuan fitur:
 
 1. Pengguna memilih file gambar di salah satu titik upload (5 halaman, 7 call
    site — lihat Bagian 3).
-2. Sistem memvalidasi: tipe MIME allowlist + ukuran ≤ `maxImageUploadSize`
-   (setting, default 5MB) + **decode nyata** via `createImageBitmap`
-   (gagal = tolak; MIME palsu otomatis ketolak).
-3. Sistem melakukan sniff dimensi header (anti pixel-bomb) sebelum decode.
-4. Gambar diproses di **Web Worker**: resize (lanczos3) + encode WebP
+2. Sistem memvalidasi tipe MIME allowlist + batas absolut sumber 25MB + sniff
+   dimensi header (anti pixel-bomb). File sumber **tidak** ditolak hanya karena
+   melebihi `maxImageUploadSize`; foto kamera besar tetap diproses lebih dulu.
+3. Gambar diproses di **Web Worker**: resize (lanczos3) + encode WebP
    (q = `imageQuality`) menjadi 3 varian; tanpa upscale.
+4. Setelah encoding, setiap varian yang akan di-upload diperiksa terhadap
+   `maxImageUploadSize` (setting, default 2MB di mock / 5MB di produksi).
+   Jika masih melebihi batas, upload ditolak dengan pesan jelas.
 5. Setiap varian di-upload sebagai record terpisah ke koleksi `media`
    (PocketBase) via `DataSource.uploadFile` yang sudah ada.
 6. URL `full` yang tersimpan menyertakan metadata varian di fragment
@@ -44,7 +46,7 @@ Tujuan fitur:
    sehingga display layer bisa membangun `srcset` tanpa skema tambahan
    (Bagian 4).
 7. GIF animasi: **passthrough** — tidak diproses, langsung di-upload apa
-   adanya (satu record).
+   adanya (satu record) setelah diperiksa terhadap `maxImageUploadSize`.
 
 ## 3. Arsitektur & Komponen
 
@@ -223,7 +225,8 @@ diakses role admin (`permission: manage_settings`, parent route `adminOnly`):
 
 - **Batas ukuran upload (bytes)** — `input type="number"`, step 1024,
   0 = tanpa batas (tetap dibatasi 25 MB absolut); hint otomatis menampilkan
-  nilai MB.
+  nilai MB. Batas ini berlaku untuk **file varian hasil WebP** yang di-upload
+  dan untuk GIF animasi (passthrough), bukan untuk ukuran file sumber.
 - **Maks dimensi gambar (px)** — `input type="number"`, min 256, max 4096,
   default 2048 (sisi terpanjang varian `full`).
 - **Kualitas WebP** — `input type="range"` min 0.1 max 1 step 0.05 + label
@@ -259,7 +262,10 @@ tetap bisa dipilih dan tampil normal.
 - `image.test.ts`: `buildSrcSet` memakai fragment varian (320w/1024w/2048w),
   dedupe URL, menolak `javascript:` dan injeksi kandidat berisi spasi/koma;
   `imageUrl` membuang fragment varian.
-- Hasil: **14 file / 125 test lulus**.
+- `useImageUpload.test.ts` (baru): foto sumber 6MB (> batas setting 2MB)
+  tetap diproses dan di-upload; GIF animasi 3MB tetap ditolak dengan pesan
+  batas ukuran; varian hasil proses yang masih > batas ditolak sebelum upload.
+- Hasil: **17 file / 153 test lulus**.
 
 ### E2E (Playwright, browser nyata)
 
@@ -271,6 +277,9 @@ tetap bisa dipilih dan tampil normal.
 - File `<html>` dengan MIME `image/png` ? ditolak.
 - File 30MB saat `maxBytes: 0` ? ditolak (batas absolut 25MB).
 - `buildSrcSet` menghasilkan kandidat `320w/1024w/2048w`.
+- Regresi upload error: JPEG 6MB (melebihi limit 2MB mock) berhasil untuk
+  avatar, cover profil, dan cover post di Chrome — toast sukses, media
+  tersimpan, tanpa console error.
 
 ### Perintah
 

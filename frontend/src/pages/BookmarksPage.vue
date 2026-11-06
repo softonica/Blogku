@@ -61,7 +61,7 @@ function clearAll(): void {
 
 <template>
   <div class="page-shell pb-20">
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <header class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary-600 dark:text-primary-300">
           <Bookmark class="h-3.5 w-3.5" aria-hidden="true" />
@@ -91,14 +91,14 @@ function clearAll(): void {
 
     <EmptyState
       v-else-if="!items.length"
-      class="mt-10"
+      class="mt-8 sm:mt-10"
       title="No bookmarks yet"
       description="Tap the bookmark icon on any post to keep it here for later."
     >
       <BaseButton to="/" size="sm">Browse posts</BaseButton>
     </EmptyState>
 
-    <div v-else class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div v-else class="mt-6 sm:mt-8 grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <div v-for="post in items" :key="post.id" class="flex flex-col">
         <div class="flex-1">
           <PostCard :post="post" show-excerpt />

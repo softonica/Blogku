@@ -26,6 +26,7 @@ scratch*
 .codegraph/
 .opencode/
 .superpowers/
+opencode.jsonc
 
 
 # debug

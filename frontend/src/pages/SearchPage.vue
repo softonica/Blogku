@@ -82,9 +82,9 @@ async function submit(): Promise<void> {
         Search titles, excerpts, authors, categories and tags.
       </p>
 
-      <form class="mt-7" @submit.prevent="submit">
+      <form class="mt-5 sm:mt-7" @submit.prevent="submit">
         <div
-          class="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 shadow-sm focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 dark:border-neutral-800 dark:bg-neutral-900 dark:focus-within:border-primary-500 dark:focus-within:ring-primary-950"
+          class="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 sm:px-4 py-2 shadow-sm focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 dark:border-neutral-800 dark:bg-neutral-900 dark:focus-within:border-primary-500 dark:focus-within:ring-primary-950"
         >
           <Search class="h-5 w-5 shrink-0 text-neutral-400" aria-hidden="true" />
           <label for="search-input" class="sr-only">Search posts</label>
@@ -101,25 +101,25 @@ async function submit(): Promise<void> {
     </header>
 
     <section v-if="!query" class="mx-auto mt-12 max-w-5xl">
-      <div class="grid gap-6 md:grid-cols-2">
-        <div class="rounded-3xl border border-neutral-200 p-6 dark:border-neutral-800">
+      <div class="grid gap-4 sm:gap-6 md:grid-cols-2">
+        <div class="rounded-xl sm:rounded-3xl border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <h2 class="text-sm font-bold uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">
             Popular topics
           </h2>
-          <div class="mt-4 flex flex-wrap gap-2">
+          <div class="mt-3 sm:mt-4 flex flex-wrap gap-2">
             <TagBadge v-for="tag in tags" :key="tag.id" :tag="tag" />
           </div>
         </div>
-        <div class="rounded-3xl border border-neutral-200 p-6 dark:border-neutral-800">
+        <div class="rounded-xl sm:rounded-3xl border border-neutral-200 p-4 sm:p-6 dark:border-neutral-800">
           <h2 class="text-sm font-bold uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">
             Browse categories
           </h2>
-          <div class="mt-4 flex flex-wrap gap-2">
+          <div class="mt-3 sm:mt-4 flex flex-wrap gap-2">
             <RouterLink
               v-for="category in categories"
               :key="category.id"
               :to="`/category/${category.slug}`"
-              class="inline-flex items-center rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 transition hover:border-primary-300 hover:text-primary-700 dark:border-neutral-800 dark:text-neutral-300 dark:hover:border-primary-700 dark:hover:text-primary-300"
+              class="inline-flex items-center rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 transition hover:border-primary-300 hover:text-primary-700 dark:border-neutral-800 dark:text-neutral-300 dark:hover:border-primary-700 dark:hover:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             >
               {{ category.name }}
             </RouterLink>
@@ -128,9 +128,9 @@ async function submit(): Promise<void> {
       </div>
     </section>
 
-    <section v-else class="mt-10">
+    <section v-else class="mt-8 sm:mt-10">
       <div class="flex flex-wrap items-end justify-between gap-3">
-        <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+        <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400" aria-live="polite">
           <span class="font-bold text-neutral-900 dark:text-white">
             {{ totalItems }}
           </span>
@@ -139,7 +139,7 @@ async function submit(): Promise<void> {
         </p>
         <RouterLink
           :to="{ name: 'search' }"
-          class="text-xs font-semibold text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-300"
+          class="text-xs font-semibold text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xs"
         >
           Clear search
         </RouterLink>
@@ -147,7 +147,8 @@ async function submit(): Promise<void> {
 
       <div
         v-if="error"
-        class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
+        role="alert"
+        class="mt-4 sm:mt-6 rounded-lg sm:rounded-2xl border border-rose-200 bg-rose-50 p-3 sm:p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200"
       >
         {{ error }}
       </div>
@@ -156,17 +157,15 @@ async function submit(): Promise<void> {
       </div>
       <EmptyState
         v-else-if="!items.length"
-        class="mt-6"
+        class="mt-4 sm:mt-6"
         title="No matches"
-        description="Try a shorter phrase, a different topic, or browse a category instead."
-      >
-        <BaseButton to="/search" variant="outline">Clear search</BaseButton>
-      </EmptyState>
+        description="Try searching for a different keyword or topic."
+      />
       <template v-else>
-        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mt-4 sm:mt-6 grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <PostCard v-for="post in items" :key="post.id" :post="post" show-excerpt />
         </div>
-        <div class="mt-10">
+        <div class="mt-8 sm:mt-10">
           <PaginationBar :page="page" :total-pages="totalPages" @change="goTo" />
         </div>
       </template>

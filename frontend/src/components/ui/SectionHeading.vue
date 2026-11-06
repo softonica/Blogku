@@ -15,7 +15,7 @@ withDefaults(
 
 <template>
   <div
-    class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+    class="mb-6 sm:mb-8 flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between"
   >
     <div class="max-w-2xl">
       <p

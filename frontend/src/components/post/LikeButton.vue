@@ -10,11 +10,13 @@ import { formatNumber, getErrorMessage } from '@/lib/format'
 
 const props = withDefaults(
   defineProps<{
-    post: Post
+    post: Pick<Post, 'id' | 'likeCount'>
     showCount?: boolean
-    variant?: 'pill' | 'icon'
+    variant?: 'pill' | 'icon' | 'compact'
+    size?: 'sm' | 'md'
+    tone?: 'default' | 'on-image'
   }>(),
-  { showCount: true, variant: 'pill' },
+  { showCount: true, variant: 'pill', size: 'sm', tone: 'default' },
 )
 
 const auth = useAuthStore()
@@ -26,13 +28,60 @@ const busy = ref(false)
 
 const liked = computed(() => reactions.isLiked(props.post.id))
 const count = computed(() => reactions.likeCount(props.post))
-const base =
-  'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900'
+const base = computed(() =>
+  props.variant === 'compact'
+    ? 'relative flex items-center text-xs leading-none transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900'
+    : 'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900',
+)
 const variantClass = computed(() =>
   props.variant === 'icon'
     ? 'h-10 w-10 border border-neutral-200 dark:border-neutral-800'
-    : 'h-10 px-4 text-sm',
+    : props.variant === 'compact'
+      ? props.size === 'md'
+        ? ''
+        : 'h-9 gap-1.5 px-1.5 text-xs'
+      : 'h-10 px-3 sm:px-4 text-sm',
 )
+
+const compactCircleClass = computed(() =>
+  props.size === 'md' ? 'h-9 w-9' : 'h-9 w-9',
+)
+
+const compactIconClass = computed(() =>
+  props.size === 'md' ? 'h-[18px] w-[18px]' : 'h-[18px] w-[18px]',
+)
+
+const countClass = computed(() => {
+  if (props.variant !== 'compact' || props.size !== 'md') return ''
+  return props.tone === 'on-image'
+    ? 'ms-2 min-w-4.5 shrink-0 text-start text-white'
+    : 'ms-2 min-w-4.5 shrink-0 text-start text-neutral-900 transition-colors duration-75 dark:text-neutral-200'
+})
+
+const compactCircleStateClass = computed(() => {
+  if (liked.value) {
+    return 'bg-rose-50 dark:bg-rose-950/60'
+  }
+  if (props.tone === 'on-image') {
+    return 'bg-white/10 hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20'
+  }
+  return 'bg-neutral-50 hover:bg-rose-50 dark:bg-neutral-800 dark:hover:bg-rose-100/10'
+})
+
+const stateClass = computed(() => {
+  if (props.variant === 'compact') {
+    if (liked.value) {
+      return 'text-rose-600 dark:text-rose-300'
+    }
+    if (props.tone === 'on-image') {
+      return 'text-white hover:text-rose-300 dark:text-white dark:hover:text-rose-300'
+    }
+    return 'text-neutral-700 hover:text-rose-600 dark:text-neutral-200 dark:hover:text-rose-400'
+  }
+  return liked.value
+    ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300'
+    : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'
+})
 
 async function toggle(): Promise<void> {
   if (busy.value) return
@@ -56,13 +105,7 @@ async function toggle(): Promise<void> {
 <template>
   <button
     type="button"
-    :class="[
-      base,
-      variantClass,
-      liked
-        ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300'
-        : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800',
-    ]"
+    :class="[base, variantClass, stateClass]"
     :aria-pressed="liked"
     :aria-label="
       showCount
@@ -74,11 +117,25 @@ async function toggle(): Promise<void> {
     :disabled="busy"
     @click.stop.prevent="toggle"
   >
+    <span
+      v-if="variant === 'compact'"
+      :class="[
+        'flex shrink-0 items-center justify-center rounded-full transition-colors',
+        compactCircleClass,
+        compactCircleStateClass,
+      ]"
+    >
+      <Heart
+        :class="[compactIconClass, liked ? 'fill-current' : '']"
+        aria-hidden="true"
+      />
+    </span>
     <Heart
+      v-else
       class="h-4 w-4"
       :class="liked ? 'fill-current' : ''"
       aria-hidden="true"
     />
-    <span v-if="showCount">{{ formatNumber(count) }}</span>
+    <span v-if="showCount" :class="countClass">{{ formatNumber(count) }}</span>
   </button>
 </template>

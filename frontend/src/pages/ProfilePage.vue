@@ -44,7 +44,7 @@ useDocumentTitle(pageTitle)
 
 const name = ref(auth.user?.name ?? '')
 const bio = ref(auth.user?.bio ?? '')
-const avatar = ref(auth.user?.avatar ?? '/avatars/1.jpg')
+const avatar = ref(auth.user?.avatar ?? '')
 const coverBanner = ref(auth.user?.coverBanner ?? '')
 const socials = ref<UserSocials>({
   facebook: auth.user?.socials?.facebook ?? '',
@@ -141,17 +141,6 @@ watch(
   },
   { immediate: true },
 )
-
-const avatarOptions = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=256&h=256&q=80',
-  'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=256&h=256&q=80',
-]
 
 const roleBadgeVariant = computed(() => {
   if (auth.user?.role === 'admin') return 'primary'
@@ -257,7 +246,7 @@ async function logout(): Promise<void> {
 <template>
   <div class="page-shell pb-20">
     <div class="mx-auto max-w-3xl">
-      <section class="mt-4 overflow-hidden rounded-[2rem] ring-1 ring-neutral-200 dark:ring-neutral-800">
+      <section class="mt-3 sm:mt-4 overflow-hidden rounded-xl sm:rounded-[2rem] ring-1 ring-neutral-200 dark:ring-neutral-800">
         <div class="relative h-40 sm:h-52">
           <img
             v-if="coverBanner || avatar"
@@ -274,8 +263,8 @@ async function logout(): Promise<void> {
           <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
         </div>
 
-        <div class="bg-white px-6 pb-8 sm:px-10 dark:bg-neutral-950">
-          <div class="relative z-10 -mt-14 flex flex-col gap-5 sm:-mt-16 sm:flex-row sm:items-end">
+        <div class="bg-white px-4 pb-4 sm:pb-8 sm:px-10 dark:bg-neutral-950">
+          <div class="relative z-10 -mt-14 flex flex-col gap-4 sm:gap-5 sm:-mt-16 sm:flex-row sm:items-end">
             <AppAvatar
               :src="avatar"
               :name="name || 'User'"
@@ -287,7 +276,7 @@ async function logout(): Promise<void> {
                 <h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl dark:text-white">
                   {{ name || auth.user?.name }}
                 </h1>
-                <AppBadge :variant="roleBadgeVariant" class="capitalize">
+                <AppBadge :variant="roleBadgeVariant" class="capitalize hidden sm:inline-flex">
                   {{ auth.user?.role }}
                 </AppBadge>
               </div>
@@ -301,7 +290,7 @@ async function logout(): Promise<void> {
                 {{ bio }}
               </p>
             </div>
-            <div class="flex items-center gap-4 sm:pb-1">
+            <div class="flex flex-wrap items-center gap-3 sm:gap-4 sm:pb-1">
               <AuthorSocialLinks :socials="socials" />
               <div class="flex flex-wrap gap-2">
                 <BaseButton
@@ -329,9 +318,9 @@ async function logout(): Promise<void> {
       </section>
 
       <!-- Role summary card -->
-      <div class="mt-8 rounded-3xl border border-neutral-200 bg-neutral-50/60 p-5 dark:border-neutral-800 dark:bg-neutral-900/60">
+      <div class="mt-4 sm:mt-8 rounded-xl sm:rounded-3xl border border-neutral-200 bg-neutral-50/60 p-4 sm:p-5 dark:border-neutral-800 dark:bg-neutral-900/60">
         <div class="flex items-start gap-3">
-          <div class="rounded-xl bg-primary-100 p-2 text-primary-700 dark:bg-primary-950 dark:text-primary-300">
+          <div class="rounded-lg sm:rounded-xl bg-primary-100 p-2 text-primary-700 dark:bg-primary-950 dark:text-primary-300">
             <UserIcon class="h-5 w-5" aria-hidden="true" />
           </div>
           <div class="min-w-0 flex-1">
@@ -351,7 +340,7 @@ async function logout(): Promise<void> {
       </div>
 
       <!-- Edit profile form -->
-      <form class="mt-8 space-y-6 rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900" @submit.prevent="saveProfile">
+      <form class="mt-4 sm:mt-8 space-y-4 sm:space-y-6 rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900" @submit.prevent="saveProfile">
         <h2 class="text-lg font-bold text-neutral-900 dark:text-white">
           Edit Profile Information
         </h2>
@@ -361,10 +350,10 @@ async function logout(): Promise<void> {
             Profile Avatar
           </label>
 
-          <!-- Upload and custom URL -->
-          <div class="mb-4 flex flex-wrap items-center gap-3">
+          <!-- Upload, initials, and custom URL -->
+          <div class="flex flex-wrap items-center gap-3">
             <label
-              class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-2xl bg-neutral-100 px-4 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+              class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg sm:rounded-2xl bg-neutral-100 px-3 sm:px-4 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2"
             >
               <Upload class="h-4 w-4" aria-hidden="true" />
               <span>{{ uploadingAvatar ? 'Uploading…' : 'Upload Photo' }}</span>
@@ -372,36 +361,37 @@ async function logout(): Promise<void> {
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 class="sr-only"
+                aria-label="Upload profile avatar"
                 :disabled="uploadingAvatar"
                 @change="onAvatarUpload"
               />
             </label>
 
+            <button
+              type="button"
+              class="inline-flex h-10 items-center gap-2 rounded-lg sm:rounded-2xl border border-neutral-300 px-3 sm:px-4 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              :class="!avatar ? 'ring-2 ring-primary-500' : ''"
+              :aria-pressed="!avatar"
+              @click="avatar = ''"
+            >
+              <AppAvatar :src="avatar" :name="name || auth.user?.name || 'User'" size="sm" />
+              <span>Pakai inisial</span>
+            </button>
+
             <div class="flex-1 min-w-[220px]">
               <input
                 v-model="avatar"
                 type="url"
+                aria-label="Avatar image URL"
                 placeholder="Or enter image URL (https://…)"
-                class="h-10 w-full rounded-2xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+                class="h-10 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
               />
             </div>
           </div>
 
-          <p class="mb-2 text-xs text-neutral-400">
-            Or pick from default preset avatars:
+          <p class="mt-2 text-xs text-neutral-400">
+            Tanpa foto, avatar menampilkan inisial nama (mis. Eko Siswanto → <span class="font-semibold text-neutral-600 dark:text-neutral-300">ES</span>, maksimal 2 huruf).
           </p>
-          <div class="flex flex-wrap items-center gap-3">
-            <button
-              v-for="img in avatarOptions"
-              :key="img"
-              type="button"
-              class="relative rounded-full transition ring-offset-2 hover:opacity-80 focus:outline-none dark:ring-offset-neutral-950"
-              :class="avatar === img ? 'ring-2 ring-primary-500' : 'opacity-70'"
-              @click="avatar = img"
-            >
-              <AppAvatar :src="img" name="Avatar" size="md" />
-            </button>
-          </div>
         </div>
 
         <div>
@@ -410,7 +400,7 @@ async function logout(): Promise<void> {
           </label>
           <div class="flex flex-wrap items-center gap-3">
             <label
-              class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-2xl bg-neutral-100 px-4 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+              class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg sm:rounded-2xl bg-neutral-100 px-3 sm:px-4 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2"
             >
               <Upload class="h-4 w-4" aria-hidden="true" />
               <span>{{ uploadingCover ? 'Uploading…' : 'Upload Cover' }}</span>
@@ -418,6 +408,7 @@ async function logout(): Promise<void> {
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 class="sr-only"
+                aria-label="Upload cover banner image"
                 :disabled="uploadingCover"
                 @change="onCoverUpload"
               />
@@ -426,8 +417,9 @@ async function logout(): Promise<void> {
               <input
                 v-model="coverBanner"
                 type="url"
+                aria-label="Cover banner image URL"
                 placeholder="Cover image URL (https://…)"
-                class="h-10 w-full rounded-2xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+                class="h-10 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
               />
             </div>
           </div>
@@ -443,7 +435,7 @@ async function logout(): Promise<void> {
             type="text"
             required
             maxlength="80"
-            class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+            class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
           />
         </div>
 
@@ -457,7 +449,7 @@ async function logout(): Promise<void> {
             rows="3"
             maxlength="300"
             placeholder="Tell us a little bit about yourself."
-            class="w-full rounded-2xl border-neutral-300 bg-white p-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+            class="w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white p-3 sm:p-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
           ></textarea>
         </div>
 
@@ -478,7 +470,7 @@ async function logout(): Promise<void> {
                 v-model="socials[field.key]"
                 type="url"
                 placeholder="https://…"
-                class="h-10 w-full rounded-2xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
+                class="h-10 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 text-xs text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white"
               />
             </label>
           </div>
@@ -487,7 +479,7 @@ async function logout(): Promise<void> {
           </p>
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-100 pt-5 dark:border-neutral-800">
+        <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-t border-neutral-100 pt-4 sm:pt-5 dark:border-neutral-800">
           <div class="flex items-center gap-3">
             <BaseButton type="submit" size="md" :disabled="saving || isLimited">
               <CheckCircle2 v-if="saved" class="h-4 w-4" aria-hidden="true" />
@@ -511,7 +503,7 @@ async function logout(): Promise<void> {
 
           <button
             type="button"
-            class="inline-flex items-center gap-2 text-sm font-medium text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+            class="inline-flex items-center gap-2 text-sm font-medium text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-sm"
             @click="logout"
           >
             <LogOut class="h-4 w-4" aria-hidden="true" />
@@ -522,7 +514,7 @@ async function logout(): Promise<void> {
 
       <!-- Change password form -->
       <form
-        class="mt-8 space-y-6 rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
+        class="mt-4 sm:mt-8 space-y-4 sm:space-y-6 rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
         @submit.prevent="savePassword"
       >
         <div>
@@ -543,11 +535,13 @@ async function logout(): Promise<void> {
             v-model="currentPassword"
             type="password"
             autocomplete="current-password"
-            class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+            :aria-invalid="Boolean(passwordError)"
+            :aria-describedby="passwordError ? 'profile-password-error' : undefined"
+            class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
           />
         </div>
 
-        <div class="grid gap-6 sm:grid-cols-2">
+        <div class="grid gap-4 sm:gap-6 sm:grid-cols-2">
           <div>
             <label for="profile-new-password" class="mb-1.5 block text-sm font-semibold text-neutral-800 dark:text-neutral-200">
               New Password
@@ -557,7 +551,9 @@ async function logout(): Promise<void> {
               v-model="newPassword"
               type="password"
               autocomplete="new-password"
-              class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+              :aria-invalid="Boolean(passwordError)"
+              :aria-describedby="passwordError ? 'profile-password-error' : undefined"
+              class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
             />
           </div>
           <div>
@@ -569,14 +565,24 @@ async function logout(): Promise<void> {
               v-model="confirmPassword"
               type="password"
               autocomplete="new-password"
-              class="h-11 w-full rounded-2xl border-neutral-300 bg-white px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+              :aria-invalid="Boolean(passwordError)"
+              :aria-describedby="passwordError ? 'profile-password-error' : undefined"
+              class="h-11 w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
             />
           </div>
         </div>
 
-        <p v-if="passwordError" class="text-sm font-medium text-rose-500">{{ passwordError }}</p>
+        <p
+          v-if="passwordError"
+          id="profile-password-error"
+          role="alert"
+          aria-live="assertive"
+          class="text-sm font-medium text-rose-500"
+        >
+          {{ passwordError }}
+        </p>
 
-        <div class="flex items-center gap-4 border-t border-neutral-100 pt-5 dark:border-neutral-800">
+        <div class="flex items-center gap-3 sm:gap-4 border-t border-neutral-100 pt-4 sm:pt-5 dark:border-neutral-800">
           <BaseButton type="submit" size="md" :disabled="passwordSaving || isLimited">
             {{ passwordSaving ? 'Saving…' : isLimited ? `Try again in ${retryAfter}s` : passwordSaved ? 'Password updated' : 'Update password' }}
           </BaseButton>
@@ -584,11 +590,11 @@ async function logout(): Promise<void> {
       </form>
 
       <!-- View public profile link -->
-      <div class="mt-6 flex justify-end">
+      <div class="mt-4 sm:mt-6 flex justify-end">
         <RouterLink
           v-if="auth.user?.username"
           :to="`/author/${auth.user.username}`"
-          class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-sm"
         >
           View public author profile
           <ExternalLink class="h-3.5 w-3.5" aria-hidden="true" />

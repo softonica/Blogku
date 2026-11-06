@@ -1,11 +1,231 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tests"
 )
+
+func createHookTestCategory(t *testing.T, app core.App, name string) string {
+	t.Helper()
+
+	col, err := app.FindCollectionByNameOrId("categories")
+	if err != nil {
+		t.Fatalf("find categories collection: %v", err)
+	}
+	rec := core.NewRecord(col)
+	rec.Set("name", name)
+	rec.Set("slug", slugify(name)+"-"+randomID())
+	rec.Set("postCount", 0)
+	if err := app.Save(rec); err != nil {
+		t.Fatalf("create category: %v", err)
+	}
+	return rec.Id
+}
+
+func createHookTestPost(t *testing.T, app core.App, title, status string, categoryIDs []string) *core.Record {
+	t.Helper()
+
+	col, err := app.FindCollectionByNameOrId("posts")
+	if err != nil {
+		t.Fatalf("find posts collection: %v", err)
+	}
+	users, err := app.FindRecordsByFilter(collectionUsers, "", "", 1, 0)
+	if err != nil || len(users) == 0 {
+		t.Fatalf("find seed author: %v (users=%d)", err, len(users))
+	}
+
+	rec := core.NewRecord(col)
+	rec.Set("title", title)
+	rec.Set("slug", slugify(title)+"-"+randomID())
+	rec.Set("excerpt", "An excerpt that is long enough to pass validation.")
+	rec.Set("content", "<p>Body</p>")
+	rec.Set("status", status)
+	rec.Set("author", users[0].Id)
+	rec.Set("categories", categoryIDs)
+	if err := app.Save(rec); err != nil {
+		t.Fatalf("create post: %v", err)
+	}
+	return rec
+}
+
+func assertCategoryCount(t *testing.T, app core.App, id string, want int64) {
+	t.Helper()
+
+	cat, err := app.FindRecordById("categories", id)
+	if err != nil {
+		t.Fatalf("find category %s: %v", id, err)
+	}
+	if got := cat.GetInt64("postCount"); got != want {
+		t.Errorf("category %s postCount = %d, want %d", id, got, want)
+	}
+}
+
+func TestRecomputeAllCategoryCountsCountsPublishedPosts(t *testing.T) {
+	app := newTestAppWithBootstrap(t)
+
+	c1 := createHookTestCategory(t, app, "Tech")
+	c2 := createHookTestCategory(t, app, "Travel")
+
+	createHookTestPost(t, app, "Published one", "published", []string{c1})
+	createHookTestPost(t, app, "Published two", "published", []string{c1, c2})
+	createHookTestPost(t, app, "Draft one", "draft", []string{c1})
+
+	if err := recomputeAllCategoryCounts(app); err != nil {
+		t.Fatalf("recomputeAllCategoryCounts: %v", err)
+	}
+
+	assertCategoryCount(t, app, c1, 2)
+	assertCategoryCount(t, app, c2, 1)
+}
+
+func TestPostHooksKeepCategoryCountsInSync(t *testing.T) {
+	app := newTestAppWithBootstrap(t)
+	registerPostHooks(app)
+
+	// The default PocketBase test app enables MFA on the users auth
+	// collection; disable it so the seeded admin can log in directly.
+	usersCol, err := app.FindCollectionByNameOrId("users")
+	if err != nil {
+		t.Fatalf("find users collection: %v", err)
+	}
+	usersCol.MFA.Enabled = false
+	if err := app.Save(usersCol); err != nil {
+		t.Fatalf("disable MFA: %v", err)
+	}
+
+	token := loginAdminToken(t, app)
+
+	c1 := createHookTestCategory(t, app, "Tech")
+	c2 := createHookTestCategory(t, app, "Travel")
+
+	// create published post -> Tech = 1
+	body := fmt.Sprintf(
+		`{"title":"Hello world","excerpt":"An excerpt that is long enough to pass validation.","content":"<p>Body</p>","status":"published","categories":["%s"]}`,
+		c1,
+	)
+	res, resBody := apiRequest(t, app, http.MethodPost, "/api/collections/posts/records", token, strings.NewReader(body))
+	if res.StatusCode != 200 {
+		t.Fatalf("create post: status=%d body=%s", res.StatusCode, resBody)
+	}
+	assertCategoryCount(t, app, c1, 1)
+	assertCategoryCount(t, app, c2, 0)
+
+	var created struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal([]byte(resBody), &created); err != nil {
+		t.Fatalf("parse create response: %v (body=%s)", err, resBody)
+	}
+
+	// a draft post must not affect the counters
+	draftBody := fmt.Sprintf(
+		`{"title":"Draft draft","excerpt":"An excerpt that is long enough to pass validation.","content":"<p>Body</p>","status":"draft","categories":["%s"]}`,
+		c1,
+	)
+	res, resBody = apiRequest(t, app, http.MethodPost, "/api/collections/posts/records", token, strings.NewReader(draftBody))
+	if res.StatusCode != 200 {
+		t.Fatalf("create draft: status=%d body=%s", res.StatusCode, resBody)
+	}
+	assertCategoryCount(t, app, c1, 1)
+
+	// update -> move to Travel
+	res, resBody = apiRequest(
+		t, app,
+		http.MethodPatch,
+		"/api/collections/posts/records/"+created.ID,
+		token,
+		strings.NewReader(fmt.Sprintf(`{"categories":["%s"]}`, c2)),
+	)
+	if res.StatusCode != 200 {
+		t.Fatalf("update post: status=%d body=%s", res.StatusCode, resBody)
+	}
+	assertCategoryCount(t, app, c1, 0)
+	assertCategoryCount(t, app, c2, 1)
+
+	// delete -> all zero
+	res, resBody = apiRequest(t, app, http.MethodDelete, "/api/collections/posts/records/"+created.ID, token, nil)
+	if res.StatusCode != 204 {
+		t.Fatalf("delete post: status=%d body=%s", res.StatusCode, resBody)
+	}
+	assertCategoryCount(t, app, c1, 0)
+	assertCategoryCount(t, app, c2, 0)
+}
+
+func apiRequest(t *testing.T, app core.App, method, path, token string, body io.Reader) (*http.Response, string) {
+	t.Helper()
+
+	baseRouter, err := apis.NewRouter(app)
+	if err != nil {
+		t.Fatalf("new router: %v", err)
+	}
+
+	serveEvent := &core.ServeEvent{App: app, Router: baseRouter}
+	var res *http.Response
+	var resBody string
+
+	err = app.OnServe().Trigger(serveEvent, func(e *core.ServeEvent) error {
+		req := httptest.NewRequest(method, path, body)
+		req.Header.Set("content-type", "application/json")
+		if token != "" {
+			req.Header.Set("Authorization", token)
+		}
+
+		mux, err := e.Router.BuildMux()
+		if err != nil {
+			return err
+		}
+
+		recorder := httptest.NewRecorder()
+		mux.ServeHTTP(recorder, req)
+
+		res = recorder.Result()
+		b, readErr := io.ReadAll(res.Body)
+		if readErr != nil {
+			return readErr
+		}
+		resBody = string(b)
+		res.Body.Close()
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("serve trigger: %v", err)
+	}
+
+	return res, resBody
+}
+
+func loginAdminToken(t *testing.T, app core.App) string {
+	t.Helper()
+
+	res, body := apiRequest(
+		t, app,
+		http.MethodPost,
+		"/api/collections/users/auth-with-password",
+		"",
+		strings.NewReader(`{"identity":"admin@blogku.com","password":"admin12345"}`),
+	)
+	if res.StatusCode != 200 {
+		t.Fatalf("admin login failed: status=%d body=%s", res.StatusCode, body)
+	}
+
+	var data struct {
+		Token string `json:"token"`
+	}
+	if err := json.Unmarshal([]byte(body), &data); err != nil {
+		t.Fatalf("parse login response: %v (body=%s)", err, body)
+	}
+
+	return "Bearer " + data.Token
+}
 
 func TestEnsureSuperuserGeneratesCredentials(t *testing.T) {
 	t.Setenv("PB_SUPERUSER_EMAIL", "")

@@ -9,6 +9,7 @@ const ui = useUiStore()
   <Teleport to="body">
     <div
       class="pointer-events-none fixed inset-x-4 bottom-4 z-[60] flex flex-col items-end gap-2 sm:inset-x-auto sm:end-6"
+      :style="{ bottom: 'calc(var(--player-dock-height, 0px) + 1rem)' }"
       role="status"
       aria-live="polite"
     >
@@ -21,7 +22,7 @@ const ui = useUiStore()
         <div
           v-for="toast in ui.toasts"
           :key="toast.id"
-          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border px-4 py-3 shadow-float"
+          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg sm:rounded-2xl border px-3 sm:px-4 py-3 shadow-float"
           :class="{
             'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100':
               toast.type === 'success',
@@ -45,7 +46,7 @@ const ui = useUiStore()
           <p class="flex-1 text-sm font-medium">{{ toast.message }}</p>
           <button
             type="button"
-            class="rounded-full p-0.5 opacity-60 hover:opacity-100"
+            class="rounded-full p-0.5 opacity-60 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Dismiss notification"
             @click="ui.dismissToast(toast.id)"
           >

@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"testing/fstest"
 )
@@ -37,6 +38,30 @@ func TestSPAHandler(t *testing.T) {
 				t.Fatalf("body = %q, want %q", rec.Body.String(), tc.want)
 			}
 		})
+	}
+}
+
+func TestSPAHandlerSetsContentSecurityPolicyOnHTML(t *testing.T) {
+	fsys := fstest.MapFS{
+		"index.html":    {Data: []byte("<html></html>")},
+		"assets/app.js": {Data: []byte("console.log('x')")},
+	}
+	h := newSPAHandler(fsys, spaVars{})
+
+	for _, path := range []string{"/", "/post/history-route"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+
+		got := rec.Header().Get("Content-Security-Policy")
+		if got == "" {
+			t.Fatalf("%s: missing Content-Security-Policy header", path)
+		}
+		for _, want := range []string{"default-src 'self'", "'wasm-unsafe-eval'", "object-src 'none'"} {
+			if !strings.Contains(got, want) {
+				t.Fatalf("%s: CSP %q does not contain %q", path, got, want)
+			}
+		}
 	}
 }
 

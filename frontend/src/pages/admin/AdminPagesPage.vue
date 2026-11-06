@@ -59,22 +59,22 @@ async function save(item: EditablePage): Promise<void> {
 }
 
 const inputClass =
-  'w-full rounded-2xl border-neutral-300 bg-white text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900'
+  'w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900'
 </script>
 
 <template>
-  <div class="pb-10">
+  <div class="pb-8 sm:pb-10">
     <div v-if="loading" class="flex justify-center py-20">
       <LoadingSpinner />
     </div>
 
-    <div v-else class="space-y-8">
+    <div v-else class="space-y-6 sm:space-y-8">
       <div
         v-for="item in items"
         :key="item.slug"
-        class="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
+        class="rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
       >
-        <div class="mb-5 flex items-center justify-between gap-4">
+        <div class="mb-4 sm:mb-5 flex items-center justify-between gap-3 sm:gap-4">
           <h2 class="text-xl font-bold capitalize text-neutral-900 dark:text-white">
             {{ item.slug }}
           </h2>
@@ -95,7 +95,7 @@ const inputClass =
           </BaseButton>
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-3 sm:space-y-4">
           <div>
             <label :for="`page-title-${item.slug}`" class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
               Title

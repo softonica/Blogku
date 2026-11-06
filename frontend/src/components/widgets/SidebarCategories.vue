@@ -7,16 +7,16 @@ defineProps<{ categories: Category[] }>()
 
 <template>
   <div
-    class="rounded-3xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900"
+    class="rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-6 dark:border-neutral-800 dark:bg-neutral-900"
   >
     <h3 class="text-sm font-bold uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">
       Categories
     </h3>
-    <ul class="mt-4 space-y-1">
+    <ul class="mt-3 sm:mt-4 space-y-1">
       <li v-for="category in categories" :key="category.id">
         <RouterLink
           :to="`/category/${category.slug}`"
-          class="group flex items-center justify-between rounded-2xl px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 hover:text-primary-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-primary-300"
+          class="group flex items-center justify-between rounded-lg sm:rounded-2xl px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 hover:text-primary-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-primary-300"
         >
           {{ category.name }}
           <ChevronRight

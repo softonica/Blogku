@@ -21,6 +21,14 @@ export function formatNumber(value: number): string {
   }).format(value)
 }
 
+export function formatDuration(totalSeconds: number): string {
+  if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) return '0:00'
+  const seconds = Math.floor(totalSeconds)
+  const minutes = Math.floor(seconds / 60)
+  const remainder = seconds % 60
+  return `${minutes}:${remainder.toString().padStart(2, '0')}`
+}
+
 export function readingTime(html: string): number {
   const text = stripHtml(html).replace(/\s+/g, ' ').trim()
   if (!text) return 1

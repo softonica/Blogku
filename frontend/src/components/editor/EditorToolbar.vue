@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { onClickOutside, useMediaQuery } from '@vueuse/core'
 import type { Editor } from '@tiptap/vue-3'
 import { useEditorSettingsStore } from '@/stores/editor-settings'
 import {
@@ -10,6 +11,7 @@ import {
   Code,
   Heading2,
   Heading3,
+  Heading4,
   Image,
   Italic,
   Link2,
@@ -48,6 +50,60 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
 const emojiOpen = ref(false)
 
+const TABLE_MAX = 8
+const tableMenuRef = ref<HTMLElement | null>(null)
+const tablePanelRef = ref<HTMLElement | null>(null)
+const tableMenuOpen = ref(false)
+const hoveredRows = ref(3)
+const hoveredCols = ref(3)
+const tableCells = Array.from({ length: TABLE_MAX * TABLE_MAX }, (_, index) => index)
+const isMobileTableMenu = useMediaQuery('(max-width: 639px)')
+
+const hasTable = computed(() => props.editor?.isActive('table') ?? false)
+
+const tableStyles = [
+  { value: 'classic', label: 'Classic' },
+  { value: 'striped', label: 'Striped' },
+  { value: 'minimal', label: 'Minimal' },
+] as const
+
+type TableStyle = (typeof tableStyles)[number]['value']
+
+function isTableStyle(style: TableStyle): boolean {
+  return (props.editor?.getAttributes('table').tableStyle ?? 'classic') === style
+}
+
+function setTableStyle(style: TableStyle): void {
+  if (!props.editor) return
+  props.editor.chain().focus().updateAttributes('table', { tableStyle: style }).run()
+}
+
+onClickOutside(
+  tableMenuRef,
+  () => {
+    tableMenuOpen.value = false
+  },
+  { ignore: [tablePanelRef] },
+)
+
+function tableRowFor(index: number): number {
+  return Math.floor(index / TABLE_MAX) + 1
+}
+
+function tableColFor(index: number): number {
+  return (index % TABLE_MAX) + 1
+}
+
+function setTableHover(index: number): void {
+  hoveredRows.value = tableRowFor(index)
+  hoveredCols.value = tableColFor(index)
+}
+
+function resetTableHover(): void {
+  hoveredRows.value = 3
+  hoveredCols.value = 3
+}
+
 const emojis = [
   '😀', '😂', '😍', '👍', '🎉', '🔥', '❤️', '✨',
   '🚀', '👏', '🤔', '😅', '🙏', '💡', '🌟', '🥳',
@@ -80,18 +136,56 @@ function setAlign(align: 'left' | 'center' | 'right'): void {
   props.editor.chain().focus().setTextAlign(align).run()
 }
 
-function insertTable(): void {
+function insertTable(rows: number, cols: number): void {
   if (!props.editor) return
-  props.editor
-    .chain()
-    .focus()
-    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-    .run()
+  props.editor.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run()
+  tableMenuOpen.value = false
 }
 
-function deleteTable(): void {
+function insertTableFromIndex(index: number): void {
+  insertTable(tableRowFor(index), tableColFor(index))
+}
+
+function tableCommand(
+  command:
+    | 'addRowBefore'
+    | 'addRowAfter'
+    | 'deleteRow'
+    | 'toggleHeaderRow'
+    | 'addColumnBefore'
+    | 'addColumnAfter'
+    | 'deleteColumn'
+    | 'deleteTable',
+): void {
   if (!props.editor) return
-  props.editor.chain().focus().deleteTable().run()
+  const chain = props.editor.chain().focus()
+  switch (command) {
+    case 'addRowBefore':
+      chain.addRowBefore().run()
+      break
+    case 'addRowAfter':
+      chain.addRowAfter().run()
+      break
+    case 'deleteRow':
+      chain.deleteRow().run()
+      break
+    case 'toggleHeaderRow':
+      chain.toggleHeaderRow().run()
+      break
+    case 'addColumnBefore':
+      chain.addColumnBefore().run()
+      break
+    case 'addColumnAfter':
+      chain.addColumnAfter().run()
+      break
+    case 'deleteColumn':
+      chain.deleteColumn().run()
+      break
+    case 'deleteTable':
+      chain.deleteTable().run()
+      tableMenuOpen.value = false
+      break
+  }
 }
 
 async function insertImageUrl(): Promise<void> {
@@ -153,12 +247,16 @@ async function onFileSelected(event: Event): Promise<void> {
   <div
     v-if="editor"
     class="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-t-2xl border-b border-neutral-200 bg-neutral-50/95 p-2 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/95"
+    role="toolbar"
+    aria-label="Rich text editor toolbar"
+    @keydown.esc="tableMenuOpen = false; emojiOpen = false"
   >
     <input
       ref="fileInput"
       type="file"
       accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
       class="sr-only"
+      aria-label="Upload image"
       :disabled="uploading"
       @change="onFileSelected"
     />
@@ -190,6 +288,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Heading 2"
         aria-label="Heading 2"
+        :aria-pressed="editor.isActive('heading', { level: 2 })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
         @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
@@ -200,11 +299,23 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Heading 3"
         aria-label="Heading 3"
+        :aria-pressed="editor.isActive('heading', { level: 3 })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
         @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
       >
         <Heading3 class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        title="Heading 4"
+        aria-label="Heading 4"
+        :aria-pressed="editor.isActive('heading', { level: 4 })"
+        class="toolbar-btn"
+        :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }"
+        @click="editor.chain().focus().toggleHeading({ level: 4 }).run()"
+      >
+        <Heading4 class="h-4 w-4" aria-hidden="true" />
       </button>
     </template>
 
@@ -214,6 +325,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Bold"
         aria-label="Bold"
+        :aria-pressed="editor.isActive('bold')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('bold') }"
         @click="editor.chain().focus().toggleBold().run()"
@@ -224,6 +336,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Italic"
         aria-label="Italic"
+        :aria-pressed="editor.isActive('italic')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('italic') }"
         @click="editor.chain().focus().toggleItalic().run()"
@@ -234,6 +347,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Strikethrough"
         aria-label="Strikethrough"
+        :aria-pressed="editor.isActive('strike')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('strike') }"
         @click="editor.chain().focus().toggleStrike().run()"
@@ -244,6 +358,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Inline Code"
         aria-label="Inline Code"
+        :aria-pressed="editor.isActive('code')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('code') }"
         @click="editor.chain().focus().toggleCode().run()"
@@ -258,6 +373,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Bullet List"
         aria-label="Bullet List"
+        :aria-pressed="editor.isActive('bulletList')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('bulletList') }"
         @click="editor.chain().focus().toggleBulletList().run()"
@@ -268,6 +384,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Numbered List"
         aria-label="Numbered List"
+        :aria-pressed="editor.isActive('orderedList')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('orderedList') }"
         @click="editor.chain().focus().toggleOrderedList().run()"
@@ -282,6 +399,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Blockquote"
         aria-label="Blockquote"
+        :aria-pressed="editor.isActive('blockquote')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('blockquote') }"
         @click="editor.chain().focus().toggleBlockquote().run()"
@@ -310,6 +428,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         :title="editor.isActive('link') ? 'Remove Link' : 'Add Link'"
         :aria-label="editor.isActive('link') ? 'Remove Link' : 'Add Link'"
+        :aria-pressed="editor.isActive('link')"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive('link') }"
         @click="toggleLink"
@@ -343,6 +462,7 @@ async function onFileSelected(event: Event): Promise<void> {
           type="button"
           title="Insert Emoji"
           aria-label="Insert Emoji"
+          :aria-expanded="emojiOpen"
           class="toolbar-btn"
           :class="{ 'is-active': emojiOpen }"
           @click="emojiOpen = !emojiOpen"
@@ -351,13 +471,13 @@ async function onFileSelected(event: Event): Promise<void> {
         </button>
         <div
           v-if="emojiOpen"
-          class="absolute end-0 top-full z-20 mt-2 grid w-44 grid-cols-4 gap-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
+          class="absolute end-0 top-full z-20 mt-2 grid w-44 grid-cols-4 gap-1 rounded-lg sm:rounded-2xl border border-neutral-200 bg-white p-2 shadow-float dark:border-neutral-800 dark:bg-neutral-900"
         >
           <button
             v-for="emoji in emojis"
             :key="emoji"
             type="button"
-            class="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            class="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition hover:bg-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             @click="insertEmoji(emoji)"
           >
             {{ emoji }}
@@ -372,6 +492,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Align Left"
         aria-label="Align Left"
+        :aria-pressed="editor.isActive({ textAlign: 'left' })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }"
         @click="setAlign('left')"
@@ -382,6 +503,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Align Center"
         aria-label="Align Center"
+        :aria-pressed="editor.isActive({ textAlign: 'center' })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }"
         @click="setAlign('center')"
@@ -392,6 +514,7 @@ async function onFileSelected(event: Event): Promise<void> {
         type="button"
         title="Align Right"
         aria-label="Align Right"
+        :aria-pressed="editor.isActive({ textAlign: 'right' })"
         class="toolbar-btn"
         :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }"
         @click="setAlign('right')"
@@ -402,26 +525,137 @@ async function onFileSelected(event: Event): Promise<void> {
 
     <template v-if="editorSettings.settings.showTable">
       <span class="toolbar-divider" />
-      <button
-        v-if="!editor.isActive('table')"
-        type="button"
-        title="Insert Table"
-        aria-label="Insert Table"
-        class="toolbar-btn"
-        @click="insertTable"
-      >
-        <Table class="h-4 w-4" aria-hidden="true" />
-      </button>
-      <button
-        v-else
-        type="button"
-        title="Delete Table"
-        aria-label="Delete Table"
-        class="toolbar-btn"
-        @click="deleteTable"
-      >
-        <Trash2 class="h-4 w-4 text-rose-500" aria-hidden="true" />
-      </button>
+      <div ref="tableMenuRef" class="relative">
+        <button
+          type="button"
+          title="Table"
+          aria-label="Table"
+          aria-haspopup="menu"
+          :aria-expanded="tableMenuOpen"
+          class="toolbar-btn"
+          :class="{ 'is-active': tableMenuOpen || editor.isActive('table') }"
+          @click="tableMenuOpen = !tableMenuOpen"
+        >
+          <Table class="h-4 w-4" aria-hidden="true" />
+        </button>
+
+        <Teleport to="body" :disabled="!isMobileTableMenu">
+          <div
+            v-if="tableMenuOpen"
+            :class="
+              isMobileTableMenu
+                ? 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4'
+                : 'absolute end-0 top-full z-20 mt-2'
+            "
+            @click.self="tableMenuOpen = false"
+          >
+            <div
+              ref="tablePanelRef"
+              :class="[
+                'rounded-lg sm:rounded-2xl border border-neutral-200 bg-white shadow-float dark:border-neutral-800 dark:bg-neutral-900',
+                isMobileTableMenu
+                  ? 'max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto p-4'
+                  : 'w-64 p-3',
+              ]"
+              role="menu"
+            >
+          <div class="mb-2 flex items-center justify-between gap-2">
+            <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-200">Insert table</span>
+            <span class="text-xs font-medium text-primary-600 dark:text-primary-400">
+              {{ hoveredRows }} × {{ hoveredCols }}
+            </span>
+          </div>
+
+          <div
+            class="mx-auto grid w-fit grid-cols-8 gap-1"
+            @mouseleave="resetTableHover"
+          >
+            <button
+              v-for="cell in tableCells"
+              :key="cell"
+              type="button"
+              :title="`${tableRowFor(cell)} rows × ${tableColFor(cell)} columns`"
+              :aria-label="`Insert ${tableRowFor(cell)} rows by ${tableColFor(cell)} columns table`"
+              class="h-5 w-5 rounded border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              :class="
+                tableRowFor(cell) <= hoveredRows && tableColFor(cell) <= hoveredCols
+                  ? 'border-primary-500 bg-primary-500'
+                  : 'border-neutral-300 bg-neutral-50 hover:border-primary-300 dark:border-neutral-700 dark:bg-neutral-800'
+              "
+              @mouseenter="setTableHover(cell)"
+              @focus="setTableHover(cell)"
+              @click="insertTableFromIndex(cell)"
+            />
+          </div>
+
+          <div class="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-800">
+            <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+              Style
+            </p>
+            <div class="grid grid-cols-3 gap-1">
+              <button
+                v-for="style in tableStyles"
+                :key="style.value"
+                type="button"
+                class="table-menu-btn text-center"
+                :class="{ 'is-active': isTableStyle(style.value) }"
+                :disabled="!hasTable"
+                @click="setTableStyle(style.value)"
+              >
+                {{ style.label }}
+              </button>
+            </div>
+
+            <p class="mb-1 mt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+              Rows
+            </p>
+            <div class="grid grid-cols-2 gap-1">
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('addRowBefore')">
+                + Row above
+              </button>
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('addRowAfter')">
+                + Row below
+              </button>
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('deleteRow')">
+                − Delete row
+              </button>
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('toggleHeaderRow')">
+                Toggle header
+              </button>
+            </div>
+
+            <p class="mb-1 mt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+              Columns
+            </p>
+            <div class="grid grid-cols-2 gap-1">
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('addColumnBefore')">
+                + Column left
+              </button>
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('addColumnAfter')">
+                + Column right
+              </button>
+              <button type="button" class="table-menu-btn" :disabled="!hasTable" @click="tableCommand('deleteColumn')">
+                − Delete column
+              </button>
+              <button
+                type="button"
+                class="table-menu-btn flex items-center justify-center gap-1 text-rose-600 dark:text-rose-400"
+                :disabled="!hasTable"
+                @click="tableCommand('deleteTable')"
+              >
+                <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />
+                Delete table
+              </button>
+            </div>
+
+            <p v-if="!hasTable" class="mt-2 text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500">
+              Masukkan tabel dulu untuk mengubah style, baris, dan kolomnya.
+            </p>
+          </div>
+            </div>
+          </div>
+        </Teleport>
+      </div>
     </template>
   </div>
 </template>
@@ -430,7 +664,7 @@ async function onFileSelected(event: Event): Promise<void> {
 @reference "../../styles/main.css";
 
 .toolbar-btn {
-  @apply flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 transition hover:bg-neutral-200 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-white;
+  @apply flex h-8 w-8 items-center justify-center rounded-lg text-neutral-600 transition hover:bg-neutral-200 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
 }
 
 .toolbar-btn.is-active {
@@ -439,5 +673,17 @@ async function onFileSelected(event: Event): Promise<void> {
 
 .toolbar-divider {
   @apply mx-1 h-5 w-px bg-neutral-200 dark:bg-neutral-800;
+}
+
+.table-menu-btn {
+  @apply rounded-lg px-2 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500;
+}
+
+.table-menu-btn:disabled {
+  @apply cursor-not-allowed opacity-40 hover:bg-transparent dark:hover:bg-transparent;
+}
+
+.table-menu-btn.is-active {
+  @apply bg-primary-100 text-primary-700 ring-1 ring-primary-400 dark:bg-primary-900/60 dark:text-primary-300 dark:ring-primary-600;
 }
 </style>

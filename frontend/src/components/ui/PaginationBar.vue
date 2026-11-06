@@ -39,8 +39,9 @@ function go(page: number): void {
   >
     <button
       type="button"
-      class="inline-flex h-10 items-center gap-1 rounded-full border border-neutral-200 px-4 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-800 dark:text-neutral-300 dark:hover:text-white"
+      class="inline-flex h-10 items-center gap-1 rounded-full border border-neutral-200 px-3 sm:px-4 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-800 dark:text-neutral-300 dark:hover:text-white"
       :disabled="page <= 1"
+      aria-label="Previous page"
       @click="go(page - 1)"
     >
       <ChevronLeft class="h-4 w-4" aria-hidden="true" />
@@ -50,18 +51,20 @@ function go(page: number): void {
       <span
         v-if="item === 'gap'"
         class="px-2 text-sm text-neutral-500 dark:text-neutral-400"
+        aria-hidden="true"
       >
         …
       </span>
       <button
         v-else
         type="button"
-        class="h-10 min-w-10 rounded-full px-3 text-sm font-semibold transition"
+        class="h-10 min-w-10 rounded-full px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         :class="
           item === page
             ? 'bg-primary-600 text-white dark:bg-primary-500 dark:text-neutral-950'
             : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
         "
+        :aria-label="`Page ${item}`"
         :aria-current="item === page ? 'page' : undefined"
         @click="go(item)"
       >
@@ -70,8 +73,9 @@ function go(page: number): void {
     </template>
     <button
       type="button"
-      class="inline-flex h-10 items-center gap-1 rounded-full border border-neutral-200 px-4 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-800 dark:text-neutral-300 dark:hover:text-white"
+      class="inline-flex h-10 items-center gap-1 rounded-full border border-neutral-200 px-3 sm:px-4 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-800 dark:text-neutral-300 dark:hover:text-white"
       :disabled="page >= totalPages"
+      aria-label="Next page"
       @click="go(page + 1)"
     >
       Next

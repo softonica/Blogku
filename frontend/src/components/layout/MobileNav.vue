@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { onBeforeUnmount, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Home, Search, X } from 'lucide-vue-next'
 import type { Category } from '@/api/types'
@@ -22,6 +22,20 @@ function goSearch(): void {
   ui.closeMobileNav()
   ui.openSearch()
 }
+
+function onKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && ui.mobileNavOpen) {
+    ui.closeMobileNav()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <template>
@@ -31,28 +45,29 @@ function goSearch(): void {
       class="fixed inset-0 z-50 bg-neutral-950/60 backdrop-blur-sm lg:hidden"
       role="dialog"
       aria-modal="true"
-      aria-label="Navigation"
+      aria-label="Mobile navigation"
       @click.self="ui.closeMobileNav()"
     >
       <aside
-        class="absolute inset-y-0 start-0 flex w-[min(22rem,90vw)] flex-col overflow-y-auto border-e border-neutral-200 bg-white p-5 shadow-float dark:border-neutral-800 dark:bg-neutral-950"
+        id="mobile-nav"
+        class="absolute inset-y-0 start-0 flex w-[min(22rem,90vw)] flex-col overflow-y-auto border-e border-neutral-200 bg-white p-4 sm:p-5 shadow-float dark:border-neutral-800 dark:bg-neutral-950"
       >
         <div class="flex items-center justify-between">
           <Brand />
           <button
-              type="button"
-              class="inline-flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-              aria-label="Close menu"
-              @click="ui.closeMobileNav()"
-            >
-              <X class="h-5 w-5" aria-hidden="true" />
-            </button>
+            type="button"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            aria-label="Close menu"
+            @click="ui.closeMobileNav()"
+          >
+            <X class="h-5 w-5" aria-hidden="true" />
+          </button>
         </div>
 
-        <nav class="mt-5 space-y-1">
+        <nav class="mt-4 sm:mt-5 space-y-1" aria-label="Mobile main navigation">
           <RouterLink
             to="/"
-            class="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 dark:text-neutral-100 dark:hover:bg-neutral-900"
+            class="flex items-center gap-3 rounded-lg sm:rounded-2xl px-3 py-2.5 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-100 dark:hover:bg-neutral-900"
             @click="ui.closeMobileNav()"
           >
             <Home class="h-4 w-4" aria-hidden="true" />
@@ -60,7 +75,7 @@ function goSearch(): void {
           </RouterLink>
           <button
             type="button"
-            class="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-start text-sm font-semibold text-neutral-800 hover:bg-neutral-50 dark:text-neutral-100 dark:hover:bg-neutral-900"
+            class="flex w-full items-center gap-3 rounded-lg sm:rounded-2xl px-3 py-2.5 text-start text-sm font-semibold text-neutral-800 transition hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-100 dark:hover:bg-neutral-900"
             @click="goSearch"
           >
             <Search class="h-4 w-4" aria-hidden="true" />
@@ -68,16 +83,16 @@ function goSearch(): void {
           </button>
         </nav>
 
-        <div class="mt-6 border-t border-neutral-100 pt-5 dark:border-neutral-800">
+        <div class="mt-4 sm:mt-6 border-t border-neutral-100 pt-4 sm:pt-5 dark:border-neutral-800">
           <p class="px-3 text-xs font-bold uppercase tracking-[0.18em] text-neutral-400">
             Categories
           </p>
-          <div class="mt-2 grid grid-cols-2 gap-1">
+          <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-1">
             <RouterLink
               v-for="category in categories"
               :key="category.id"
               :to="`/category/${category.slug}`"
-              class="rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50 hover:text-primary-700 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-primary-300"
+              class="rounded-lg sm:rounded-xl px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-50 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-primary-300"
               @click="ui.closeMobileNav()"
             >
               {{ category.name }}

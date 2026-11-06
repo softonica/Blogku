@@ -250,9 +250,9 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
 </script>
 
 <template>
-  <div class="pb-10">
-    <div class="mx-auto max-w-[1500px] space-y-6">
-      <section class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div class="pb-8 sm:pb-10">
+    <div class="mx-auto max-w-[1500px] space-y-4 sm:space-y-6">
+      <section class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-300">
             Admin console
@@ -267,14 +267,14 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
         <div class="flex flex-wrap items-center gap-2">
           <RouterLink
             to="/admin/moderation"
-            class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 text-xs font-semibold text-neutral-700 transition hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-neutral-600"
+            class="inline-flex h-10 items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 sm:px-4 text-xs font-semibold text-neutral-700 transition hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-neutral-600"
           >
             <MessageCircle class="h-4 w-4" aria-hidden="true" />
             Moderate ({{ comments.length }})
           </RouterLink>
           <RouterLink
             to="/editor"
-            class="inline-flex h-10 items-center gap-2 rounded-full bg-neutral-900 px-4 text-xs font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+            class="inline-flex h-10 items-center gap-2 rounded-full bg-neutral-900 px-3 sm:px-4 text-xs font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
           >
             <PenLine class="h-4 w-4" aria-hidden="true" />
             New post
@@ -287,11 +287,11 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
       </div>
 
       <template v-else>
-        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Content metrics">
+        <section class="grid gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Content metrics">
           <article
             v-for="card in metricCards"
             :key="card.key"
-            class="relative overflow-hidden rounded-3xl bg-gradient-to-br p-5 text-white shadow-lg shadow-neutral-900/5"
+            class="relative overflow-hidden rounded-xl sm:rounded-3xl bg-gradient-to-br p-4 sm:p-5 text-white shadow-lg shadow-neutral-900/5"
             :class="card.gradient"
           >
             <span class="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/15 blur-2xl" />
@@ -315,11 +315,11 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
                 <component :is="card.icon" class="h-5 w-5 shrink-0 text-white/80" aria-hidden="true" />
               </div>
 
-              <p class="mt-4 text-sm font-semibold text-white/90">{{ card.label }}</p>
+              <p class="mt-3 sm:mt-4 text-sm font-semibold text-white/90">{{ card.label }}</p>
               <p class="mt-0.5 text-2xl font-black tracking-tight">{{ card.value }}</p>
               <p class="mt-0.5 text-[11px] font-medium text-white/70">{{ card.caption }}</p>
 
-              <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-white/20">
+              <div class="mt-3 sm:mt-4 h-1.5 overflow-hidden rounded-full bg-white/20">
                 <div
                   class="h-full rounded-full bg-white/85 transition-all duration-500"
                   :style="{ width: `${card.progress}%` }"
@@ -330,7 +330,7 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
         </section>
 
         <section
-          class="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-neutral-800 dark:bg-neutral-900"
+          class="rounded-xl sm:rounded-3xl border border-neutral-200/80 bg-white p-4 shadow-sm sm:p-6 dark:border-neutral-800 dark:bg-neutral-900"
         >
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -350,11 +350,11 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
             </RouterLink>
           </div>
 
-          <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div class="mt-4 sm:mt-5 grid gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div
               v-for="column in boardColumns"
               :key="column.key"
-              class="rounded-2xl bg-neutral-50/80 p-3 dark:bg-neutral-950/50"
+              class="rounded-lg sm:rounded-2xl bg-neutral-50/80 p-3 dark:bg-neutral-950/50"
             >
               <div class="flex items-center justify-between px-1 pb-3">
                 <div class="flex items-center gap-2">
@@ -375,7 +375,7 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
                   v-for="post in column.items"
                   :key="`${column.key}-${post.id}`"
                   :to="postLink(post)"
-                  class="group block rounded-2xl border border-neutral-200/80 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+                  class="group block rounded-lg sm:rounded-2xl border border-neutral-200/80 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
                 >
                   <div class="flex items-center justify-between gap-2">
                     <span
@@ -424,7 +424,7 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
 
                 <p
                   v-if="!column.items.length"
-                  class="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-[11px] text-neutral-400 dark:border-neutral-800 dark:text-neutral-500"
+                  class="rounded-lg sm:rounded-xl border border-dashed border-neutral-200 px-3 py-4 sm:py-6 text-center text-[11px] text-neutral-400 dark:border-neutral-800 dark:text-neutral-500"
                 >
                   Nothing here yet.
                 </p>
@@ -433,14 +433,14 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
           </div>
         </section>
 
-        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <section class="grid gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
           <div
-            class="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm sm:p-6 dark:border-neutral-800 dark:bg-neutral-900"
+            class="rounded-xl sm:rounded-3xl border border-neutral-200/80 bg-white p-4 shadow-sm sm:p-6 dark:border-neutral-800 dark:bg-neutral-900"
           >
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div class="flex items-center gap-2.5">
                 <span
-                  class="grid h-9 w-9 place-items-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"
+                  class="grid h-9 w-9 place-items-center rounded-lg sm:rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"
                 >
                   <CalendarDays class="h-4 w-4" aria-hidden="true" />
                 </span>
@@ -458,7 +458,7 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
               </span>
             </div>
 
-            <div class="mt-5 overflow-x-auto pb-2">
+            <div class="mt-4 sm:mt-5 overflow-x-auto pb-2">
               <div class="min-w-[620px]">
                 <div class="grid grid-cols-[3.25rem_repeat(7,minmax(0,1fr))] gap-1">
                   <div />
@@ -489,7 +489,7 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
                   <div
                     v-for="day in timeline.days"
                     :key="`column-${day.key}`"
-                    class="relative h-[440px] rounded-xl border-s border-neutral-100 bg-neutral-50/40 dark:border-neutral-800 dark:bg-neutral-950/30"
+                    class="relative h-[440px] rounded-lg sm:rounded-xl border-s border-neutral-100 bg-neutral-50/40 dark:border-neutral-800 dark:bg-neutral-950/30"
                   >
                     <span
                       v-for="mark in timeMarks"
@@ -502,7 +502,7 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
                       v-for="event in eventsForDay(day.key)"
                       :key="event.id"
                       :to="{ name: 'post', params: { slug: event.slug } }"
-                      class="absolute inset-x-1 z-10 overflow-hidden rounded-xl px-2 py-1.5 text-white shadow-md transition hover:brightness-110"
+                      class="absolute inset-x-1 z-10 overflow-hidden rounded-lg sm:rounded-xl px-2 py-1.5 text-white shadow-md transition hover:brightness-110"
                       :class="event.color"
                       :style="{ top: `${event.top}%`, height: '62px' }"
                     >
@@ -532,18 +532,18 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
             </div>
           </div>
 
-          <aside class="space-y-4">
+          <aside class="space-y-3 sm:space-y-4">
             <div
-              class="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+              class="rounded-xl sm:rounded-3xl border border-neutral-200/80 bg-white p-4 sm:p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
             >
               <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-neutral-500 dark:text-neutral-400">
                 Editorial reach
               </h3>
-              <dl class="mt-4 space-y-2">
+              <dl class="mt-3 sm:mt-4 space-y-2">
                 <div
                   v-for="stat in reachStats"
                   :key="stat.label"
-                  class="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5 dark:bg-neutral-950/40"
+                  class="flex items-center justify-between rounded-lg sm:rounded-xl bg-neutral-50 px-3 py-2.5 dark:bg-neutral-950/40"
                 >
                   <div class="flex items-center gap-2">
                     <component :is="stat.icon" class="h-4 w-4" :class="stat.color" aria-hidden="true" />
@@ -556,8 +556,8 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
               </dl>
             </div>
 
-            <div class="rounded-3xl bg-gradient-to-br from-violet-600 via-indigo-600 to-sky-500 p-5 text-white">
-              <span class="grid h-9 w-9 place-items-center rounded-xl bg-white/15">
+            <div class="rounded-xl sm:rounded-3xl bg-gradient-to-br from-violet-600 via-indigo-600 to-sky-500 p-4 sm:p-5 text-white">
+              <span class="grid h-9 w-9 place-items-center rounded-lg sm:rounded-xl bg-white/15">
                 <Sparkles class="h-4 w-4" aria-hidden="true" />
               </span>
               <h3 class="mt-3 text-sm font-bold">Need a hand?</h3>
@@ -566,7 +566,7 @@ const firstName = computed(() => (auth.user?.name ?? 'Admin').split(' ')[0])
               </p>
               <RouterLink
                 to="/admin/settings"
-                class="mt-4 inline-flex h-9 items-center gap-1 rounded-full bg-white px-4 text-xs font-bold text-neutral-900 transition hover:bg-white/90"
+                class="mt-3 sm:mt-4 inline-flex h-9 items-center gap-1 rounded-full bg-white px-3 sm:px-4 text-xs font-bold text-neutral-900 transition hover:bg-white/90"
               >
                 Open settings
                 <ArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />

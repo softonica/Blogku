@@ -25,7 +25,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <RouterLink to="/" class="inline-flex items-center">
+  <RouterLink
+    to="/"
+    class="inline-flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+  >
     <img
       v-if="logo"
       :src="logo"

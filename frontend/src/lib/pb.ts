@@ -6,7 +6,7 @@ function originUrl(): string {
 
 function resolveUrl(): string {
   const fromEnv = (import.meta.env.VITE_PB_URL as string | undefined)?.trim()
-  return fromEnv ?? originUrl()
+  return fromEnv || originUrl()
 }
 
 export function createPb(): PocketBase {

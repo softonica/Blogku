@@ -22,7 +22,7 @@ function selectVideo(index: number): void {
 </script>
 
 <template>
-  <div v-if="posts.length" class="nc-SectionSliderPosts relative space-y-6">
+  <div v-if="posts.length" class="nc-SectionSliderPosts relative space-y-4 sm:space-y-6">
     <div class="flex items-end justify-between">
       <div>
         <h2 class="text-2xl font-bold tracking-tight sm:text-3xl text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
@@ -34,7 +34,7 @@ function selectVideo(index: number): void {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
       <!-- Main Active Video Player -->
       <div class="lg:col-span-2 flex flex-col">
         <div class="relative aspect-video w-full overflow-hidden rounded-[32px] bg-neutral-950 shadow-lg">
@@ -42,7 +42,7 @@ function selectVideo(index: number): void {
             v-if="isPlaying && activePost.videoUrl && (activePost.videoUrl.includes('youtube.com') || activePost.videoUrl.includes('youtu.be'))"
             :src="activePost.videoUrl.replace('watch?v=', 'embed/') + '?autoplay=1'"
             class="h-full w-full"
-            title="Video player"
+            :title="activePost.title + ' video player'"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen
           ></iframe>
@@ -57,8 +57,8 @@ function selectVideo(index: number): void {
             <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
               <button
                 type="button"
-                class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-600 text-white shadow-2xl transition hover:scale-110 hover:bg-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-                aria-label="Play video"
+                class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-600 text-white shadow-2xl transition hover:scale-110 hover:bg-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                :aria-label="'Play video: ' + activePost.title"
                 @click="isPlaying = true"
               >
                 <Play class="ms-1 h-7 w-7 fill-current" aria-hidden="true" />
@@ -67,7 +67,7 @@ function selectVideo(index: number): void {
           </div>
         </div>
 
-        <div class="mt-4 flex flex-col gap-2">
+        <div class="mt-3 sm:mt-4 flex flex-col gap-2">
           <div class="flex items-center justify-between">
             <CategoryBadgeList :categories="activePost.categories" :limit="2" />
             <div class="flex items-center gap-2">
@@ -76,7 +76,10 @@ function selectVideo(index: number): void {
             </div>
           </div>
           <h3 class="text-lg sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            <RouterLink :to="`/post/${activePost.slug}`" class="hover:text-primary-600 dark:hover:text-primary-400">
+            <RouterLink
+              :to="`/post/${activePost.slug}`"
+              class="hover:text-primary-600 dark:hover:text-primary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-sm"
+            >
               {{ activePost.title }}
             </RouterLink>
           </h3>
@@ -97,20 +100,22 @@ function selectVideo(index: number): void {
         <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-400">
           Playlist ({{ posts.length }} videos)
         </h4>
-        <div class="flex flex-col gap-3 overflow-y-auto max-h-[500px] pe-1">
+        <div class="flex flex-col gap-3 overflow-y-auto max-h-[500px] pe-1" role="list">
           <button
             v-for="(post, index) in posts"
             :key="post.id"
             type="button"
+            :aria-pressed="activeIndex === index"
+            :aria-label="'Play video: ' + post.title"
             :class="[
-              'group flex items-center gap-3 rounded-2xl p-2.5 text-left transition duration-200',
+              'group flex items-center gap-3 rounded-lg sm:rounded-2xl p-2.5 text-left transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
               activeIndex === index
                 ? 'bg-primary-50 ring-2 ring-primary-500 dark:bg-primary-950/40 dark:ring-primary-400'
                 : 'hover:bg-neutral-100 dark:hover:bg-neutral-800/60',
             ]"
             @click="selectVideo(index)"
           >
-            <div class="relative aspect-video w-24 shrink-0 overflow-hidden rounded-xl bg-neutral-900">
+            <div class="relative aspect-video w-24 shrink-0 overflow-hidden rounded-lg sm:rounded-xl bg-neutral-900">
               <PostImage :src="post.cover" :alt="post.title" aspect="h-full w-full object-cover" />
               <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
                 <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-xs">
@@ -119,7 +124,7 @@ function selectVideo(index: number): void {
               </div>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="truncate text-xs font-semibold text-neutral-800 group-hover:text-primary-600 dark:text-neutral-200 dark:group-hover:text-primary-400">
+              <p class="line-clamp-2 text-xs font-semibold leading-snug text-neutral-800 group-hover:text-primary-600 dark:text-neutral-200 dark:group-hover:text-primary-400">
                 {{ post.title }}
               </p>
               <span class="mt-1 block text-[11px] text-neutral-400">

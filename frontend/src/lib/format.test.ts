@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatDate,
+  formatDuration,
   formatNumber,
   initials,
   readingTime,
@@ -53,5 +54,19 @@ describe('slugify', () => {
   it('creates url safe slugs', () => {
     expect(slugify('Héllo Wörld!')).toBe('hello-world')
     expect(slugify('  Vue 3 + PocketBase  ')).toBe('vue-3-pocketbase')
+  })
+})
+
+describe('formatDuration', () => {
+  it('formats seconds as m:ss', () => {
+    expect(formatDuration(0)).toBe('0:00')
+    expect(formatDuration(9)).toBe('0:09')
+    expect(formatDuration(65)).toBe('1:05')
+    expect(formatDuration(136.8)).toBe('2:16')
+  })
+
+  it('returns 0:00 for invalid values', () => {
+    expect(formatDuration(Number.NaN)).toBe('0:00')
+    expect(formatDuration(-5)).toBe('0:00')
   })
 })

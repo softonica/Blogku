@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Image as ImageIcon } from 'lucide-vue-next'
 import { buildSrcSet } from '@/lib/image'
 
 const props = withDefaults(
@@ -20,6 +21,8 @@ const props = withDefaults(
     height: undefined,
   },
 )
+
+const hasSrc = computed(() => Boolean(props.src?.trim()))
 
 const srcset = computed(() => buildSrcSet(props.src))
 
@@ -44,6 +47,7 @@ const computedHeight = computed(() => {
     :class="aspect"
   >
     <img
+      v-if="hasSrc"
       :src="src"
       :srcset="srcset"
       :sizes="sizes"
@@ -55,5 +59,12 @@ const computedHeight = computed(() => {
       :fetchpriority="priority ? 'high' : 'auto'"
       class="h-full w-full object-cover transition duration-500 will-change-transform group-hover:scale-[1.03]"
     />
+    <div
+      v-else
+      class="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-neutral-100 to-neutral-200 text-neutral-400 dark:from-neutral-800 dark:to-neutral-900 dark:text-neutral-500"
+    >
+      <ImageIcon class="h-8 w-8" aria-hidden="true" />
+      <span class="text-xs font-semibold uppercase tracking-wider">No image</span>
+    </div>
   </div>
 </template>

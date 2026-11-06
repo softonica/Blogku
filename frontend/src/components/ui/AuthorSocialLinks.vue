@@ -22,7 +22,7 @@ const links = computed(() => {
     { label: 'Youtube', href: s.youtube, icon: 'youtube' },
     { label: 'Tiktok', href: s.tiktok, icon: 'tiktok' },
     { label: 'Github', href: s.github, icon: 'github' },
-    { label: 'By me a coffee', href: s.buymeacoffee, icon: 'coffee' },
+    { label: 'Buy me a coffee', href: s.buymeacoffee, icon: 'coffee' },
   ]
   return arr.filter((l) => !!l.href)
 })
@@ -32,31 +32,30 @@ const tiktokPath =
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center gap-2.5" role="list">
-    <a
-      v-for="link in links"
-      :key="link.icon"
-      :href="link.href"
-      :aria-label="link.label"
-      target="_blank"
-      rel="noopener noreferrer"
-      role="listitem"
-      class="inline-flex items-center justify-center rounded-full bg-white text-neutral-600 ring-1 ring-neutral-200 transition hover:text-primary-600 hover:ring-primary-300 dark:bg-neutral-800 dark:text-neutral-300 dark:ring-neutral-700 dark:hover:text-primary-300 dark:hover:ring-primary-600"
-      :class="sizeCls"
-    >
-      <Facebook v-if="link.icon === 'facebook'" :class="iconCls" aria-hidden="true" />
-      <Youtube v-else-if="link.icon === 'youtube'" :class="iconCls" aria-hidden="true" />
-      <svg
-        v-else-if="link.icon === 'tiktok'"
-        :class="iconCls"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        aria-hidden="true"
+  <ul class="flex flex-wrap items-center gap-2.5" aria-label="Author social links">
+    <li v-for="link in links" :key="link.icon">
+      <a
+        :href="link.href"
+        :aria-label="`${link.label} (opens in new window)`"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center justify-center rounded-full bg-white text-neutral-600 ring-1 ring-neutral-200 transition hover:text-primary-600 hover:ring-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:bg-neutral-800 dark:text-neutral-300 dark:ring-neutral-700 dark:hover:text-primary-300 dark:hover:ring-primary-600"
+        :class="sizeCls"
       >
-        <path :d="tiktokPath" />
-      </svg>
-      <Github v-else-if="link.icon === 'github'" :class="iconCls" aria-hidden="true" />
-      <Coffee v-else :class="iconCls" aria-hidden="true" />
-    </a>
-  </div>
+        <Facebook v-if="link.icon === 'facebook'" :class="iconCls" aria-hidden="true" />
+        <Youtube v-else-if="link.icon === 'youtube'" :class="iconCls" aria-hidden="true" />
+        <svg
+          v-else-if="link.icon === 'tiktok'"
+          :class="iconCls"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path :d="tiktokPath" />
+        </svg>
+        <Github v-else-if="link.icon === 'github'" :class="iconCls" aria-hidden="true" />
+        <Coffee v-else :class="iconCls" aria-hidden="true" />
+      </a>
+    </li>
+  </ul>
 </template>

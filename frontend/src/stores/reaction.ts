@@ -33,7 +33,7 @@ export const useReactionStore = defineStore('reaction', () => {
     return likedIds.value.includes(postId)
   }
 
-  function likeCount(post: Post): number {
+  function likeCount(post: Pick<Post, 'id' | 'likeCount'>): number {
     return post.likeCount + (isLiked(post.id) ? 1 : 0)
   }
 

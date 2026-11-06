@@ -25,8 +25,23 @@ var (
 	slugRe = regexp.MustCompile(`[^a-z0-9]+`)
 	htmlRe = regexp.MustCompile(`<[^>]*>`)
 	// HTML allowlist policy for post content / static page body.
-	sanitizer = bluemonday.UGCPolicy()
+	sanitizer = newSanitizer()
 )
+
+// newSanitizer builds the UGC policy plus the narrow set of inline styles
+// emitted by the Tiptap editor for tables (sizing and alignment). Arbitrary
+// CSS stays blocked.
+func newSanitizer() *bluemonday.Policy {
+	cssLength := regexp.MustCompile(`^\d+(?:\.\d+)?(?:px|%|em|rem|pt|vw|ch)$`)
+	cssTextAlign := regexp.MustCompile(`(?i)^(?:left|right|center|justify|start|end)$`)
+
+	p := bluemonday.UGCPolicy()
+	p.AllowAttrs("style").OnElements("table", "colgroup", "col", "thead", "tbody", "tfoot", "tr", "th", "td", "p", "h2", "h3")
+	p.AllowStyles("text-align").Matching(cssTextAlign).OnElements("table", "thead", "tbody", "tfoot", "tr", "th", "td", "p", "h2", "h3")
+	p.AllowStyles("vertical-align").MatchingEnum("top", "middle", "bottom", "baseline").OnElements("th", "td")
+	p.AllowStyles("width", "min-width", "max-width").Matching(cssLength).OnElements("table", "colgroup", "col", "th", "td")
+	return p
+}
 
 const (
 	roleAdmin       = "admin"
@@ -457,8 +472,19 @@ func ensureMediaCollection(app core.App, users *core.Collection) (*core.Collecti
 		Name:      "file",
 		Required:  true,
 		MaxSelect: 1,
-		MaxSize:   5 * 1024 * 1024,
-		MimeTypes: []string{"image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"},
+		MaxSize:   20 * 1024 * 1024,
+		MimeTypes: []string{
+			"image/jpeg",
+			"image/png",
+			"image/webp",
+			"image/gif",
+			"image/avif",
+			"audio/mpeg",
+			"audio/mp4",
+			"audio/wav",
+			"audio/ogg",
+			"audio/webm",
+		},
 	})
 	media.Fields.Add(&core.RelationField{Name: "owner", CollectionId: users.Id, MaxSelect: 1})
 	media.Fields.Add(&core.TextField{Name: "alt", Max: 160})
@@ -700,9 +726,9 @@ func seedUsers(app core.App) error {
 		},
 		{
 			username: "demo", email: "demo@blogku.com", name: "Jenny Wilson", role: rolePenulis,
-			password: envOr("SEED_AUTHOR_PASSWORD", "demo12345"),
-			avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80",
-			bio: "Immerse yourself in the world of literature with our curated collection of books. From bestsellers to hidden gems, our assortment caters to a variety of interests.",
+			password:    envOr("SEED_AUTHOR_PASSWORD", "demo12345"),
+			avatar:      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80",
+			bio:         "Immerse yourself in the world of literature with our curated collection of books. From bestsellers to hidden gems, our assortment caters to a variety of interests.",
 			coverBanner: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
 			socials: map[string]string{
 				"facebook": "https://www.facebook.com/", "youtube": "https://www.youtube.com/",
@@ -1038,6 +1064,10 @@ func registerPostHooks(app core.App) {
 			return errors.New("posts can have at most 5 tags")
 		}
 
+		if err := adjustCategoryCounts(app, record, nil, false); err != nil {
+			return err
+		}
+
 		return e.Next()
 	})
 
@@ -1047,6 +1077,26 @@ func registerPostHooks(app core.App) {
 		record.Set("readingTime", readingTime(record.GetString("content")))
 		if len(record.GetStringSlice("tags")) > 5 {
 			return errors.New("posts can have at most 5 tags")
+		}
+
+		// The database still holds the pre-update record at this point.
+		old, err := app.FindRecordById("posts", record.Id)
+		if err != nil {
+			return err
+		}
+		if err := adjustCategoryCounts(app, record, old, false); err != nil {
+			return err
+		}
+
+		return e.Next()
+	})
+
+	app.OnRecordDeleteRequest("posts").BindFunc(func(e *core.RecordRequestEvent) error {
+		// The record still exists in the database when the delete request
+		// hook runs, so the same adjustment removes the post from its
+		// categories' counters before the delete proceeds.
+		if err := adjustCategoryCounts(app, e.Record, e.Record, true); err != nil {
+			return err
 		}
 		return e.Next()
 	})
@@ -1173,6 +1223,109 @@ func recomputePostCount(app core.App, authorID string) error {
 	}
 	author.Set("postCount", total)
 	return app.Save(author)
+}
+
+// adjustCategoryCounts applies the delta caused by a single post mutation to
+// the postCount field of all affected categories. It runs synchronously
+// inside the request hooks while the database still reflects the state before
+// the write, so the formulas are:
+//
+//	create: current count + 1 for every new published post per category
+//	update: current count - old contribution + new contribution
+//	delete: current count - 1 for every deleted published post per category
+//
+// draft posts never contribute to the counters.
+func adjustCategoryCounts(app core.App, record, old *core.Record, removing bool) error {
+	newCats := record.GetStringSlice("categories")
+	oldCats := []string{}
+	if old != nil {
+		oldCats = old.GetStringSlice("categories")
+	}
+
+	newPublished := !removing && record.GetString("status") == "published"
+	oldPublished := false
+	if old != nil {
+		oldPublished = old.GetString("status") == "published"
+	}
+
+	affected := map[string]struct{}{}
+	for _, id := range oldCats {
+		affected[id] = struct{}{}
+	}
+	for _, id := range newCats {
+		affected[id] = struct{}{}
+	}
+
+	for id := range affected {
+		posts, err := app.FindRecordsByFilter(
+			"posts",
+			"categories ~ {:category} && status = {:status}",
+			"",
+			-1, 0,
+			dbx.Params{"category": id, "status": "published"},
+		)
+		if err != nil {
+			return err
+		}
+		total := len(posts)
+
+		if stringSliceContains(oldCats, id) && oldPublished {
+			total--
+		}
+		if stringSliceContains(newCats, id) && newPublished {
+			total++
+		}
+		if total < 0 {
+			total = 0
+		}
+
+		cat, err := app.FindRecordById("categories", id)
+		if err != nil {
+			return err
+		}
+		cat.Set("postCount", total)
+		if err := app.Save(cat); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func stringSliceContains(items []string, target string) bool {
+	for _, item := range items {
+		if item == target {
+			return true
+		}
+	}
+	return false
+}
+
+
+func recomputeAllCategoryCounts(app core.App) error {
+	posts, err := app.FindRecordsByFilter("posts", "status = {:status}", "", -1, 0, dbx.Params{"status": "published"})
+	if err != nil {
+		return err
+	}
+
+	counts := map[string]int{}
+	for _, post := range posts {
+		for _, id := range post.GetStringSlice("categories") {
+			counts[id]++
+		}
+	}
+
+	categories, err := app.FindRecordsByFilter("categories", "", "", -1, 0)
+	if err != nil {
+		return err
+	}
+	for _, cat := range categories {
+		cat.Set("postCount", counts[cat.Id])
+		if err := app.Save(cat); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func bumpPostCounter(app core.App, postID, field string, delta int64) error {

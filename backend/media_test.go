@@ -338,3 +338,69 @@ func orphanIDs(orphans []*core.Record) []string {
 	}
 	return ids
 }
+
+func containsString(ss []string, s string) bool {
+	for _, v := range ss {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
+
+func TestPostMediaRefIDsIncludesAudioURL(t *testing.T) {
+	app := newTestAppWithBootstrap(t)
+
+	col, err := app.FindCollectionByNameOrId("posts")
+	if err != nil {
+		t.Fatalf("find posts collection: %v", err)
+	}
+
+	rec := core.NewRecord(col)
+	rec.Set("audioUrl", "/api/files/media/recA/track.mp3")
+
+	refs := postMediaRefIDs(rec)
+	if _, ok := refs["recA"]; !ok {
+		t.Errorf("expected audioUrl ref recA in %v", refs)
+	}
+}
+
+func TestMediaCollectionAllowsAudio(t *testing.T) {
+	app, err := tests.NewTestApp()
+	if err != nil {
+		t.Fatalf("new test app: %v", err)
+	}
+	t.Cleanup(app.Cleanup)
+
+	users, err := ensureUsersCollection(app)
+	if err != nil {
+		t.Fatalf("ensure users collection: %v", err)
+	}
+
+	col, err := ensureMediaCollection(app, users)
+	if err != nil {
+		t.Fatalf("ensure media collection: %v", err)
+	}
+
+	f := col.Fields.GetByName("file")
+	ff, ok := f.(*core.FileField)
+	if !ok {
+		t.Fatalf("expected file field to be *core.FileField, got %T", f)
+	}
+
+	for _, mime := range []string{"audio/mpeg", "audio/mp4", "audio/wav", "audio/ogg", "audio/webm"} {
+		if !containsString(ff.MimeTypes, mime) {
+			t.Errorf("media file field missing audio MIME %q (got %v)", mime, ff.MimeTypes)
+		}
+	}
+
+	for _, mime := range []string{"image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"} {
+		if !containsString(ff.MimeTypes, mime) {
+			t.Errorf("media file field dropped image MIME %q (got %v)", mime, ff.MimeTypes)
+		}
+	}
+
+	if want := int64(20 * 1024 * 1024); ff.MaxSize != want {
+		t.Errorf("media file field MaxSize = %d, want %d", ff.MaxSize, want)
+	}
+}

@@ -35,6 +35,12 @@ import {
   clampImageMaxDimension,
   clampImageQuality,
 } from '@/lib/imageMeta'
+import {
+  AUDIO_MAX_BYTES,
+  AUDIO_MIME_TYPES,
+  IMAGE_MAX_BYTES,
+  IMAGE_MIME_TYPES,
+} from '@/lib/media-limits'
 import { comments as seedComments } from './mock-data/comments'
 import { categories as seedCategories } from './mock-data/categories'
 import { posts as seedPosts } from './mock-data/posts'
@@ -188,6 +194,7 @@ export class MockSource implements DataSource {
   private pages: Record<string, PageContent>
   private editorSettings: EditorSettings
   private media: MediaItem[]
+  private sessionAudio: Map<string, MediaItem> = new Map()
 
   constructor() {
     this.posts = readJson<Post[]>(POSTS_KEY, seedPosts)
@@ -297,9 +304,7 @@ export class MockSource implements DataSource {
       title,
       excerpt,
       content,
-      cover:
-        (input.cover && sanitizeUrl(input.cover)) ||
-        'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1200',
+      cover: input.cover ? sanitizeUrl(input.cover) : '',
       status: input.status ?? 'published',
       postType,
       videoUrl: input.videoUrl ? sanitizeUrl(input.videoUrl) : undefined,
@@ -319,6 +324,9 @@ export class MockSource implements DataSource {
 
     this.posts = [newPost, ...this.posts]
     writeJson(POSTS_KEY, this.posts)
+    if (newPost.status === 'published') {
+      this.sessionAudio.clear()
+    }
     return newPost
   }
 
@@ -380,6 +388,9 @@ export class MockSource implements DataSource {
 
     this.posts = this.posts.map((p) => (p.id === id ? updated : p))
     writeJson(POSTS_KEY, this.posts)
+    if (updated.status === 'published') {
+      this.sessionAudio.clear()
+    }
     return updated
   }
 
@@ -401,7 +412,14 @@ export class MockSource implements DataSource {
 
   async listCategories(): Promise<Category[]> {
     await wait()
-    return this.categories
+    const counts = new Map<string, number>()
+    for (const post of this.posts) {
+      if (post.status !== 'published') continue
+      for (const cat of post.categories) {
+        counts.set(cat.id, (counts.get(cat.id) ?? 0) + 1)
+      }
+    }
+    return this.categories.map((c) => ({ ...c, postCount: counts.get(c.id) ?? 0 }))
   }
 
   async saveCategory(input: CategoryInput): Promise<Category> {
@@ -909,15 +927,27 @@ export class MockSource implements DataSource {
 
   async uploadFile(file: File): Promise<{ url: string; name: string }> {
     await wait()
-    const allowedMime = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
-    if (!allowedMime.includes(file.type)) {
-      throw new Error('Only image files (JPEG, PNG, WebP, GIF, AVIF) are allowed.')
+    if (IMAGE_MIME_TYPES.includes(file.type)) {
+      if (file.size > IMAGE_MAX_BYTES) {
+        throw new Error('File size exceeds the 5 MB limit.')
+      }
+      return this.readAsDataUrl(file)
     }
-    const maxSizeBytes = 5 * 1024 * 1024 // 5 MB
-    if (file.size > maxSizeBytes) {
-      throw new Error('File size exceeds the 5 MB limit.')
+    if (AUDIO_MIME_TYPES.includes(file.type)) {
+      if (file.size > AUDIO_MAX_BYTES) {
+        throw new Error('File size exceeds the 20 MB limit.')
+      }
+      return this.readAsDataUrl(file, true)
     }
+    throw new Error(
+      'Only image files (JPEG, PNG, WebP, GIF, AVIF) or audio files (MP3, MP4, WAV, OGG, WebM) are allowed.',
+    )
+  }
 
+  private readAsDataUrl(
+    file: File,
+    isAudio = false,
+  ): Promise<{ url: string; name: string }> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.onload = () => {
@@ -929,8 +959,12 @@ export class MockSource implements DataSource {
           ownerId: this.currentUser()?.id,
           createdAt: new Date().toISOString(),
         }
-        this.media = [record, ...this.media]
-        writeJson(MEDIA_KEY, this.media)
+        if (isAudio) {
+          this.sessionAudio.set(record.id, record)
+        } else {
+          this.media = [record, ...this.media]
+          writeJson(MEDIA_KEY, this.media)
+        }
         resolve({ url, name: file.name })
       }
       reader.onerror = () => reject(new Error('Failed to read file'))
@@ -944,7 +978,7 @@ export class MockSource implements DataSource {
     const perPage = Math.min(100, Math.max(1, Math.floor(params.perPage ?? 48) || 48))
     const search = params.search?.trim().toLowerCase() ?? ''
 
-    const filtered = this.media
+    const filtered = [...this.media, ...this.sessionAudio.values()]
       .filter((item) => !isVariantFileName(item.name))
       .filter((item) => !search || item.name.toLowerCase().includes(search))
       .slice()
@@ -974,6 +1008,7 @@ export class MockSource implements DataSource {
 
     for (const post of this.posts) {
       add(post.cover)
+      add(post.audioUrl)
       for (const url of post.gallery ?? []) add(url)
       addHtml(post.content)
     }

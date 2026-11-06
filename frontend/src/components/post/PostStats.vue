@@ -20,7 +20,7 @@ const likes = computed(() => reactions.likeCount(props.post))
 
 <template>
   <div
-    class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-neutral-500 dark:text-neutral-400"
+    class="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-2 text-xs font-medium text-neutral-500 dark:text-neutral-400"
   >
     <span class="inline-flex items-center gap-1.5">
       <Heart class="h-4 w-4" aria-hidden="true" />

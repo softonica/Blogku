@@ -136,18 +136,18 @@ async function save(): Promise<void> {
 </script>
 
 <template>
-  <div class="pb-10">
+  <div class="pb-8 sm:pb-10">
     <div v-if="loading" class="flex justify-center py-20">
       <LoadingSpinner />
     </div>
 
-    <form v-else class="mx-auto max-w-3xl space-y-6" @submit.prevent="save">
+    <form v-else class="mx-auto max-w-3xl space-y-4 sm:space-y-6" @submit.prevent="save">
       <div
-        class="rounded-3xl border border-neutral-200 bg-white p-5 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
+        class="rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="flex items-start gap-3">
           <span
-            class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"
+            class="grid h-10 w-10 shrink-0 place-items-center rounded-lg sm:rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"
           >
             <ImageIcon class="h-5 w-5" aria-hidden="true" />
           </span>
@@ -162,7 +162,7 @@ async function save(): Promise<void> {
           </div>
         </div>
 
-        <div class="mt-6 space-y-5">
+        <div class="mt-4 sm:mt-6 space-y-4 sm:space-y-5">
           <div>
             <label
               for="media-max-upload"
@@ -177,16 +177,17 @@ async function save(): Promise<void> {
               min="0"
               step="1024"
               inputmode="numeric"
-              class="w-full rounded-2xl border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+              class="w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
             />
             <p class="mt-1 text-xs text-neutral-400">
-              {{ maxUploadMb }} · 0 = tanpa batas (tetap dibatasi
+              {{ maxUploadMb }} · batas file varian WebP yang di-upload (dan GIF animasi).
+              0 = tanpa batas (tetap dibatasi
               {{ ABSOLUTE_MAX_UPLOAD_BYTES / 1024 / 1024 }} MB absolut). cth: 2097152 =
               2MB
             </p>
           </div>
 
-          <div class="grid gap-5 sm:grid-cols-2">
+          <div class="grid gap-4 sm:gap-5 sm:grid-cols-2">
             <div>
               <label
                 for="media-max-dimension"
@@ -202,7 +203,7 @@ async function save(): Promise<void> {
                 max="4096"
                 step="1"
                 inputmode="numeric"
-                class="w-full rounded-2xl border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+                class="w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white px-3 sm:px-4 py-2.5 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
               />
               <p class="mt-1 text-xs text-neutral-400">
                 Sisi terpanjang varian full. Rentang 256–4096, default 2048.
@@ -241,11 +242,11 @@ async function save(): Promise<void> {
       </div>
 
       <div
-        class="rounded-3xl border border-neutral-200 bg-white p-5 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
+        class="rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div class="flex items-start gap-3">
           <span
-            class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300"
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-lg sm:rounded-xl bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300"
           >
             <ShieldCheck class="h-5 w-5" aria-hidden="true" />
           </span>
@@ -261,7 +262,7 @@ async function save(): Promise<void> {
           </div>
         </div>
 
-        <ul v-if="domains.length" class="mt-4 flex flex-wrap gap-2" aria-label="Allowed image domains">
+        <ul v-if="domains.length" class="mt-3 sm:mt-4 flex flex-wrap gap-2" aria-label="Allowed image domains">
           <li
             v-for="domain in domains"
             :key="domain"
@@ -279,11 +280,11 @@ async function save(): Promise<void> {
             </button>
           </li>
         </ul>
-        <p v-else class="mt-4 text-xs text-neutral-400">
+        <p v-else class="mt-3 sm:mt-4 text-xs text-neutral-400">
           Belum ada domain. Tambahkan domain agar gambar eksternal dapat dipakai.
         </p>
 
-        <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div class="mt-3 sm:mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
           <label for="media-new-domain" class="sr-only">Add image domain</label>
           <input
             id="media-new-domain"
@@ -293,12 +294,12 @@ async function save(): Promise<void> {
             autocomplete="off"
             autocapitalize="none"
             spellcheck="false"
-            class="h-10 w-full min-w-0 rounded-xl border-neutral-300 bg-white px-3 text-sm text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:max-w-xs"
+            class="h-10 w-full min-w-0 rounded-lg sm:rounded-xl border-neutral-300 bg-white px-3 text-sm text-neutral-900 focus:border-primary-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white sm:max-w-xs"
             @keydown.enter.prevent="addDomain"
           />
           <button
             type="button"
-            class="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-neutral-900 px-4 text-xs font-semibold text-white transition hover:bg-neutral-800 sm:w-auto dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100"
+            class="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg sm:rounded-xl bg-neutral-900 px-3 sm:px-4 text-xs font-semibold text-white transition hover:bg-neutral-800 sm:w-auto dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100"
             @click="addDomain"
           >
             <Plus class="h-3.5 w-3.5" aria-hidden="true" />
@@ -308,11 +309,11 @@ async function save(): Promise<void> {
       </div>
 
       <div
-        class="rounded-3xl border border-neutral-200 bg-neutral-50 p-5 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900/60"
+        class="rounded-xl sm:rounded-3xl border border-neutral-200 bg-neutral-50 p-4 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900/60"
       >
         <div class="flex items-start gap-3">
           <span
-            class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"
           >
             <ShieldCheck class="h-5 w-5" aria-hidden="true" />
           </span>
@@ -342,7 +343,7 @@ async function save(): Promise<void> {
       </div>
 
       <div
-        class="flex flex-col gap-3 border-t border-neutral-200 pt-5 sm:flex-row sm:items-center dark:border-neutral-800"
+        class="flex flex-col gap-3 border-t border-neutral-200 pt-4 sm:pt-5 sm:flex-row sm:items-center dark:border-neutral-800"
       >
         <BaseButton
           type="submit"

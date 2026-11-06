@@ -32,7 +32,7 @@ const canDelete = computed(() => {
         <div class="flex flex-wrap items-center gap-2">
           <RouterLink
             :to="`/author/${comment.author.username}`"
-            class="text-sm font-semibold text-neutral-900 hover:text-primary-600 dark:text-neutral-100 dark:hover:text-primary-300"
+            class="text-sm font-semibold text-neutral-900 hover:text-primary-600 dark:text-neutral-100 dark:hover:text-primary-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xs"
           >
             {{ comment.author.name }}
           </RouterLink>
@@ -53,8 +53,8 @@ const canDelete = computed(() => {
         <button
           v-if="canDelete"
           type="button"
-          class="inline-flex items-center gap-1 text-xs text-neutral-400 opacity-0 transition hover:text-rose-600 focus:opacity-100 group-hover:opacity-100 dark:hover:text-rose-400"
-          title="Delete comment"
+          class="inline-flex items-center gap-1 text-xs text-neutral-400 opacity-0 transition hover:text-rose-600 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-sm group-hover:opacity-100 dark:hover:text-rose-400"
+          :aria-label="'Delete comment by ' + comment.author.name"
           @click="emit('delete', comment.id)"
         >
           <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />

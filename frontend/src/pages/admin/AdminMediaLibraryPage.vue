@@ -184,8 +184,8 @@ watch(search, onSearchInput)
 </script>
 
 <template>
-  <div class="pb-10">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  <div class="pb-8 sm:pb-10">
+    <div class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div class="min-w-0">
         <h1 class="text-xl font-black tracking-tight sm:text-2xl text-neutral-900 dark:text-white">
           Media Library
@@ -199,7 +199,7 @@ watch(search, onSearchInput)
       </p>
     </div>
 
-    <div class="mt-5 rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <div class="mt-4 sm:mt-5 rounded-lg sm:rounded-2xl border border-neutral-200 bg-white p-3 sm:p-4 dark:border-neutral-800 dark:bg-neutral-900">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 class="text-sm font-bold text-neutral-900 dark:text-white">Media tidak terpakai</h2>
@@ -211,7 +211,7 @@ watch(search, onSearchInput)
           <button
             v-if="orphans === null"
             type="button"
-            class="inline-flex h-9 items-center justify-center rounded-full border border-neutral-300 px-4 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800"
+            class="inline-flex h-9 items-center justify-center rounded-full border border-neutral-300 px-3 sm:px-4 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             :disabled="scanning"
             @click="scanOrphans"
           >
@@ -223,7 +223,7 @@ watch(search, onSearchInput)
             </span>
             <button
               type="button"
-              class="inline-flex h-9 items-center justify-center rounded-full bg-rose-600 px-4 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
+              class="inline-flex h-9 items-center justify-center rounded-full bg-rose-600 px-3 sm:px-4 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
               :disabled="cleaning || orphanTotal === 0"
               @click="cleanupOrphans"
             >
@@ -231,7 +231,7 @@ watch(search, onSearchInput)
             </button>
             <button
               type="button"
-              class="inline-flex h-9 items-center justify-center rounded-full border border-neutral-300 px-3 text-xs font-semibold text-neutral-500 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800"
+              class="inline-flex h-9 items-center justify-center rounded-full border border-neutral-300 px-3 text-xs font-semibold text-neutral-500 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               @click="orphans = null"
             >
               Batal
@@ -263,7 +263,7 @@ watch(search, onSearchInput)
       </p>
     </div>
 
-    <div class="mt-5 max-w-md">
+    <div class="mt-4 sm:mt-5 max-w-md">
       <label for="media-search" class="sr-only">Search media</label>
       <div class="relative">
         <Search
@@ -275,14 +275,14 @@ watch(search, onSearchInput)
           v-model="search"
           type="search"
           placeholder="Cari nama file…"
-          class="w-full rounded-2xl border-neutral-300 bg-white py-2.5 pe-4 ps-9 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
+          class="w-full rounded-lg sm:rounded-2xl border-neutral-300 bg-white py-2.5 pe-3 sm:pe-4 ps-7 sm:ps-9 text-sm text-neutral-900 focus:border-primary-400 focus:ring-primary-200 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-900"
         />
       </div>
     </div>
 
     <div
       v-if="error"
-      class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200"
+      class="mt-4 sm:mt-5 rounded-lg sm:rounded-2xl border border-rose-200 bg-rose-50 px-3 sm:px-4 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200"
       role="alert"
     >
       {{ error }}
@@ -294,16 +294,16 @@ watch(search, onSearchInput)
 
     <EmptyState
       v-else-if="items.length === 0"
-      class="mt-6"
+      class="mt-4 sm:mt-6"
       title="Belum ada media"
       :description="
         search ? `Tidak ada media yang cocok dengan “${search}”.` : 'Upload gambar dari editor atau halaman profil untuk mulai mengisi pustaka.'
       "
     />
 
-    <div v-else class="mt-8 space-y-10">
+    <div v-else class="mt-6 sm:mt-8 space-y-8 sm:space-y-10">
       <section v-for="year in groups" :key="year.year" :aria-labelledby="`media-year-${year.year}`">
-        <div class="flex items-baseline justify-between gap-4 border-b border-neutral-200 pb-2 dark:border-neutral-800">
+        <div class="flex items-baseline justify-between gap-3 sm:gap-4 border-b border-neutral-200 pb-2 dark:border-neutral-800">
           <h2
             :id="`media-year-${year.year}`"
             class="text-xl font-black tracking-tight sm:text-2xl text-neutral-900 dark:text-white"
@@ -318,10 +318,10 @@ watch(search, onSearchInput)
         <div
           v-for="month in year.months"
           :key="month.key"
-          class="mt-6"
+          class="mt-4 sm:mt-6"
           :aria-labelledby="`media-month-${month.key}`"
         >
-          <div class="mb-3 flex items-center justify-between gap-4">
+          <div class="mb-3 flex items-center justify-between gap-3 sm:gap-4">
             <h3
               :id="`media-month-${month.key}`"
               class="text-sm font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-300"
@@ -335,33 +335,32 @@ watch(search, onSearchInput)
             <li
               v-for="item in month.items"
               :key="item.id"
-              class="group overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900"
+              class="group overflow-hidden rounded-lg sm:rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900"
             >
-              <div
-                class="relative aspect-square cursor-pointer overflow-hidden bg-neutral-100 dark:bg-neutral-800"
-                role="button"
-                tabindex="0"
-                :aria-label="`Lihat detail ${mediaDisplayName(item.name)}`"
-                @click="openDetail(item)"
-                @keydown.enter="openDetail(item)"
-                @keydown.space.prevent="openDetail(item)"
-              >
-                <img
-                  :src="item.url"
-                  :alt="mediaDisplayName(item.name)"
-                  loading="lazy"
-                  decoding="async"
-                  class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                />
+              <div class="relative aspect-square overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                <button
+                  type="button"
+                  class="h-full w-full block text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  :aria-label="`Lihat detail ${mediaDisplayName(item.name)}`"
+                  @click="openDetail(item)"
+                >
+                  <img
+                    :src="item.url"
+                    :alt="mediaDisplayName(item.name)"
+                    loading="lazy"
+                    decoding="async"
+                    class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                </button>
                 <div
-                  class="absolute inset-0 flex items-center justify-center gap-2 bg-neutral-950/60 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100"
+                  class="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 bg-neutral-950/60 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100"
                 >
                   <button
                     type="button"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-800 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    class="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-800 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     :title="`Copy URL: ${item.name}`"
                     :aria-label="`Copy URL ${item.name}`"
-                    @click.stop="copyUrl(item)"
+                    @click="copyUrl(item)"
                   >
                     <Copy class="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -369,10 +368,9 @@ watch(search, onSearchInput)
                     :href="item.url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-800 transition hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    class="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-800 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     :title="`Open ${item.name}`"
                     :aria-label="`Open ${item.name} in a new tab`"
-                    @click.stop
                   >
                     <ExternalLink class="h-4 w-4" aria-hidden="true" />
                   </a>
@@ -397,7 +395,7 @@ watch(search, onSearchInput)
       <div v-if="page < totalPages" class="flex justify-center pt-2">
         <button
           type="button"
-          class="inline-flex h-11 w-full items-center justify-center rounded-full border border-neutral-300 px-6 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:opacity-50 sm:w-auto dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800"
+          class="inline-flex h-11 w-full items-center justify-center rounded-full border border-neutral-300 px-4 sm:px-6 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:opacity-50 sm:w-auto dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           :disabled="loadingMore"
           @click="load(false)"
         >
@@ -409,29 +407,29 @@ watch(search, onSearchInput)
 
   <div
     v-if="selected"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs"
     role="dialog"
     aria-modal="true"
-    :aria-label="`Detail ${mediaDisplayName(selected.name)}`"
+    aria-labelledby="media-detail-dialog-title"
     @click.self="closeDetail"
   >
     <div
-      class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
+      class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl sm:rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
     >
-      <div class="flex items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
-        <h2 class="text-lg font-bold text-neutral-900 dark:text-neutral-100">Detail Gambar</h2>
+      <div class="flex items-center justify-between border-b border-neutral-100 px-4 sm:px-6 py-3 sm:py-4 dark:border-neutral-800">
+        <h2 id="media-detail-dialog-title" class="text-lg font-bold text-neutral-900 dark:text-neutral-100">Detail Gambar</h2>
         <button
           type="button"
-          class="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
-          aria-label="Tutup detail"
+          class="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          aria-label="Tutup detail dialog"
           @click="closeDetail"
         >
           <X class="h-4 w-4" />
         </button>
       </div>
 
-      <div class="space-y-4 px-6 py-5">
-        <div class="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
+      <div class="space-y-3 sm:space-y-4 px-4 sm:px-6 py-4 sm:py-5">
+        <div class="overflow-hidden rounded-lg sm:rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
           <img
             :src="selected.url"
             :alt="mediaDisplayName(selected.name)"
@@ -440,17 +438,17 @@ watch(search, onSearchInput)
         </div>
 
         <dl class="space-y-2 text-sm">
-          <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start justify-between gap-3 sm:gap-4">
             <dt class="shrink-0 text-neutral-500 dark:text-neutral-400">Nama file</dt>
             <dd class="truncate font-mono text-xs text-neutral-900 dark:text-neutral-100" :title="selected.name">
               {{ selected.name }}
             </dd>
           </div>
-          <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start justify-between gap-3 sm:gap-4">
             <dt class="shrink-0 text-neutral-500 dark:text-neutral-400">Diunggah</dt>
             <dd class="text-neutral-900 dark:text-neutral-100">{{ formatMediaDate(selected.createdAt) }}</dd>
           </div>
-          <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start justify-between gap-3 sm:gap-4">
             <dt class="shrink-0 text-neutral-500 dark:text-neutral-400">Referensi</dt>
             <dd>
               <span
@@ -461,7 +459,7 @@ watch(search, onSearchInput)
               </span>
             </dd>
           </div>
-          <div v-if="selected.ownerId" class="flex items-start justify-between gap-4">
+          <div v-if="selected.ownerId" class="flex items-start justify-between gap-3 sm:gap-4">
             <dt class="shrink-0 text-neutral-500 dark:text-neutral-400">Pemilik</dt>
             <dd class="truncate font-mono text-xs text-neutral-900 dark:text-neutral-100">{{ selected.ownerId }}</dd>
           </div>
@@ -469,13 +467,13 @@ watch(search, onSearchInput)
 
         <p
           v-if="(selected.refCount ?? 0) > 0"
-          class="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+          class="rounded-lg sm:rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
         >
           Gambar ini masih dipakai di {{ selected.refCount }} tempat. Menghapusnya akan membuat referensi tersebut rusak.
         </p>
         <p
           v-if="detailError"
-          class="rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
+          class="rounded-lg sm:rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
           role="alert"
         >
           {{ detailError }}
@@ -484,7 +482,7 @@ watch(search, onSearchInput)
         <div class="flex flex-wrap items-center gap-2 pt-1">
           <button
             type="button"
-            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-4 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800"
+            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-3 sm:px-4 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             @click="copyUrl(selected)"
           >
             <Copy class="h-4 w-4" aria-hidden="true" />
@@ -494,14 +492,14 @@ watch(search, onSearchInput)
             :href="selected.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-4 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800"
+            class="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-3 sm:px-4 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <ExternalLink class="h-4 w-4" aria-hidden="true" />
             Buka
           </a>
           <button
             type="button"
-            class="ms-auto inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
+            class="ms-auto inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-rose-600 px-3 sm:px-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
             :disabled="deleting"
             @click="deleteSelected"
           >

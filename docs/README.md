@@ -41,6 +41,14 @@ Setiap fitur dalam proyek ini wajib memiliki dokumentasi teknis yang lengkap ses
 | **16** | **Client-Side Image Processing (WebP multi-variant)** | ✅ Implemented | [16-client-side-image-processing.md](./features/16-client-side-image-processing.md) |
 | **17** | **Media Library (grouped Year > Month)** | ✅ Implemented | [17-media-library-year-month.md](./features/17-media-library-year-month.md) |
 | **18** | **Media Orphan Detection & Cleanup (refCount)** | ✅ Implemented | [18-media-orphan-cleanup.md](./features/18-media-orphan-cleanup.md) |
+| **19** | **Mobile Compact Layout (Spacing & Dedup)** | ✅ Implemented | [19-mobile-compact-layout.md](./features/19-mobile-compact-layout.md) |
+| **20** | **Editor Table Controls & Rendering** | ✅ Stable | [20-editor-table-controls-and-rendering.md](./features/20-editor-table-controls-and-rendering.md) |
+| **21** | **Post Status: Publish, Draft & Private** | 📝 Spec (review) | [21-post-status-draft-private.md](./features/21-post-status-draft-private.md) |
+| **22** | **Audio Post Player & Upload** | ✅ Stable | [22-audio-player-and-upload.md](./features/22-audio-player-and-upload.md) |
+| **23** | **Post Header Info Component (Reusable)** | ✅ Stable | [23-post-header-info-component.md](./features/23-post-header-info-component.md) |
+| **24** | **Post Action Dock (Floating Control Menu)** | ✅ Stable | [24-post-action-dock.md](./features/24-post-action-dock.md) |
+| **25** | **Accessibility (a11y) Audit & Enhancements** | ✅ Stable | [25-accessibility-audit-and-enhancements.md](./features/25-accessibility-audit-and-enhancements.md) |
+| **26** | **Responsive Layout Audit & Multi-Device Enhancements** | ✅ Stable | [26-responsive-layout-audit-and-enhancements.md](./features/26-responsive-layout-audit-and-enhancements.md) |
 
 ---
 

@@ -14,7 +14,7 @@ withDefaults(
 
 <template>
   <div
-    class="flex items-start gap-4 rounded-3xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900"
+    class="flex items-start gap-3 sm:gap-4 rounded-xl sm:rounded-3xl border border-neutral-200 bg-white p-4 sm:p-5 dark:border-neutral-800 dark:bg-neutral-900"
   >
     <AppAvatar :src="author.avatar" :name="author.name" :size="compact ? 'md' : 'lg'" />
     <div class="min-w-0 flex-1">

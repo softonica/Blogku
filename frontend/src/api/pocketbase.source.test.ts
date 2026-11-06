@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { PocketBaseSource } from './pocketbase.source'
 import { AppError, RateLimitError, toAppError } from './errors'
+import { AUDIO_MAX_BYTES } from '@/lib/media-limits'
 
 interface FakeCollection {
   getList?: ReturnType<typeof vi.fn>
@@ -301,6 +302,48 @@ describe('PocketBaseSource', () => {
     expect(pb.collection('users').authWithPassword!).toHaveBeenLastCalledWith('newuser', 'password123')
   })
 
+  it('listCategories computes postCount from published posts', async () => {
+    const { pb } = makePb({
+      collections: {
+        categories: {
+          getFullList: vi.fn().mockResolvedValue([
+            {
+              id: 'c1',
+              name: 'Tech',
+              slug: 'tech',
+              description: 'd',
+              image: 'i.jpg',
+              parent: null,
+              postCount: 99,
+            },
+            {
+              id: 'c2',
+              name: 'Travel',
+              slug: 'travel',
+              description: 'd2',
+              image: 'i2.jpg',
+              parent: null,
+              postCount: 99,
+            },
+          ]),
+        },
+        posts: {
+          getFullList: vi.fn().mockResolvedValue([
+            { id: 'p1', categories: ['c1'] },
+            { id: 'p2', categories: ['c1', 'c2'] },
+            { id: 'p3', categories: ['c2'] },
+          ]),
+        },
+      },
+    })
+    const source = new PocketBaseSource(pb as never)
+    const cats = await source.listCategories()
+
+    expect(cats.find((c) => c.id === 'c1')?.postCount).toBe(2)
+    expect(cats.find((c) => c.id === 'c2')?.postCount).toBe(2)
+    expect(pb.filter).toHaveBeenCalledWith('status = {:status}', { status: 'published' })
+  })
+
   it('uploadFile builds multipart and returns url', async () => {
     const { pb } = makePb({
       collections: {
@@ -546,5 +589,34 @@ describe('PocketBaseSource', () => {
     } finally {
       globalThis.fetch = originalFetch
     }
+  })
+
+  it('accepts audio uploads and posts FormData', async () => {
+    const { pb, collections } = makePb({
+      collections: {
+        media: { create: vi.fn().mockResolvedValue({ id: 'm1', file: 'a.mp3' }) },
+      },
+    })
+    const source = new PocketBaseSource(pb as never)
+    const file = new File(['x'], 'a.mp3', { type: 'audio/mpeg' })
+    const result = await source.uploadFile(file)
+    expect(result.url).toContain('/api/files/x/y')
+    expect(result.name).toBe('a.mp3')
+    const [formData] = collections.media.create!.mock.calls[0]
+    expect(formData.get('file')).toBe(file)
+  })
+
+  it('rejects non-audio/non-image types and oversized audio', async () => {
+    const { pb } = makePb({
+      collections: { media: { create: vi.fn() } },
+    })
+    const source = new PocketBaseSource(pb as never)
+
+    const pdf = new File(['x'], 'doc.pdf', { type: 'application/pdf' })
+    await expect(source.uploadFile(pdf)).rejects.toThrow('Only image files')
+
+    const big = new File(['x'], 'big.mp3', { type: 'audio/mpeg' })
+    Object.defineProperty(big, 'size', { value: AUDIO_MAX_BYTES + 1 })
+    await expect(source.uploadFile(big)).rejects.toThrow(/20 MB/)
   })
 })
