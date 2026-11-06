@@ -112,7 +112,7 @@ const colorClasses = [
                 {{ category.name }}
               </h3>
               <span class="block text-xs text-neutral-500 dark:text-neutral-400">
-                {{ category.postCount ?? 12 }} Articles
+                {{ category.postCount ?? 0 }} Articles
               </span>
             </div>
           </div>

@@ -503,7 +503,26 @@ export class PocketBaseSource implements DataSource {
   async listCategories(): Promise<Category[]> {
     return this.wrap(async () => {
       const records = await this.pb.collection('categories').getFullList({ sort: 'name' })
-      return (records as unknown as PbCategoryRecord[]).map(mapCategory)
+      const categories = (records as unknown as PbCategoryRecord[]).map(mapCategory)
+
+      // Derive real post counts from published posts instead of trusting a
+      // backend field that nothing maintains.
+      const postRecords = (await this.pb
+        .collection('posts')
+        .getFullList({
+          filter: this.pb.filter('status = {:status}', { status: 'published' }),
+          fields: 'categories',
+        })) as unknown as Array<{ categories?: unknown }>
+
+      const counts = new Map<string, number>()
+      for (const rec of postRecords) {
+        const ids = Array.isArray(rec.categories) ? rec.categories.map(String) : []
+        for (const id of ids) {
+          counts.set(id, (counts.get(id) ?? 0) + 1)
+        }
+      }
+
+      return categories.map((c) => ({ ...c, postCount: counts.get(c.id) ?? 0 }))
     })
   }
 

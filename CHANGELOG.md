@@ -5,6 +5,91 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-05] — Deploy Hook Sinkronisasi Count Kategori ke Server 64 (+ Backfill Data)
+
+**Author**: OpenCode Agent
+**Role**: DevOps/Backend/QA
+**Status**: Done
+
+### What changed
+- Rebuild frontend produksi (`VITE_USE_POCKETBASE=true VITE_PB_URL=` → `frontend/dist` → disinkronkan ke `backend/dist`, 82 file aset).
+- Rebuild binary Linux amd64 `backend/blogku` (28.213.408 byte, `CGO_ENABLED=0`, `-trimpath -ldflags="-s -w"`).
+- Deploy ke server 64 (`64.235.45.122`, SSH 2232): upload `/tmp/blogku-upload` → `sh /tmp/deploy.sh` (stop, backup `blogku.prev-*`, swap, start).
+- Backfill data produksi: `categories.postCount` di-set sesuai post terbit (sebelumnya 0 semua karena field tidak pernah dipelihara). Backup DB `data.db.prev-20261105-*`.
+- `CHANGELOG.md` + kode hook backend (entri sebelumnya).
+
+### Why
+- Implementasi hook `adjustCategoryCounts` (create/update/delete post) perlu live; data lama perlu backfill agar counter homepage langsung benar.
+
+### How it was verified
+- `systemctl is-active blogku` → `active`.
+- SHA256 binary server = SHA256 build lokal (`3018935071f20b81c42d455f6d95449865b670c4a2225f26ed6f2505d8d10e9c`).
+- `curl` → `spa:200`, `health:200`.
+- Verifikasi API: count kategori konsisten 100% dengan post terbit (Dokumentasi=2, Tutorial=1, Cyber=2, Design=0); `ALL_CONSISTENT`.
+- Login demo (`demo/demo12345`) → token OK.
+- Backfill: `sqlite3` UPDATE berbasis `json_each(posts.categories)` + filter `status='published'`, dijalankan saat service stop (backup dulu).
+
+### Handover notes / follow-ups
+- Hook berlaku untuk mutasi post selanjutnya; tidak perlu backfill lagi kecuali ada data lama lain.
+- `admin` seed password produksi bukan default (`admin12345` ditolak) — tidak digunakan.
+- Superuser creds first-run tidak tersedia di journal (rotasi); dicatat untuk operasional.
+
+## [2026-11-05] — Hook Backend: Sinkronisasi Post Count Kategori (Create/Update/Delete Post)
+
+**Author**: OpenCode Agent
+**Role**: Backend/QA
+**Status**: Done
+
+### What changed
+- `backend/main.go`:
+  - Menambahkan `adjustCategoryCounts(app, record, old, removing)` — menyesuaikan field `postCount` pada kategori terdampak secara delta & sinkron di dalam request hook (create/update/delete), pre-write.
+  - `registerPostHooks`: hook `OnRecordCreateRequest`/`OnRecordUpdateRequest`/`OnRecordDeleteRequest` pada collection `posts` kini memanggil `adjustCategoryCounts` sebelum `e.Next()`.
+  - Tetap mempertahankan `recomputeAllCategoryCounts` (recount full untuk backfill/manual) + `stringSliceContains`.
+  - Draft post tidak dihitung (sama dengan perilaku frontend).
+- `backend/main_test.go`:
+  - `TestRecomputeAllCategoryCountsCountsPublishedPosts`: recount full hanya menghitung post terbit (draft dikecualikan).
+  - `TestPostHooksKeepCategoryCountsInSync`: end-to-end lewat HTTP API nyata (login admin seed → create published → create draft → update pindah kategori → delete), memverifikasi count kategori di tiap langkah.
+
+### Why
+- Tindak lanjut entry 2026-11-05 (counter kategori homepage): backend tidak pernah memelihara field `postCount` kategori, sehingga mode PocketBase selalu 0/undefined. Hook ini menjaga angka tetap sinkron dengan post terbit.
+
+### How it was verified
+- `go test ./...` → `ok ncmaz.backend` (semua test termasuk 2 test baru, ~9.5s).
+- `go vet .` → bersih (0 output).
+- Catatan investigasi: event `OnRecordAfterCreateSuccess`/`AfterDeleteSuccess` di PocketBase v0.40.6 tidak diemisi secara deterministik untuk akses programatik/transaksi, sehingga dipilih pendekatan request-hook sinkron (pre-write) yang stabil di test dan produksi.
+
+### Handover notes / follow-ups
+- Frontend `pocketbase.source.ts` tetap menghitung count dari post (redundan tapi konsisten); tidak perlu diubah.
+- Backfill data lama (opsional): jalankan `recomputeAllCategoryCounts(app)` sekali setelah deploy, atau cukup edit satu post agar hook recount menyala (karena delta hanya menyentuh kategori terdampak, backfill penuh disarankan jika ada data lama).
+- Belum dibangun: binary/CI deploy baru.
+
+## [2026-11-05] — Perbaikan Counter Kategori di Homepage (Jumlah Nyata per Post)
+
+**Author**: OpenCode Agent
+**Role**: Dev/QA
+**Status**: Done
+
+### What changed
+- `frontend/src/api/mock.source.ts` — `listCategories()` kini menghitung `postCount` dari post terbit (`status === 'published'`) yang benar-benar ada di data mock, bukan memakai angka hardcoded.
+- `frontend/src/api/pocketbase.source.ts` — `listCategories()` mengambil daftar id kategori dari post terbit (satu request ringan `fields: 'categories'`) lalu menghitung `postCount` nyata; tidak lagi bergantung field backend yang tidak pernah dipelihara.
+- `frontend/src/api/mock-data/categories.ts` — menghapus `postCount` hardcoded palsu (12/9/14/8/11/15) dari seed agar tidak menyesatkan.
+- `frontend/src/components/sections/CategoriesSection.vue` — fallback `?? 12` diganti `?? 0` supaya UI tidak pernah menampilkan angka palsu.
+
+### Why
+- Counter kategori di homepage ("Top trending topics") menampilkan jumlah yang tidak sesuai post: di mode mock angkanya hardcoded (mis. Technology 12 padahal hanya 3 post), di mode PocketBase field `postCount` tidak pernah diperbarui oleh hook backend sehingga selalu 0/undefined dan UI jatuh ke fallback 12.
+
+### How it was verified
+- `npm run typecheck` (`vue-tsc --noEmit`) → 0 error.
+- `npm run lint` (`eslint .`) → 0 error.
+- `npm run test` (`vitest run`) → 25 test files, 237 tests passed (sebelumnya 233; +4 test baru).
+- Test baru:
+  - `mock.source.test.ts`: `listCategories` mengembalikan postCount sesuai post terbit (technology=3, design=4, travel=3, food=2, music=3, lifestyle=3); bertambah saat post terbit dibuat; draft tidak dihitung.
+  - `pocketbase.source.test.ts`: `listCategories` menghitung postCount dari post terbit dan memanggil filter status published.
+
+### Handover notes / follow-ups
+- Backend tetap memelihara `postCount` pada collection users, tetapi untuk categories belum ada hook recompute; keputusan sengaja: perhitungan dilakukan di lapisan DataSource frontend agar akurat untuk semua mode (mock & PocketBase) tanpa migrasi schema.
+- Jika nanti ingin sinkronisasi skala besar, opsi lanjutan: tambah hook Go `recomputeCategoryCount` di `registerPostHooks`/`registerCategoryHooks` (create/update/delete post) + backfill sekali jalan.
+
 ## [2026-11-04] — Perbaikan Layout Bertumpuk Hero Section & Truncation Playlist Video (Mobile & Desktop)
 **Author**: Antigravity · **Role**: Dev/QA/DevOps · **Status**: Done
 

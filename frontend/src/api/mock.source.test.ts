@@ -333,6 +333,58 @@ describe('MockSource', () => {
     expect(allTags.some((t) => t.id === newTag.id)).toBe(false)
   })
 
+  it('listCategories returns postCount computed from published posts', async () => {
+    const source = new MockSource()
+    const cats = await source.listCategories()
+
+    const counts = new Map(cats.map((c) => [c.slug, c.postCount]))
+    expect(counts.get('technology')).toBe(3)
+    expect(counts.get('design')).toBe(4)
+    expect(counts.get('travel')).toBe(3)
+    expect(counts.get('food')).toBe(2)
+    expect(counts.get('music')).toBe(3)
+    expect(counts.get('lifestyle')).toBe(3)
+  })
+
+  it('listCategories updates counts when a published post is created', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+
+    const cats = await source.listCategories()
+    const tech = cats.find((c) => c.slug === 'technology')!
+
+    await source.createPost({
+      title: 'A new technology story',
+      excerpt: 'Brief excerpt.',
+      content: '<p>Body</p>',
+      categoryIds: [tech.id],
+    })
+
+    const updated = await source.listCategories()
+    const techUpdated = updated.find((c) => c.id === tech.id)!
+    expect(techUpdated.postCount).toBe((tech.postCount ?? 0) + 1)
+  })
+
+  it('listCategories ignores draft posts when counting', async () => {
+    const source = new MockSource()
+    await source.login('demo', 'password')
+
+    const cats = await source.listCategories()
+    const tech = cats.find((c) => c.slug === 'technology')!
+
+    await source.createPost({
+      title: 'Draft story',
+      excerpt: 'Brief excerpt.',
+      content: '<p>Body</p>',
+      status: 'draft',
+      categoryIds: [tech.id],
+    })
+
+    const updated = await source.listCategories()
+    const techUpdated = updated.find((c) => c.id === tech.id)!
+    expect(techUpdated.postCount).toBe(tech.postCount)
+  })
+
   it('increments the view counter when tracking a view', async () => {
     const source = new MockSource()
     const page = await source.listPosts({ page: 1, perPage: 1 })

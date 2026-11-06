@@ -412,7 +412,14 @@ export class MockSource implements DataSource {
 
   async listCategories(): Promise<Category[]> {
     await wait()
-    return this.categories
+    const counts = new Map<string, number>()
+    for (const post of this.posts) {
+      if (post.status !== 'published') continue
+      for (const cat of post.categories) {
+        counts.set(cat.id, (counts.get(cat.id) ?? 0) + 1)
+      }
+    }
+    return this.categories.map((c) => ({ ...c, postCount: counts.get(c.id) ?? 0 }))
   }
 
   async saveCategory(input: CategoryInput): Promise<Category> {

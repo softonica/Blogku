@@ -1064,6 +1064,10 @@ func registerPostHooks(app core.App) {
 			return errors.New("posts can have at most 5 tags")
 		}
 
+		if err := adjustCategoryCounts(app, record, nil, false); err != nil {
+			return err
+		}
+
 		return e.Next()
 	})
 
@@ -1073,6 +1077,26 @@ func registerPostHooks(app core.App) {
 		record.Set("readingTime", readingTime(record.GetString("content")))
 		if len(record.GetStringSlice("tags")) > 5 {
 			return errors.New("posts can have at most 5 tags")
+		}
+
+		// The database still holds the pre-update record at this point.
+		old, err := app.FindRecordById("posts", record.Id)
+		if err != nil {
+			return err
+		}
+		if err := adjustCategoryCounts(app, record, old, false); err != nil {
+			return err
+		}
+
+		return e.Next()
+	})
+
+	app.OnRecordDeleteRequest("posts").BindFunc(func(e *core.RecordRequestEvent) error {
+		// The record still exists in the database when the delete request
+		// hook runs, so the same adjustment removes the post from its
+		// categories' counters before the delete proceeds.
+		if err := adjustCategoryCounts(app, e.Record, e.Record, true); err != nil {
+			return err
 		}
 		return e.Next()
 	})
@@ -1199,6 +1223,109 @@ func recomputePostCount(app core.App, authorID string) error {
 	}
 	author.Set("postCount", total)
 	return app.Save(author)
+}
+
+// adjustCategoryCounts applies the delta caused by a single post mutation to
+// the postCount field of all affected categories. It runs synchronously
+// inside the request hooks while the database still reflects the state before
+// the write, so the formulas are:
+//
+//	create: current count + 1 for every new published post per category
+//	update: current count - old contribution + new contribution
+//	delete: current count - 1 for every deleted published post per category
+//
+// draft posts never contribute to the counters.
+func adjustCategoryCounts(app core.App, record, old *core.Record, removing bool) error {
+	newCats := record.GetStringSlice("categories")
+	oldCats := []string{}
+	if old != nil {
+		oldCats = old.GetStringSlice("categories")
+	}
+
+	newPublished := !removing && record.GetString("status") == "published"
+	oldPublished := false
+	if old != nil {
+		oldPublished = old.GetString("status") == "published"
+	}
+
+	affected := map[string]struct{}{}
+	for _, id := range oldCats {
+		affected[id] = struct{}{}
+	}
+	for _, id := range newCats {
+		affected[id] = struct{}{}
+	}
+
+	for id := range affected {
+		posts, err := app.FindRecordsByFilter(
+			"posts",
+			"categories ~ {:category} && status = {:status}",
+			"",
+			-1, 0,
+			dbx.Params{"category": id, "status": "published"},
+		)
+		if err != nil {
+			return err
+		}
+		total := len(posts)
+
+		if stringSliceContains(oldCats, id) && oldPublished {
+			total--
+		}
+		if stringSliceContains(newCats, id) && newPublished {
+			total++
+		}
+		if total < 0 {
+			total = 0
+		}
+
+		cat, err := app.FindRecordById("categories", id)
+		if err != nil {
+			return err
+		}
+		cat.Set("postCount", total)
+		if err := app.Save(cat); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func stringSliceContains(items []string, target string) bool {
+	for _, item := range items {
+		if item == target {
+			return true
+		}
+	}
+	return false
+}
+
+
+func recomputeAllCategoryCounts(app core.App) error {
+	posts, err := app.FindRecordsByFilter("posts", "status = {:status}", "", -1, 0, dbx.Params{"status": "published"})
+	if err != nil {
+		return err
+	}
+
+	counts := map[string]int{}
+	for _, post := range posts {
+		for _, id := range post.GetStringSlice("categories") {
+			counts[id]++
+		}
+	}
+
+	categories, err := app.FindRecordsByFilter("categories", "", "", -1, 0)
+	if err != nil {
+		return err
+	}
+	for _, cat := range categories {
+		cat.Set("postCount", counts[cat.Id])
+		if err := app.Save(cat); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func bumpPostCounter(app core.App, postID, field string, delta int64) error {

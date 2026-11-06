@@ -302,6 +302,48 @@ describe('PocketBaseSource', () => {
     expect(pb.collection('users').authWithPassword!).toHaveBeenLastCalledWith('newuser', 'password123')
   })
 
+  it('listCategories computes postCount from published posts', async () => {
+    const { pb } = makePb({
+      collections: {
+        categories: {
+          getFullList: vi.fn().mockResolvedValue([
+            {
+              id: 'c1',
+              name: 'Tech',
+              slug: 'tech',
+              description: 'd',
+              image: 'i.jpg',
+              parent: null,
+              postCount: 99,
+            },
+            {
+              id: 'c2',
+              name: 'Travel',
+              slug: 'travel',
+              description: 'd2',
+              image: 'i2.jpg',
+              parent: null,
+              postCount: 99,
+            },
+          ]),
+        },
+        posts: {
+          getFullList: vi.fn().mockResolvedValue([
+            { id: 'p1', categories: ['c1'] },
+            { id: 'p2', categories: ['c1', 'c2'] },
+            { id: 'p3', categories: ['c2'] },
+          ]),
+        },
+      },
+    })
+    const source = new PocketBaseSource(pb as never)
+    const cats = await source.listCategories()
+
+    expect(cats.find((c) => c.id === 'c1')?.postCount).toBe(2)
+    expect(cats.find((c) => c.id === 'c2')?.postCount).toBe(2)
+    expect(pb.filter).toHaveBeenCalledWith('status = {:status}', { status: 'published' })
+  })
+
   it('uploadFile builds multipart and returns url', async () => {
     const { pb } = makePb({
       collections: {
