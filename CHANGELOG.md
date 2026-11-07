@@ -5,6 +5,37 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-07] — Cloudflare Pages Produksi Memakai Mock Data (Tanpa Backend blog.artku.my.id)
+
+**Author**: OpenCode Agent
+**Role**: DevOps/Frontend
+**Status**: Done
+
+### What changed
+- Merge `feat/blogku-single-binary` → `main` secara fast-forward (commit `42c3c94`) dan push ke `origin/main`.
+- Cloudflare Pages project `blogku` (production): environment variable `VITE_USE_POCKETBASE` (`true`) dan `VITE_PB_URL` (`https://blog.artku.my.id`) dihapus (di-set `null`).
+- Produksi dideploy ulang dari `main` (`42c3c94`) → deployment `37a999aa` (build & deploy sukses).
+- Dokumentasi baru: `docs/cloudflare-pages-mock-mode.md` + entri indeks di `docs/README.md`.
+
+### Why
+- Permintaan: situs Cloudflare Pages harus memakai mock data, bukan backend produksi `blog.artku.my.id`.
+- Tanpa `VITE_USE_POCKETBASE=true`, `frontend/src/main.ts` memilih `MockSource`. `VITE_PB_URL` dihapus agar endpoint backend tidak ter-inline ke bundle.
+
+### How it was verified
+- `pages_get` → `deployment_configs.production.env_vars = null`; preview juga `null`.
+- `pages_deployments_get` deployment `37a999aa` → stage `build:success`, `deploy:success`, `env_vars: {}`.
+- Build lokal tanpa env backend → tidak ada referensi `blog.artku.my.id` di `frontend/dist`.
+- Bundle produksi `https://blogku-7rq.pages.dev/assets/index-CY_IboAP.js` → tidak mengandung `blog.artku.my.id`.
+- Playwright ke `https://37a999aa.blogku-7rq.pages.dev/` → tidak ada request `/api/`, tanpa console error, konten mock tampil.
+- Playwright login: prefill `demo / password`, hint `demo / password` tampil, submit → `/dashboard`, tanpa request `/api/`.
+
+### Handover notes
+- Untuk mengembalikan koneksi backend: set `VITE_USE_POCKETBASE=true` dan `VITE_PB_URL=https://blog.artku.my.id` di Pages production, lalu redeploy.
+- Push ke `main` memicu build Pages otomatis (path include: `frontend/**`, `package.json`, `package-lock.json`); commit khusus `docs/**` tidak memicu build.
+- Branch `feat/blogku-single-binary` sudah sepenuhnya masuk ke `main` (fast-forward).
+
+---
+
 ## [2026-11-07] — Samakan Password Akun Mock `demo` & `admin` Menjadi `password`
 
 **Author**: OpenCode Agent
