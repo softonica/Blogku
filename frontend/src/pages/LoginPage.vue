@@ -24,7 +24,7 @@ const mode = ref<'login' | 'register'>(
 )
 
 const identifier = ref(usingPocketBase ? '' : 'demo')
-const password = ref(usingPocketBase ? '' : 'demo')
+const password = ref(usingPocketBase ? '' : 'password')
 const showPassword = ref(false)
 const error = ref('')
 
@@ -340,14 +340,14 @@ const tabClass =
       v-if="mode === 'login' && !usingPocketBase"
       class="mt-4 sm:mt-5 rounded-lg sm:rounded-2xl border border-primary-100 bg-primary-50 p-3 sm:p-4 text-xs leading-relaxed text-primary-800 dark:border-primary-900 dark:bg-primary-950 dark:text-primary-200"
     >
-      <p class="font-semibold">Demo account: Try sign in with <code class="font-mono">demo / demo</code></p>
+      <p class="font-semibold">Demo account: Try sign in with <code class="font-mono">demo / password</code></p>
       <div class="mt-2 flex flex-wrap gap-2">
         <button
           type="button"
           class="rounded-lg sm:rounded-xl bg-white px-2.5 py-1 text-xs font-semibold shadow-xs hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-          @click="identifier = 'demo'; password = 'demo'"
+          @click="identifier = 'demo'; password = 'password'"
         >
-          demo <span class="text-neutral-400 font-normal">(Penulis demo/demo)</span>
+          demo <span class="text-neutral-400 font-normal">(Penulis demo/password)</span>
         </button>
         <button
           type="button"

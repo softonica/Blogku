@@ -59,6 +59,13 @@ const PAGES_KEY = 'ncmaz.mock.pages.v1'
 const EDITOR_SETTINGS_KEY = 'ncmaz.mock.editor-settings.v1'
 const MEDIA_KEY = 'ncmaz.mock.media.v1'
 
+/**
+ * Password shared by every seeded mock account (`demo`, `admin`, `subscriber`,
+ * and the seeded authors). Keep this in sync with the demo hints on the login
+ * page and the auth tests.
+ */
+const MOCK_PASSWORD = 'password'
+
 interface ReactionRecord {
   postId: string
   userId: string
@@ -676,10 +683,7 @@ export class MockSource implements DataSource {
         item.username.toLowerCase() === identifier ||
         item.email.toLowerCase() === identifier,
     )
-    const isValidPass =
-      (user?.username === 'demo' && (password === 'demo' || password === 'password')) ||
-      password === 'password'
-    if (!user || !isValidPass) {
+    if (!user || password !== MOCK_PASSWORD) {
       throw new Error('Invalid username or password')
     }
     writeJson(SESSION_KEY, { userId: user.id })
@@ -737,11 +741,7 @@ export class MockSource implements DataSource {
     const current = this.currentUser()
     if (!current) throw new Error('LOGIN_REQUIRED')
 
-    const mockPasswordValid =
-      (current.username === 'demo' &&
-        (input.currentPassword === 'demo' || input.currentPassword === 'password')) ||
-      input.currentPassword === 'password'
-    if (!mockPasswordValid) {
+    if (input.currentPassword !== MOCK_PASSWORD) {
       throw new Error('Current password is incorrect')
     }
     void input.newPassword

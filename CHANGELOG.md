@@ -5,6 +5,34 @@ Format: lihat `.agents/rules/change-log.md` dan section "LOG PERUBAHAN GAYA KERJ
 
 ---
 
+## [2026-11-07] — Samakan Password Akun Mock `demo` & `admin` Menjadi `password`
+
+**Author**: OpenCode Agent
+**Role**: Frontend/QA
+**Status**: Done
+
+### What changed
+- `frontend/src/api/mock.source.ts`: menambahkan konstanta `MOCK_PASSWORD = 'password'` dan memakainya di `login()` serta `changePassword()`. Aturan lama yang menerima `demo/demo` (dan `password === 'password'` untuk user apa pun tanpa validasi username) dihapus.
+- `frontend/src/api/mock.source.ts` (login): kredensial hanya valid jika username/email terdaftar **dan** password sama dengan `MOCK_PASSWORD`.
+- `frontend/src/pages/LoginPage.vue`: prefill password mock menjadi `password`, tombol quick-login `demo` mengisi `demo / password`, dan teks hint diperbarui.
+- `frontend/src/api/mock.source.test.ts`: test `demo/demo` diganti menjadi test yang memastikan `demo/demo` ditolak, sedangkan `demo/password` dan `admin/password` diterima.
+- `docs/features/06-ncmaz-faust-redesign-and-submission.md`: referensi kredensial demo diperbarui ke `demo / password`.
+
+### Why
+- Mock data tidak konsisten: hint login dan prefill memakai `demo / demo`, sementara akun `admin` dan `subscriber` memakai `password`. Aturan lama juga membuat password `password` berlaku untuk user mana pun yang cocok, bukan hanya akun demo/seed.
+
+### How it was verified
+- `npm run test -- --run src/api/mock.source.test.ts` → 30 passed.
+- `npm run test` (frontend) → 25 files, 237 tests passed.
+- `npm run typecheck` (`vue-tsc --noEmit`) → lulus tanpa error.
+- `npx eslint src/api/mock.source.ts src/api/mock.source.test.ts src/pages/LoginPage.vue` → bersih.
+
+### Handover notes
+- Kredensial mock sekarang seragam: `demo / password`, `admin / password`, `subscriber / password` (dan akun penulis seed lainnya juga `password`).
+- Seed backend/PocketBase (`admin12345`, `demo12345`) **tidak** diubah karena itu data produksi/dev server, bukan mock frontend.
+
+---
+
 ## [2026-11-05] — Deploy Hook Sinkronisasi Count Kategori ke Server 64 (+ Backfill Data)
 
 **Author**: OpenCode Agent

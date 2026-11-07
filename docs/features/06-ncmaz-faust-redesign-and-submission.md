@@ -19,7 +19,7 @@ Menyelaraskan seluruh tata letak (layout), tipografi, ambient glow, kartu magazi
 4. **Magazine Podcast (`nc-SectionMagazine8`)**: Bagian audio live dengan 2 kartu poster besar (`nc-Card16Podcast`) dan 4 kartu pil horizontal (`nc-Card17Podcast`) dilengkapi tombol play.
 5. **Video Interaktif (`nc-SectionSliderPosts`)**: Pemutar video aktif utama (YouTube/MP4) dipasangkan dengan antrean playlist video yang responsif.
 6. **Halaman Submission (`/submission`)**: Editor penulisan artikel dokumen-sentris tanpa distraksi dengan header status, title editor tanpa border (`placeholder="New post title here…"`), bar tag interaktif, dan modal *Post options* lengkap.
-7. **Otentikasi Demo Cepat**: Dukungan login instan menggunakan akun `demo` dengan kata sandi `demo` (dan `password`).
+7. **Otentikasi Demo Cepat**: Dukungan login instan menggunakan akun `demo` dengan kata sandi `password` (sama seperti akun seed `admin` dan `subscriber`).
 
 ---
 
@@ -32,7 +32,7 @@ Menyelaraskan seluruh tata letak (layout), tipografi, ambient glow, kartu magazi
 4. Pengguna menyaring artikel terbaru (*Latest articles 🎈*) berdasarkan tab kategori interaktif tanpa memuat ulang seluruh halaman.
 
 ### B. Penulisan & Submission (`/submission`)
-1. Pengguna masuk menggunakan kredensial demo (`demo / demo`) atau akun penulis terdaftar.
+1. Pengguna masuk menggunakan kredensial demo (`demo / password`) atau akun penulis terdaftar.
 2. Penulis dialihkan ke `/submission` dengan antarmuka dokumen minimalis.
 3. Penulis mengetik judul langsung pada judul besar tanpa border.
 4. Penulis dapat mengetik tag `# tag-name` secara inline (tekan spasi atau enter untuk menambahkan, dibatasi maksimal 5 tag).
@@ -66,7 +66,7 @@ frontend/src/
 ├── pages/
 │   ├── HomePage.vue                 # Menggabungkan seluruh alur section Ncmaz Faust
 │   ├── EditorPage.vue               # Halaman submission dokumen-sentris & modal options
-│   ├── LoginPage.vue                # Mendukung quick demo account demo/demo
+│   ├── LoginPage.vue                # Mendukung quick demo account demo/password
 ├── router/
 │   └── index.ts                     # Mendaftarkan rute /submission dan /submission/:id
 ```
@@ -115,4 +115,4 @@ export interface PostInput {
 
 1. **Typechecking**: `npm run typecheck` (`vue-tsc --noEmit`) lulus 100% tanpa error.
 2. **Unit Test**: `npm run test` (`vitest run`) lulus 59/59 tes.
-3. **Demo Auth Test**: Verifikasi otomatis di `mock.source.test.ts` untuk autentikasi kredensial `demo / demo`.
+3. **Demo Auth Test**: Verifikasi otomatis di `mock.source.test.ts` untuk autentikasi kredensial `demo / password`, `admin / password`, dan penolakan `demo / demo`.

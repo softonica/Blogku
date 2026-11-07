@@ -100,11 +100,17 @@ describe('MockSource', () => {
     expect(comments.some((comment) => comment.id === created.id)).toBe(true)
   })
 
-  it('supports demo login with demo/demo credentials', async () => {
+  it('accepts only the shared mock password for demo and admin', async () => {
     const source = new MockSource()
-    const user = await source.login('demo', 'demo')
-    expect(user.username).toBe('demo')
-    expect(user.role).toBe('penulis')
+    await expect(source.login('demo', 'demo')).rejects.toThrow(
+      'Invalid username or password',
+    )
+    const demo = await source.login('demo', 'password')
+    expect(demo.username).toBe('demo')
+    expect(demo.role).toBe('penulis')
+    const admin = await source.login('admin', 'password')
+    expect(admin.username).toBe('admin')
+    expect(admin.role).toBe('admin')
   })
 
   it('rejects empty and oversized comments', async () => {
